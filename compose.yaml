@@ -1,0 +1,16 @@
+# ADFC Codierauftrag — production compose
+# The container listens on plain HTTP; the existing reverse-proxy terminates TLS and
+# proxies to 127.0.0.1:8080. The volume is MANDATORY: without it every release
+# wipes the SQLite cache and with it the stale-fallback guarantee.
+services:
+  codierauftrag:
+    image: ghcr.io/adfcdu/codierauftrag:latest   # or :vX.Y.Z
+    container_name: codierauftrag
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:8080:8080"       # localhost only — reverse-proxy proxies to it
+    volumes:
+      - ./data:/data               # SQLite cache — MANDATORY
+# One-time preparation on the VPS (the container runs as uid/gid 1000):
+#   mkdir -p data && chown -R 1000:1000 data

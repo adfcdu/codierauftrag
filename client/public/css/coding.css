@@ -1,0 +1,685 @@
+body {
+    margin: 0;
+    /* Modern System-Font-Stack — Arial nur als Fallback.
+       Das Logo (#logo-text) bleibt auf Arial gepinnt: dom.ts misst den
+       Auto-Fit per Canvas mit Arial. */
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+}
+
+/* Karte = #app — auf #app gescopet, damit die Versionszeile
+   (body > div.page-version, unterhalb der Karte) keinen Karten-Stil erbt */
+body > div#app {
+    max-width: 960px;
+    background-color: white;
+    padding: 10px;
+}
+
+/* Icon sprite — CSP forbids inline styles. */
+.icon-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+.std-stroke {
+    stroke: #ee7f00;
+    stroke-width: 10px;
+    fill: none;
+    stroke-linecap: round;
+}
+.fill-bright {
+    fill: #ee7f00;
+    fill-opacity: 0.3;
+}
+.stroke-medium-bright {
+    opacity: 0.8;
+}
+.filled-rect {
+    stroke-width: 1px;
+    stroke: #ee7f00;
+    fill: #ee7f00;
+}
+.white-filled {
+    stroke: #fff;
+    stroke-width: 8px;
+    fill: #ee7f00;
+}
+
+@media only screen and (min-width: 990px) {
+    body {
+        background-color: #f2f6f8;
+    }
+    
+    body > div#app {
+        margin: 1vw auto;
+        border-radius:10px;
+        box-shadow: 5px 5px 5px 1px rgba(5, 5, 5, 0.19);
+    }
+}
+
+body.impressum {
+    margin: 8px;
+    max-width: 960px;
+}
+
+.header,
+.instructions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2vw;
+    padding: 0 20px;
+}
+
+.header {
+    align-items: start;
+    padding-top: 1vw;
+}
+
+.header-divider {
+    border: none;
+    height: 3px;
+    background-color: #ee7f00;
+    margin: 15px 20px 15px;
+}
+
+.header-text h2 {
+    font-size: 1.8em;
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+/* Intro-Absatz: UA-Margin (1em) kollabiert mit der h2-Margin zu 15px —
+   auf 8px reduzieren, dafür die h2-Margin wirken lassen */
+.header-text h2 + p {
+    margin-top: 0;
+}
+
+.header-text a,
+.header-text a:visited {
+    color: #0f4b7c;
+    font-size: 2.0em;
+    text-decoration: none;
+}
+/* Bei Hover nur den Linktext (span) unterstreichen, nicht den Pfeil (::after) */
+.header-text a:hover > span {
+    text-decoration: underline;
+}
+.header-text a.codierung-info-link::after {
+    content: "\00a0>";
+}
+/* "Informationen zur Codierung" als blauer Button — Rezept wie .step p a.btn,
+   nur in #0f4b7c mit weißer Schrift statt Orange */
+.header-text a.codierung-info-link,
+.header-text a.codierung-info-link:visited {
+    display: inline-block;
+    background-color: #0f4b7c;
+    color: #fff;
+    border-radius: 0;
+    padding: 10px 16px;
+    font-size: 21px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.2;
+    text-decoration: none;
+}
+/* Bei Hover nur den Linktext (span) unterstreichen — wie oben; der Pfeil
+   (a::after) bleibt frei */
+.header-text a.codierung-info-link:hover > span {
+    text-decoration: underline;
+}
+
+/* Datenschutz-Hinweis: der 2. Absatz im Header-Text (nach dem Intro).
+   Bewusst ohne Klasse stylen*/
+.header-text > p:nth-of-type(2) {
+    font-size: 13px;
+    color: #555;
+    margin: 8px 0 0;
+}
+.header-text > p:nth-of-type(2) a {
+    font-size: inherit;
+}
+
+@media (max-width: 700px) {
+    .header,
+    .instructions {
+        grid-template-columns: 1fr;
+    }
+
+    .header-text a.codierung-info-link,
+    .header-text a.codierung-info-link:visited {
+        font-size: clamp(16px, 4.5vw, 21px);
+        padding: 8px 12px;
+    }
+}
+
+#logo {
+    /* width: 100% zwingend: auto-Margins machen ein Grid-Item
+       fit-content-groß — ohne definite Breite kollabiert #logo-text
+       (margin-left: 40%) und der Canvas-Auto-Fit misst einen viel zu
+       kleinen Kasten → winzige Schrift. Mit width:100% ist die Breite
+       definitiv (max-width deckelt auf 400px) und auto zentriert nur. */
+    width: 100%;
+    max-width: 400px;
+    margin: 15px auto 0;
+}
+#logo-picture {
+    width: 100%
+}
+#logo-text {
+    color: #0f4b7c;
+    /* Arial gepinnt — dom.ts misst den Auto-Fit per Canvas mit Arial */
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    margin-left: 40%;
+    margin-top: -14%;
+    /* auto-fit wraps long KV names at spaces — the \n must render as a break;
+       wrapped lines are shrunk by the auto-fit and stack tightly */
+    white-space: pre-line;
+    line-height: 1;
+}
+
+.clear {
+    clear: both;
+}
+
+h3 {
+    padding-top: 8px;
+}
+
+/* Die globale h3-Regel stackt mit der UA-Default-Margin (~17,5 px) —
+   die Instructions-Überschrift begann dadurch deutlich tiefer als
+   form h2 unter demselben Trennstrich. Gleicher Rhythmus wie form h2:
+   15 px Divider-Margin + 8 px margin-top, ohne Padding. */
+.instructions h3 {
+    margin: 8px 0 0;
+    padding-top: 0;
+}
+
+.step svg.icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 14px 0 0;
+    flex-shrink: 0;
+}
+
+.step p {
+    margin: 0;
+}
+
+.step p .btn {
+    background-color: #ee7f00;
+    color: #fff;
+    padding: .3rem;
+}
+
+.step p a.btn {
+    display: inline-block;
+    background-color: #ee7f00;
+    border-radius: 0;
+    padding: 8px 12px;
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.2;
+    color: #fff;
+    text-decoration: none;
+}
+
+.step p a.btn:hover .btn-text {
+    text-decoration: underline;
+}
+
+.step p a.btn .btn-arrow {
+    margin-left: 4px;
+    font-weight: 400;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.step p.withButton {
+    line-height: 1.5;
+}
+
+.instructions > div:last-child {
+    display: flex;
+    flex-direction: column;
+}
+
+ul.checklist {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+ul.checklist li:last-child {
+    padding-bottom: 0;
+}
+
+ul.checklist li {
+    padding-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+ul.checklist li::before {
+    content: "";
+    width: 0.6em;
+    height: 0.6em;
+    border: 0.15em solid #0f4b7c;
+    border-radius: 50%;
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+}
+
+form {
+    padding: 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 960px;
+    align-items: baseline;
+}
+form h2 {
+    padding: 0 0.5vw;
+    flex-basis: 100%;
+    margin: 8px 0 0;
+}
+
+.input-text,
+.input-check,
+.input-date {
+    padding: 3px 0.5vw;
+}
+.input-text {
+    flex-grow: 2;
+    /* Basis 260 statt 300: die Kaufen-Zeile trägt vier Felder
+       (Verkäufer, Kaufort, Kaufdatum, Kaufbeleg-Toggle) — mit 300-px-Basis
+       lief die Zeile über die Kartenbreite und das Toggle brach allein um;
+       260 passt alle vier (grow 2 füllt die Zeile trotzdem auf). Übrige
+       Zeilen packen dadurch enger (Marke/Modell/Farbe teilen sich eine). */
+    width: 260px;
+}
+.input-text.narrow {
+    flex-grow: 0.5;
+    width: 120px;
+}
+/* Datum braucht mehr als die schmalen Textfelder: 16-px-Schrift + 2×12-px-
+   Padding + das UA-Kalender-Icon des Date-Inputs — 120 px schnitten die
+   Jahreszahl um ~3 Zeichen ab */
+.input-date {
+    flex-grow: 0.5;
+    width: 150px;
+}
+/* Toggle-Reihe: natürliche Zeilenbreite statt fixer 120 px — jedes Toggle
+   bricht als Ganzes um, nie Text und Schalter getrennt */
+.input-check {
+    flex: 0 0 auto;
+}
+
+.input-text label,
+.input-date label {
+    display: block;
+    margin-top: 8px;
+    margin-bottom: 2px;
+    font-size: 16px; /* body default 15px — Lesbarkeit */
+}
+label.required:after {
+    color: red;
+    content: " *";
+}
+/* Eingabefelder: weißer Grund, 1-px-Rand statt UA-Default-Optik, 8-px-Radius,
+   40 px hoch (Touch-Ziel), 16 px Schrift (verhindert zudem den iOS-Zoom beim
+   Fokus). border-box: width: 100% statt calc(100% - 6px). */
+.input-text > input,
+.input-date > input,
+.input-text .combo input {
+    font-family: inherit;
+    font-size: 16px;
+    box-sizing: border-box;
+    border: 1px solid #c9d3db;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input-text > input,
+.input-date > input {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+}
+.input-text > input:hover,
+.input-date > input:hover,
+.input-text .combo input:hover {
+    border-color: #9db0c0;
+}
+.input-text > input:focus,
+.input-date > input:focus,
+.input-text .combo input:focus {
+    outline: none;
+    border-color: #0f4b7c;
+    box-shadow: 0 0 0 3px rgba(15, 75, 124, 0.15);
+}
+/* Datalist statt select/Combobox: Vorschläge laufen über natives
+   <input list> + <datalist>. Firefox/LibreWolf öffnet die nativen
+   Vorschläge aber erst beim Tippen — deshalb öffnet der Pfeil-Button
+   (combobox.ts, ARIA-Combobox-Fallback) die komplette Liste per Klick. */
+.input-text .combo {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-text .combo input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    /* margin:0 auto der geteilten Regel überschreiben — im Flex-Row
+       zentriert auto den Input statt ihn füllen zu lassen */
+    margin: 0;
+}
+.combo-arrow {
+    flex: 0 0 36px;
+    height: 40px; /* wie Input gesamt */
+    box-sizing: border-box;
+    /* komplette Kurzform — sonst lebt das margin-top:15px aus `form button`
+       weiter und drückt den Pfeil nach unten */
+    margin: 0 0 0 2px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background-color: transparent;
+    cursor: pointer;
+    /* Flex statt Verlass auf die UA-Button-Content-Zentrierung — die
+       positioniert das SVG in Firefox/LibreWolf oben statt mittig */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.combo-arrow:hover,
+.combo-arrow[aria-expanded="true"] {
+    background-color: #f2f6f8;
+}
+.combo-arrow svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+.combo-listbox {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 220px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    background-color: #fff;
+    border: 1px solid #c9d3db;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 6px 16px 2px rgba(5, 5, 5, 0.15);
+    z-index: 30;
+}
+.combo-listbox li {
+    padding: 8px 10px;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+.combo-listbox li.active,
+.combo-listbox li:hover {
+    background-color: #f2f6f8;
+}
+/* Toggle-Schalter statt native Checkbox: das input bleibt
+   Zustandsquelle (values.ts liest .checked) — nur die Optik ist ersetzt.
+   Zweizeiliger Block wie die Textfelder: Labeltext oben (gleicher Rhythmus
+   wie .input-text label), Schalter darunter — horizontal unter den Text
+   zentriert (fit-content schrumpft den Block auf die Textbreite, margin
+   auto zentriert den Schalter darin). Touch-Ziel ist der ganze Label-Block;
+   der Schalter selbst misst 44×24 px. Ein = ADFC-Blau, Aus = Rand-Grau. */
+.input-check {
+    flex: 0 0 auto;
+}
+label.toggle {
+    display: block;
+    width: fit-content;
+    margin-top: 8px; /* wie .input-text label */
+    font-size: 16px;
+    line-height: 1.2;
+    cursor: pointer;
+}
+label.toggle .toggle-text {
+    display: block;
+    margin-bottom: 2px; /* wie .input-text label */
+    transition: color 0.15s ease;
+}
+label.toggle:hover .toggle-text {
+    color: #0f4b7c;
+}
+label.toggle input {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 44px;
+    height: 24px;
+    /* zentriert den 24-px-Schalter horizontal unter dem Labeltext (margin
+       auto im fit-content-Block) und vertikal im 40-px-Band, in dem bei
+       Textfeldern der Input sitzt: (40−24)/2 = 8px unter der Labelzeile */
+    margin: 8px auto 0;
+    border-radius: 12px;
+    background-color: #c9d3db;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+label.toggle input::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
+}
+label.toggle input:checked {
+    background-color: #0f4b7c;
+}
+label.toggle input:checked::after {
+    transform: translateX(20px);
+}
+label.toggle input:focus-visible {
+    outline: 2px solid rgba(15, 75, 124, 0.55);
+    outline-offset: 2px;
+}
+.validation-msg {
+    margin: 5px 0;
+    font-size: 12px;
+    font-style: italic;
+    color: red;
+}
+
+
+form .break {
+    flex-basis: 100%;
+    height: 0;
+}
+form .break.divider {
+    margin-bottom: 8px;
+}
+
+form button { /* ADFC style */
+    border: none;
+    border-radius: 0;
+    margin: 15px 0.5vw 0;
+    background-color: #ee7f00;
+    color: #fff;
+    font-size: 17px;
+    padding: .8rem 1.5rem;
+    cursor: pointer;
+}
+form button[disabled] {
+    background-color: rgba(238,127,0,0.5);
+    cursor: not-allowed;
+}
+form button:not([disabled]):hover {
+    text-decoration: underline;
+}
+
+#price {
+    font-size: 17px;
+    font-weight: bold;
+    margin-left: 0.5vw;
+    display: block;
+    margin-top: 15px;
+}
+
+div.bottom {
+    width: 100%;
+    max-width: 960px;
+    /* border-box, sonst wird div.bottom um das Padding 40px breiter
+       als die Karte und ragt auf schmalen Screens ueber den rechten Rand
+       hinaus (EIN-Tabelle klebt dann am Bildschirmrand) */
+    box-sizing: border-box;
+    padding: 0 20px;
+    margin: 5px 0;
+}
+
+.page-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    /* 14 px statt 15 px: auf Linux wird aus system-ui DejaVu Sans (~13 % breiter
+       als Arial) — die zentrierte Leiste lief damit bei 900 px Kartenbreite über
+       und brach in eine zweite Zeile. Gemessen (Duisburg-Config, 4 Einträge): Arial
+       15px 880 px ✓, DejaVu 15px 979 px ✗, DejaVu 14px 809 px.
+       Gap 2em: DejaVu 14px füllt die Leiste damit randnah aus (893 px von
+       900 — space-between war zu breit gestreut, 1.25em ließ ~19 px Luft) —
+       flex-wrap bleibt als gewollter Umbruch auf schmalen Screens. */
+    column-gap: 2em;
+    font-size: 14px;
+    margin: 0 20px 5px;
+    color: #555;
+}
+
+.page-footer a {
+    color: #555;
+    text-decoration: none;
+}
+
+.page-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Kleine Versionszeile unterhalb der weißen Karte — dieselbe
+   Versionsnummer wie die PDF-Fußzeile. */
+.page-version {
+    max-width: 960px;
+    margin: 0 auto 10px;
+    text-align: center;
+    color: #555;
+    font-size: 11px;
+}
+
+.ein-box {
+    float: right;
+    margin: 0 10px 15px 20px;
+}
+
+.ein-title {
+    margin: 0 0 6px 0;
+    font-size: 20px;
+    color: #000;
+}
+
+table.ein-data {
+    background-color: #0f4b7c;
+    color: white;
+    border: 3px solid #ee7f00;
+    border-collapse: collapse;
+}
+
+table.ein-data th,
+table.ein-data td {
+    text-align: center;
+    font-weight: normal;
+    padding: 8px;
+    border: 1px solid white;
+}
+
+table.ein-data td {
+    font-size: 24px;
+}
+
+/* Auf schmalen Bildschirmen EIN-Tabelle und Preis untereinander statt
+   als Float nebeneinander anzuordnen - Floats fuehren dort zu
+   unvorhersehbaren Umbruellen (Text umfliesst die Tabelle mal links,
+   mal darunter), daher auf schmalen Screens deterministisch stapeln. */
+@media (max-width: 700px) {
+    /* div.bottom als Flex-Spalte, damit die Preisangabe per order:-1
+       ueber der EIN-Tabelle angezeigt werden kann (DOM-Reihenfolge ist
+       Tabelle zuerst - Desktop-Float-Layout bleibt unberuehrt) */
+    div.bottom {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* hoehere Spezifitaet als .ein-box, damit die Regel unabhaengig
+       von der Reihenfolge im Stylesheet gewinnt */
+    div.bottom .ein-box {
+        float: none;
+        /* linker Rand wie bei Formularfeldern und Buttons (0.5vw),
+           15px Abstand nach unten zum orangefarbenen Trennstrich */
+        margin: 15px 0 15px 0.5vw;
+    }
+
+    div.bottom #price {
+        order: -1;
+        display: block;
+        margin-top: 15px;
+    }
+
+    table.ein-data th,
+    table.ein-data td {
+        padding: 4px;
+    }
+}
+
+p.price {
+    margin: 20px;
+}
+
+/* Busy-Indikator an Ort/Straße, während eine Code-Abfrage läuft —
+   das Feld bleibt editierbar. */
+.input-text.busy label::after {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-left: 8px;
+    vertical-align: middle;
+    border: 2px solid #ee7f00;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: busy-spin 0.8s linear infinite;
+}
+
+@keyframes busy-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

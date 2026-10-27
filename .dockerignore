@@ -1,0 +1,10 @@
+node_modules
+dist
+client/dist
+pdf-preview
+data
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.git
+.gitignore

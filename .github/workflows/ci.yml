@@ -1,0 +1,54 @@
+# CI: lint → all tests → build (tsc + vite + bundle check) → Docker image build
+# (no push).
+# On tag vX.Y.Z the image is pushed to GHCR (linux/amd64 only — the VPS is x64).
+name: CI
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-26.04   # pin — explicit label, not ubuntu-latest (runner-images#14748)
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '26.12'        # pin the MINOR (node:sqlite is RC — 04/07)
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test            # vitest run
+      - run: npm run build       # tsc + vite build + bundle check
+
+  image:
+    needs: test
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t codierauftrag:${{ github.sha }} .
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: build and push to GHCR
+        run: |
+          echo "${GITHUB_TOKEN}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          # the tag is the version: vX.Y.Z → APP_VERSION=X.Y.Z → PDF footer
+          # 'codierauftrag V{version}' (08 § CI/CD; vite falls back to package.json)
+          VERSION="${GITHUB_REF_NAME#v}"
+          docker buildx build --platform linux/amd64 \
+            -t ghcr.io/adfcdu/codierauftrag:${{ github.ref_name }} \
+            -t ghcr.io/adfcdu/codierauftrag:latest \
+            --build-arg APP_VERSION="$VERSION" \
+            --push .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
