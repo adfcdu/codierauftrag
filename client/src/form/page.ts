@@ -314,7 +314,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     textField(doc, { id: 'art', label: 'Radart', maxlength: MAX_LENGTHS['art']!, list: 'dl-art' }),
     // Carbon-Rahmen in der Radtyp/Radart-Zeile — Rahmeneigenschaft gehört zu
     // Radtyp/Radart; bleibt links von Pedelec/E-Bike
-    checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen'),
+    ...(config.zeigeCarbonRahmen ? [checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen')] : []),
     el(doc, 'div', 'break'),
     // Pedelec/E-Bike + Akku öffnen die Schaltungs-Zeile — Toggles vor den
     // Textfeldern, wie Carbon in der Zeile darüber

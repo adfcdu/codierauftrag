@@ -505,10 +505,13 @@ export async function buildPdf(
     pdfDataBoxHeader(88, 'Eigentümer*in:', 'ADFC-Mitglied:', values.mitglied);
     pdfDataBox(PAGEWIDTH, 'Nachname, Vorname:', `${values.nachname}, ${values.vorname}`);
     pdfDataBox(PAGEWIDTH, 'Anschrift:', `${values.strasse} ${values.hausnr}, ${values.ort}`);
-    pdfDataBoxHeader(118, `${bikeOrTrailer}:`, 'Pedelec/E-Bike:', values.ebike, {
-      label: 'Carbon-Rahmen:',
-      value: values.carbonRahmen,
-    });
+    pdfDataBoxHeader(
+      118,
+      `${bikeOrTrailer}:`,
+      'Pedelec/E-Bike:',
+      values.ebike,
+      config.zeigeCarbonRahmen ? { label: 'Carbon-Rahmen:', value: values.carbonRahmen } : undefined,
+    );
     pdfDataBox(PAGEWIDTH * 0.28, 'Marke:', values.marke);
     pdfDataBox(PAGEWIDTH * 0.28, 'Modell:', values.modell);
     pdfDataBox(PAGEWIDTH * 0.22, 'Farbe:', values.farbe);

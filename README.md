@@ -306,7 +306,8 @@ Eine einzige `.env`-Datei ist die komplette Konfigurationsoberfläche (Docker
 kommentiert). Sie umfasst das Erscheinungsbild der
 Instanz (Kreisverband, Logo-Text, URLs, Kontakt-Schalter), das Gebührensystem
 (Mitglieder-/Nichtmitglieder-Preise, Anhänger- und Akku-Zuschläge, Umsatzsteuer),
-PDF-Optionen (eine vs. zwei Ausfertigungen, Bar-/Kartenzahlung), Barcode-Typ und
+PDF-Optionen (eine vs. zwei Ausfertigungen, Bar-/Kartenzahlung), Carbon-Rahmen
+(`ZEIGE_CARBONRAHMEN` — Feld, Preisberechnung und PDF-Zeile gemeinsam), Barcode-Typ und
 Jahr-in-der-EIN sowie die Infrastruktur: Port, `TZ` (IANA-Zeitzone — validiert; sie
 bestimmt das EIN-Jahr und den PDF-Zeitstempel, *nie* die Browser-Zone der
 Besucher*in), Upstream-URLs, Cache-Regler, Circuit-Breaker

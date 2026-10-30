@@ -13,6 +13,7 @@ export interface ParsedConfig {
   ortInitial: string; // '' = unset
   datenschutzUrl: string; // default: local impressum_datenschutz.html
   zeigeAkku: boolean;
+  zeigeCarbonRahmen: boolean;
   zeigeEmail: boolean;
   emailAdresse: string;
   zeigeTelefon: boolean;
@@ -99,6 +100,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
   }
 
   const zeigeAkku = bool('ZEIGE_AKKU', true);
+  const zeigeCarbonRahmen = bool('ZEIGE_CARBONRAHMEN', true);
   const zeigeEmail = bool('ZEIGE_EMAIL', false);
   const zeigeTelefon = bool('ZEIGE_TELEFON', false);
   const zeigePreise = bool('PREISE_ANZEIGEN', false);
@@ -421,6 +423,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     ortInitial,
     datenschutzUrl,
     zeigeAkku,
+    zeigeCarbonRahmen,
     zeigeEmail,
     emailAdresse,
     zeigeTelefon,

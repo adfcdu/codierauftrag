@@ -12,6 +12,7 @@ export interface PublicConfig {
   ortInitial: string;
   datenschutzUrl: string;
   zeigeAkku: boolean;
+  zeigeCarbonRahmen: boolean;
   zeigeEmail: boolean;
   emailAdresse: string;
   zeigeTelefon: boolean;
@@ -48,6 +49,7 @@ export function buildPublicConfig(config: ParsedConfig, version: string): Public
     ortInitial: config.ortInitial,
     datenschutzUrl: config.datenschutzUrl,
     zeigeAkku: config.zeigeAkku,
+    zeigeCarbonRahmen: config.zeigeCarbonRahmen,
     zeigeEmail: config.zeigeEmail,
     emailAdresse: config.emailAdresse,
     zeigeTelefon: config.zeigeTelefon,

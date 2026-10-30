@@ -10,6 +10,7 @@ export interface AppConfig {
   ortInitial: string;
   datenschutzUrl: string;
   zeigeAkku: boolean;
+  zeigeCarbonRahmen: boolean;
   zeigeEmail: boolean;
   emailAdresse: string;
   zeigeTelefon: boolean;

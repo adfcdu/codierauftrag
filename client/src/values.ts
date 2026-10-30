@@ -220,7 +220,9 @@ export function computePrice(values: FormValues): { descr: string; price: number
   // Carbon frame coding = a label instead of the engraved frame: the label
   // costs the AUFPREIS_AKKU_ amount as the bike base charge — not a surcharge
   // on top of the regular bike fee. The Akku surcharge still applies.
-  const carbon = values.carbonRahmen && !trailer;
+  // Suppressed entirely when the Carbon-Rahmen toggle is disabled (ZEIGE_CARBONRAHMEN=false) —
+  // also covers QR-prefilled values, which bypass the hidden form field.
+  const carbon = CONFIG.zeigeCarbonRahmen && values.carbonRahmen && !trailer;
   const base = trailer
     ? member
       ? CONFIG.preisAnhaengerMitglied

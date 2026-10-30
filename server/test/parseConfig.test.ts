@@ -51,6 +51,7 @@ describe('parseConfig — valid fixtures', () => {
     if ('errors' in result) return;
     const c = result.config;
     expect(c.zeigeAkku).toBe(true); // default true (01 table)
+    expect(c.zeigeCarbonRahmen).toBe(true); // default true
     expect(c.inklusiveJahr).toBe(true);
     expect(c.port).toBe(8080);
     expect(c.zeitzone).toBe('Europe/Berlin'); // silent default
