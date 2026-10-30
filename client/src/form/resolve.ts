@@ -14,6 +14,7 @@ import {
   genPdfEnabled,
   setBusy,
   showMessage,
+  setGenPdfBusy,
   updateEinBox,
   updateGenPdfGate,
   updatePriceLine,
@@ -199,13 +200,24 @@ export function wireForm(
     input?.addEventListener('change', () => refreshDisplay());
   }
 
-  // PDF erzeugen: lazy chunk (jsPDF + bwip-js stay out of the initial bundle)
+  // PDF erzeugen: lazy chunk (jsPDF + bwip-js stay out of the initial bundle).
+  // While the chunk loads and the PDF is generated the button shows a busy
+  // spinner — on mobile that can take a while.
+  let pdfBusy = false;
   page.genPdf.addEventListener('click', () => {
     const values = readForm(doc);
-    if (!genPdfEnabled(values, state)) return; // the gate is live — never generate an invalid PDF
+    if (!genPdfEnabled(values, state) || pdfBusy) return; // the gate is live — never generate an invalid PDF
+    pdfBusy = true;
+    setGenPdfBusy(page, true);
     void (async () => {
-      const { generatePdf } = await import('../pdf/pdf.js');
-      await generatePdf(CONFIG, { values, state });
+      try {
+        const { generatePdf } = await import('../pdf/pdf.js');
+        await generatePdf(CONFIG, { values, state });
+      } finally {
+        pdfBusy = false;
+        setGenPdfBusy(page, false);
+        refreshDisplay(); // recompute the gate from the live form values
+      }
     })();
   });
 

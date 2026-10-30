@@ -83,7 +83,15 @@ export function genPdfEnabled(values: FormValues, state: StreetcodeState): boole
 }
 
 export function updateGenPdfGate(page: BuiltPage, values: FormValues, state: StreetcodeState): void {
-  page.genPdf.disabled = !genPdfEnabled(values, state);
+  // while a PDF generation runs, the button stays disabled + spinner
+  page.genPdf.disabled = !genPdfEnabled(values, state) || page.genPdf.classList.contains('busy');
+}
+
+/** Busy state on "PDF erzeugen": spinner + disabled while the lazy chunk
+ *  (jsPDF + bwip-js) loads and the PDF is generated. */
+export function setGenPdfBusy(page: BuiltPage, busy: boolean): void {
+  page.genPdf.classList.toggle('busy', busy);
+  page.genPdf.disabled = busy;
 }
 
 /** Logo auto-fit: canvas-measure binary search, 8–60 px, 0.85 × logoText width.
