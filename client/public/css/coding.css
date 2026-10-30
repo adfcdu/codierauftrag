@@ -178,6 +178,7 @@ body.impressum {
     font-size: 20px;
     margin-left: 40%;
     margin-top: -14%;
+    margin-bottom: 20px;
     /* auto-fit wraps long KV names at spaces — the \n must render as a break;
        wrapped lines are shrunk by the auto-fit and stack tightly */
     white-space: pre-line;
