@@ -367,6 +367,9 @@ env -u LD_LIBRARY_PATH -u LD_PRELOAD setsid node --env-file=.env dist/app.js \
   </dev/null > data/server.log 2>&1 & echo $! > data/server.pid
 exit 0
 # → http://localhost:8080  (kalte Suchen treffen den echten ADFC-Upstream: 4–14 s, dann Cache)
+
+# den Server wieder stoppen:
+kill "$(cat data/server.pid)"
 ```
 
 Stolperfallen, die man kennen sollte:
