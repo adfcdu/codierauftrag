@@ -83,6 +83,12 @@ body.impressum {
     margin: 15px 20px 15px;
 }
 
+/* Letzter Trennstrich (unter EIN-Tabelle/Preis, vor dem Footer):
+   mehr Abstand nach oben, damit die Karte vor dem Footer Luft hat */
+.header-divider:last-of-type {
+    margin-top: 30px;
+}
+
 .header-text h2 {
     font-size: 1.8em;
     margin-top: 0;
@@ -529,7 +535,7 @@ form .break.divider {
 form button { /* ADFC style */
     border: none;
     border-radius: 0;
-    margin: 20px 0.5vw 10px;
+    margin: 20px 0.5vw 20px;
     background-color: #ee7f00;
     color: #fff;
     font-size: 17px;
