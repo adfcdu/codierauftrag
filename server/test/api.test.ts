@@ -1,3 +1,12 @@
+/**
+ * Upstream-Hinweis: Der echte Upstream (z. B. https://fa-technik-adfc.de/fein) ist
+ * langsam und hat strenge Rate-Limits. Tests dürfen ihn NICHT direkt erreichen.
+ * makeApp hier reicht keinen fetchFn-Stub durch — deshalb nur Endpunkte testen,
+ * die keinen Upstream-Lookup auslösen (/api/config, /healthz, Fehlerseiten, Static).
+ * Für Lookup-Tests: streetcode.test.ts (dort mit fetchFn-Stub + UPSTREAM_URLS auf
+ * einen Stub-Host, z. B. https://stub/fein).
+ */
+
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -22,7 +31,7 @@ async function makeApp(
   envOverrides: Record<string, string | undefined> = {},
 ): Promise<Extract<CreateAppResult, { ok: true }>> {
   const env = {
-    ...envFixture('kv-duisburg.env'),
+    ...envFixture('kv-beispielstadt.env'),
     CACHE_DB_PATH: tmpDb(),
     ...envOverrides,
   };
@@ -46,16 +55,16 @@ describe('GET /api/config', () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body).toEqual({
-      kreisVerband: 'KV Duisburg',
-      logoText: 'Duisburg',
-      kvWebUrl: 'https://duisburg.adfc.de',
-      ortInitial: 'Duisburg',
-      datenschutzUrl: 'https://duisburg.adfc.de/datenschutz',
+      kreisVerband: 'KV Beispielstadt',
+      logoText: 'Beispielstadt',
+      kvWebUrl: 'https://beispielstadt.adfc.de',
+      ortInitial: 'Beispielstadt',
+      datenschutzUrl: 'https://beispielstadt.example/datenschutz',
       zeigeAkku: true,
       zeigeEmail: true,
-      emailAdresse: 'codierung@adfc-duisburg.de',
+      emailAdresse: 'codierung@beispielstadt.example',
       zeigeTelefon: true,
-      telefonNummer: '0203 774211',
+      telefonNummer: '0123 456789',
       zeigePreise: true,
       preisMitglied: 5,
       preisNichtMitglied: 20,
@@ -69,9 +78,9 @@ describe('GET /api/config', () => {
       zeigeKartenzahlung: false,
       pdfNurEineSeite: false,
       zeigeCodierungBuchen: true,
-      codierungBuchenUrl: 'https://adfc-duisburg.de/codiertermin',
+      codierungBuchenUrl: 'https://beispielstadt.example/codiertermin',
       zeigeCodierungInfo: true,
-      codierungInfoUrl: 'https://adfc-duisburg.de/codierung',
+      codierungInfoUrl: 'https://beispielstadt.example/codierung',
       barcodeTyp: 'code128',
       includeBarcodeCheck: false,
       umlauteImBarcode: false,
@@ -145,19 +154,19 @@ describe('error surfaces', () => {
     expect(res.body).toContain('<title>Codierformular - Fehler</title>');
     expect(res.body).toContain('Es ist ein interner Fehler aufgetreten');
     expect(res.body).toContain('Bitte versuchen Sie es später erneut.');
-    expect(res.body).toContain('E-Mail: codierung@adfc-duisburg.de');
-    expect(res.body).toContain('Telefon: 0203 774211');
+    expect(res.body).toContain('E-Mail: <a href="mailto:codierung@beispielstadt.example">codierung@beispielstadt.example</a>');
+    expect(res.body).toContain('Telefon: <a href="tel:0123456789">0123 456789</a>');
     expect(res.body).toContain('href="impressum_datenschutz.html"');
     expect(res.body).toContain('Impressum und Datenschutz');
   });
 
   it('contact lines appear iff the toggles are on', () => {
-    const base = envFixture('kv-duisburg.env');
+    const base = envFixture('kv-beispielstadt.env');
     const withContacts = parseConfig(base);
     if ('errors' in withContacts) throw new Error('fixture invalid');
     const html = renderErrorPage(withContacts.config);
-    expect(html).toContain('E-Mail: codierung@adfc-duisburg.de');
-    expect(html).toContain('Telefon: 0203 774211');
+    expect(html).toContain('<a href="mailto:codierung@beispielstadt.example">codierung@beispielstadt.example</a>');
+    expect(html).toContain('<a href="tel:0123456789">0123 456789</a>');
 
     const noContacts = parseConfig({
       ...envFixture('minimal-valid.env'),
@@ -194,22 +203,22 @@ describe('error surfaces', () => {
   });
 });
 
-describe('buildPublicConfig — the KV Duisburg example body', () => {
-  it('matches the KV Duisburg example body', () => {
-    const parsed = parseConfig(envFixture('kv-duisburg.env'));
+describe('buildPublicConfig — the generic example body', () => {
+  it('matches the generic example body', () => {
+    const parsed = parseConfig(envFixture('kv-beispielstadt.env'));
     if ('errors' in parsed) throw new Error('fixture invalid');
     const c = parsed.config;
     expect(buildPublicConfig(c, '1.0.0')).toMatchObject({
-      kreisVerband: 'KV Duisburg',
-      logoText: 'Duisburg',
-      kvWebUrl: 'https://duisburg.adfc.de',
-      ortInitial: 'Duisburg',
-      datenschutzUrl: 'https://duisburg.adfc.de/datenschutz',
+      kreisVerband: 'KV Beispielstadt',
+      logoText: 'Beispielstadt',
+      kvWebUrl: 'https://beispielstadt.adfc.de',
+      ortInitial: 'Beispielstadt',
+      datenschutzUrl: 'https://beispielstadt.example/datenschutz',
       zeigeAkku: true,
       zeigeEmail: true,
-      emailAdresse: 'codierung@adfc-duisburg.de',
+      emailAdresse: 'codierung@beispielstadt.example',
       zeigeTelefon: true,
-      telefonNummer: '0203 774211',
+      telefonNummer: '0123 456789',
       zeigePreise: true,
       preisMitglied: 5,
       preisNichtMitglied: 20,
@@ -223,9 +232,9 @@ describe('buildPublicConfig — the KV Duisburg example body', () => {
       zeigeKartenzahlung: false,
       pdfNurEineSeite: false,
       zeigeCodierungBuchen: true,
-      codierungBuchenUrl: 'https://adfc-duisburg.de/codiertermin',
+      codierungBuchenUrl: 'https://beispielstadt.example/codiertermin',
       zeigeCodierungInfo: true,
-      codierungInfoUrl: 'https://adfc-duisburg.de/codierung',
+      codierungInfoUrl: 'https://beispielstadt.example/codierung',
       barcodeTyp: 'code128',
       includeBarcodeCheck: false,
       umlauteImBarcode: false,

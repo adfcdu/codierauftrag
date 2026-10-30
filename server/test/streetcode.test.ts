@@ -1,3 +1,11 @@
+/**
+ * Upstream-Hinweis: Der echte Upstream (z. B. https://fa-technik-adfc.de/fein) ist
+ * langsam und hat strenge Rate-Limits. Tests dürfen ihn NICHT direkt erreichen.
+ * Immer den injizierten fetchFn-Stub verwenden und UPSTREAM_URLS auf einen
+ * Stub-Host (z. B. https://stub/fein) setzen; Antworten aus den recorded
+ * Fixtures (server/test/fixtures/upstream/) speisen.
+ */
+
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

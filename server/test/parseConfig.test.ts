@@ -6,23 +6,23 @@ import {
 } from '../src/config/parseConfig.js';
 import { envFixture } from './helpers/fixtures.js';
 
-const kvDuisburg = envFixture('kv-duisburg.env');
+const vollstaendig = envFixture('kv-beispielstadt.env');
 
 describe('parseConfig — valid fixtures', () => {
-  it('accepts the KV Duisburg production .env with no errors and no warnings', () => {
-    const result = parseConfig(kvDuisburg);
+  it('accepts the generic full-key .env with no errors and no warnings', () => {
+    const result = parseConfig(vollstaendig);
     expect('errors' in result).toBe(false);
     if ('errors' in result) return;
     expect(result.warnings).toEqual([]);
     const c = result.config;
-    expect(c.kreisVerband).toBe('KV Duisburg');
-    expect(c.logoText).toBe('Duisburg');
-    expect(c.ortInitial).toBe('Duisburg');
+    expect(c.kreisVerband).toBe('KV Beispielstadt');
+    expect(c.logoText).toBe('Beispielstadt');
+    expect(c.ortInitial).toBe('Beispielstadt');
     expect(c.zeigeAkku).toBe(true);
     expect(c.zeigeEmail).toBe(true);
-    expect(c.emailAdresse).toBe('codierung@adfc-duisburg.de');
+    expect(c.emailAdresse).toBe('codierung@beispielstadt.example'); // mailto:-Präfix entfernt
     expect(c.zeigeTelefon).toBe(true);
-    expect(c.telefonNummer).toBe('0203 774211');
+    expect(c.telefonNummer).toBe('0123 456789'); // tel:-Präfix entfernt
     expect(c.zeigePreise).toBe(true);
     expect(c.preisMitglied).toBe(5);
     expect(c.preisNichtMitglied).toBe(20);
@@ -68,6 +68,25 @@ describe('parseConfig — valid fixtures', () => {
     expect('errors' in result).toBe(false);
     expect(process.env.TZ).toBe('Europe/Berlin');
   });
+
+  it('strips optional mailto:/tel: prefixes case-insensitively and stores the plain values', () => {
+    const base = envFixture('kv-beispielstadt.env');
+    const result = parseConfig({
+      ...base,
+      EMAIL_ADRESSE: 'MAILTO:codierung@beispielstadt.example',
+      TELEFON_NUMMER: 'TEL:0123 456789',
+    });
+    expect('errors' in result).toBe(false);
+    if ('errors' in result) return;
+    expect(result.config.emailAdresse).toBe('codierung@beispielstadt.example');
+    expect(result.config.telefonNummer).toBe('0123 456789');
+  });
+
+  it('rejects a foreign scheme in EMAIL_ADRESSE (mailto:-Präfix erzwungen)', () => {
+    const base = envFixture('kv-beispielstadt.env');
+    const result = parseConfig({ ...base, EMAIL_ADRESSE: 'https://beispielstadt.example' });
+    expect('errors' in result).toBe(true);
+  });
 });
 
 describe('parseConfig — error classes (German messages, aggregated, sorted by key)', () => {
@@ -110,9 +129,9 @@ describe('parseConfig — error classes (German messages, aggregated, sorted by 
     expect('errors' in parseConfig({ ...base, ORT_INITIAL: 'St. Augustin' })).toBe(false);
     expect('errors' in parseConfig({ ...base, ORT_INITIAL: 'Bad Homburg v.d. Höhe' })).toBe(false);
     expect('errors' in parseConfig({ ...base, ORT_INITIAL: 'st. Augustin' })).toBe(true);
-    expect('errors' in parseConfig({ ...base, ORT_INITIAL: 'Duisburg ' })).toBe(false); // trimmed before the regex
+    expect('errors' in parseConfig({ ...base, ORT_INITIAL: 'Beispielstadt ' })).toBe(false); // trimmed before the regex
     expect('errors' in parseConfig({ ...base, ORT_INITIAL: '7Stadt' })).toBe(true);
-    expect('errors' in parseConfig({ ...base, ORT_INITIAL: 'Duisburg 7' })).toBe(true);
+    expect('errors' in parseConfig({ ...base, ORT_INITIAL: 'Beispielstadt 7' })).toBe(true);
   });
 
   it('SERVER_BASIS_URL accepts an origin without path and trims trailing slash', () => {

@@ -15,8 +15,17 @@ function escapeHtml(s: string): string {
 
 export function renderErrorPage(config: ParsedConfig): string {
   const contactLines: string[] = [];
-  if (config.zeigeEmail) contactLines.push(`E-Mail: ${escapeHtml(config.emailAdresse)}`);
-  if (config.zeigeTelefon) contactLines.push(`Telefon: ${escapeHtml(config.telefonNummer)}`);
+  // href wird aus dem validierten Anzeigewert gebaut (optional mailto:/tel:-Präfix
+  // wurde beim Parsen entfernt) — das Schema ist hier fest, nie env-gesteuert.
+  if (config.zeigeEmail && config.emailAdresse !== '') {
+    const addr = escapeHtml(config.emailAdresse);
+    contactLines.push(`E-Mail: <a href="mailto:${addr}">${addr}</a>`);
+  }
+  if (config.zeigeTelefon && config.telefonNummer !== '') {
+    const nr = escapeHtml(config.telefonNummer);
+    const href = escapeHtml(config.telefonNummer.replace(/\s+/g, ''));
+    contactLines.push(`Telefon: <a href="tel:${href}">${nr}</a>`);
+  }
 
   const contactHtml = contactLines.map((l) => `    <span>${l}</span>\n`).join('');
 

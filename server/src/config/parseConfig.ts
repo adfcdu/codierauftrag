@@ -204,9 +204,11 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     }
   }
 
+  // Optionales mailto:/tel:-Präfix wird akzeptiert und entfernt — gespeichert wird
+  // der bloße Anzeigewert; die Links bauen Client und Fehlerseite selbst daraus.
   let emailAdresse = '';
   if (!isUnset('EMAIL_ADRESSE')) {
-    const v = raw('EMAIL_ADRESSE')!.trim();
+    const v = raw('EMAIL_ADRESSE')!.trim().replace(/^mailto:/i, '');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
       err('EMAIL_ADRESSE', `ist keine gültige E-Mail-Adresse`);
     } else {
@@ -218,7 +220,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
 
   let telefonNummer = '';
   if (!isUnset('TELEFON_NUMMER')) {
-    const v = raw('TELEFON_NUMMER')!.trim();
+    const v = raw('TELEFON_NUMMER')!.trim().replace(/^tel:/i, '');
     if (!/^[\d\s+\/().-]+$/.test(v)) {
       err('TELEFON_NUMMER', `darf nur Ziffern, Leerzeichen und + / ( ) . - enthalten`);
     } else {

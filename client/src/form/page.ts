@@ -414,8 +414,23 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
 
   // ── footer ──
   const footer = el(doc, 'div', 'page-footer');
-  if (config.zeigeEmail) footer.append(el(doc, 'span', undefined, `E-Mail: ${config.emailAdresse}`));
-  if (config.zeigeTelefon) footer.append(el(doc, 'span', undefined, `Telefon: ${config.telefonNummer}`));
+  if (config.zeigeEmail && config.emailAdresse !== '') {
+    const mail = el(doc, 'span') as HTMLSpanElement;
+    mail.append('E-Mail: ');
+    const a = el(doc, 'a', undefined, config.emailAdresse) as HTMLAnchorElement;
+    a.href = `mailto:${config.emailAdresse}`;
+    mail.append(a);
+    footer.append(mail);
+  }
+  if (config.zeigeTelefon && config.telefonNummer !== '') {
+    const tel = el(doc, 'span') as HTMLSpanElement;
+    tel.append('Telefon: ');
+    const a = el(doc, 'a', undefined, config.telefonNummer) as HTMLAnchorElement;
+    // tel:-URI ohne Leerzeichen; Anzeige bleibt mit, wie konfiguriert
+    a.href = `tel:${config.telefonNummer.replace(/\s+/g, '')}`;
+    tel.append(a);
+    footer.append(tel);
+  }
   if (config.zeigeCodierungInfo) {
     const a = el(doc, 'a', undefined, 'Informationen zur Codierung') as HTMLAnchorElement;
     a.href = config.codierungInfoUrl;
