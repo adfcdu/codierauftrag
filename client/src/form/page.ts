@@ -261,7 +261,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   const printP = el(doc, 'p', undefined, 'PDF-Datei wenn möglich ausdrucken');
   if (!config.pdfNurEineSeite) {
     printP.append(doc.createTextNode(' '));
-    printP.append(el(doc, 'em', undefined, '(auf zwei getrennte Blätter)'));
+    printP.append(el(doc, 'em', undefined, '(auf zwei Blätter)'));
   }
   steps.append(step(stepIcon('icon-print', 'Ausdrucken'), printP));
 
