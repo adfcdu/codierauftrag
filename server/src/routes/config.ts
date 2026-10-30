@@ -33,6 +33,10 @@ export interface PublicConfig {
   codierungBuchenUrl: string;
   zeigeCodierungInfo: boolean;
   codierungInfoUrl: string;
+  banner1Text: string;
+  banner2Text: string;
+  banner1Url: string;
+  banner2Url: string;
   barcodeTyp: 'code128' | 'code39' | 'code39ext';
   includeBarcodeCheck: boolean;
   umlauteImBarcode: boolean;
@@ -70,6 +74,10 @@ export function buildPublicConfig(config: ParsedConfig, version: string): Public
     codierungBuchenUrl: config.codierungBuchenUrl,
     zeigeCodierungInfo: config.zeigeCodierungInfo,
     codierungInfoUrl: config.codierungInfoUrl,
+    banner1Text: config.banner1Text,
+    banner2Text: config.banner2Text,
+    banner1Url: config.banner1Url,
+    banner2Url: config.banner2Url,
     barcodeTyp: config.barcodeTyp,
     includeBarcodeCheck: config.includeBarcodeCheck,
     umlauteImBarcode: config.umlauteImBarcode,

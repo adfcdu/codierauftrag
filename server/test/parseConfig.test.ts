@@ -33,6 +33,10 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.zeigeKartenzahlung).toBe(false);
     expect(c.pdfNurEineSeite).toBe(false);
     expect(c.zeigeCodierungBuchen).toBe(true);
+    expect(c.banner1Text).toBe('Angebots-Hinweis 1');
+    expect(c.banner2Text).toBe('Angebots-Hinweis 2');
+    expect(c.banner1Url).toBe('https://beispielstadt.example/hinweis-1');
+    expect(c.banner2Url).toBe('');
     expect(c.barcodeTyp).toBe('code128');
     expect(c.includeBarcodeCheck).toBe(false);
     expect(c.umlauteImBarcode).toBe(false);
@@ -60,6 +64,10 @@ describe('parseConfig — valid fixtures', () => {
       'https://codierung.adfc-hessen.de/code/ein',
     ]);
     expect(c.barcodeTyp).toBe('code128');
+    expect(c.banner1Text).toBe(''); // default: Banner ausgeblendet
+    expect(c.banner2Text).toBe('');
+    expect(c.banner1Url).toBe('');
+    expect(c.banner2Url).toBe('');
     expect(c.serverBasisUrl).toBe('');
     expect(c.ortInitial).toBe('');
   });
@@ -105,6 +113,7 @@ describe('parseConfig — error classes (German messages, aggregated, sorted by 
     ['error-buchen-required.env', 'CODIERUNG_BUCHEN_URL', 'darf nicht leer sein, wenn ZEIGE_CODIERUNG_BUCHEN=true'],
     ['error-buchen-invalid-url.env', 'CODIERUNG_BUCHEN_URL', 'muss eine gültige http(s)-URL sein'],
     ['error-info-required.env', 'CODIERUNG_INFO_URL', 'darf nicht leer sein, wenn ZEIGE_CODIERUNG_INFO=true'],
+    ['error-banner-too-long.env', 'BANNER_1_TEXT', 'darf höchstens 300 Zeichen lang sein'],
     ['error-barcode-c128a.env', 'BARCODE_TYP', 'C128A wird nicht mehr unterstützt — bitte CODE128 verwenden.'],
     ['error-barcode-c39plus.env', 'BARCODE_TYP', 'C39+ wird nicht mehr unterstützt — bitte CODE39EXT verwenden.'],
     ['error-barcode-unknown.env', 'BARCODE_TYP', 'muss CODE128, CODE39 oder CODE39EXT sein'],
@@ -284,6 +293,29 @@ describe('parseConfig — warnings (non-fatal)', () => {
     expect('errors' in result).toBe(false);
     if ('errors' in result) return;
     expect(result.warnings).toEqual([]);
+  });
+
+  it('BANNER_1_URL without BANNER_1_TEXT: warning, process starts', () => {
+    const base = envFixture('kv-beispielstadt.env');
+    const result = parseConfig({ ...base, BANNER_1_TEXT: '', BANNER_1_URL: 'https://beispielstadt.example/leer' });
+    expect('errors' in result).toBe(false);
+    if ('errors' in result) return;
+    expect(result.config.banner1Url).toBe('https://beispielstadt.example/leer');
+    expect(formatConfigWarnings(result.warnings)).toContain(
+      'Warnung: BANNER_1_URL ohne BANNER_1_TEXT — das Banner wird nicht angezeigt — der Link ist wirkungslos',
+    );
+  });
+
+  it('BANNER_1_URL with an invalid URL: error (https only)', () => {
+    const base = envFixture('kv-beispielstadt.env');
+    for (const url of ['ftp://beispielstadt.example', 'http://beispielstadt.example', 'nicht-eine-url']) {
+      const result = parseConfig({ ...base, BANNER_1_URL: url });
+      expect('errors' in result).toBe(true);
+      if (!('errors' in result)) return;
+      const err = result.errors.find((e) => e.key === 'BANNER_1_URL');
+      expect(err).toBeDefined();
+      expect(err!.reason).toContain('muss eine gültige https-URL sein');
+    }
   });
 
   it('unused-but-present values are still format-validated', () => {

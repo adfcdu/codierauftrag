@@ -31,6 +31,10 @@ export interface AppConfig {
   codierungBuchenUrl: string;
   zeigeCodierungInfo: boolean;
   codierungInfoUrl: string;
+  banner1Text: string;
+  banner2Text: string;
+  banner1Url: string;
+  banner2Url: string;
   barcodeTyp: 'code128' | 'code39' | 'code39ext';
   includeBarcodeCheck: boolean;
   umlauteImBarcode: boolean;

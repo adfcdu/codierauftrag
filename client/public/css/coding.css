@@ -89,6 +89,45 @@ body.impressum {
     margin-top: 30px;
 }
 
+/* Hinweis-Banner (BANNER_1_TEXT / BANNER_2_TEXT) zwischen Header und
+   erstem Trennstrich — auffälliger Kasten in den ADFC-Farben */
+.page-banners {
+    padding: 0 20px;
+}
+
+.page-banner {
+    margin-bottom: 10px;
+    padding: 12px 16px;
+    background-color: #fdeed9;
+    border: 2px solid #ee7f00;
+    border-left-width: 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.page-banner:last-child {
+    margin-bottom: 0;
+}
+
+.page-banner::before {
+    content: "Hinweis: ";
+    color: #ee7f00;
+    font-weight: 700;
+}
+
+/* Banner mit Link (BANNER_1_URL / BANNER_2_URL) — der Text ist der Ankertext */
+.page-banner a.page-banner-link,
+.page-banner a.page-banner-link:visited {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.page-banner a.page-banner-link:hover,
+.page-banner a.page-banner-link:focus-visible {
+    color: #cc6600;
+}
+
 .header-text h2 {
     font-size: 1.8em;
     margin-top: 0;

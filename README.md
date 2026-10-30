@@ -304,7 +304,7 @@ Teil der Antwort-Semantik.
 Eine einzige `.env`-Datei ist die komplette Konfigurationsoberfläche (Docker
 `env_file`; Vorlage in [`.env.example`](.env.example) — jeder Schlüssel ist dort
 kommentiert). Sie umfasst das Erscheinungsbild der
-Instanz (Kreisverband, Logo-Text, URLs, Kontakt-Schalter), das Gebührensystem
+Instanz (Kreisverband, Logo-Text, URLs, Hinweis-Banner, Kontakt-Schalter), das Gebührensystem
 (Mitglieder-/Nichtmitglieder-Preise, Anhänger- und Akku-Zuschläge, Umsatzsteuer),
 PDF-Optionen (eine vs. zwei Ausfertigungen, Bar-/Kartenzahlung), Carbon-Rahmen
 (`ZEIGE_CARBONRAHMEN` — Feld, Preisberechnung und PDF-Zeile gemeinsam), Barcode-Typ und
@@ -391,10 +391,19 @@ Stolperfallen, die man kennen sollte:
   (z. B. VS Code) legen `LD_LIBRARY_PATH` auf ihre gebündelte `libstdc++`; die
   lähmt auch das System-Node. Deshalb `env -u LD_LIBRARY_PATH -u LD_PRELOAD`
   der Start-Zeile voranstellen (ohne sie: `version 'GLIBCXX_3.4.30' not found`).
+  Das gilt für **jeden** Node-Aufruf in dieser Umgebung — also auch für
+  `npm run build`, `npm test` und `npm run lint`, nicht nur den Server-Start.
 - **`setsid` statt `nohup`** — ein plaines `nohup node … &` blockiert aufrufende
   Werkzeuge (die warten auf die Prozessgruppe, bis in einen Timeout laufen);
   `setsid` detacht in eine eigene Session, `</dev/null` trennt stdin, und ein
   abschließendes `exit 0` beendet die Start-Shell sofort.
+- **Aus Werkzeug-Shells (KI-Agenten, Skript-Runner) subshell-forken** — manche
+  nicht-interaktiven Shells warten trotz `exit 0` auf die Detach-Session und
+  laufen in den Timeout; der Start selbst gelingt trotzdem. Wer das verhindern
+  will, forkt doppelt: `( setsid env -u LD_LIBRARY_PATH -u LD_PRELOAD node \
+  --env-file=.env dist/app.js </dev/null > data/server.log 2>&1 & )` — die
+  Subshell beendet sich sofort, der Server läuft weiter. Danach wie oben
+  verifizieren und `data/server.pid` per exakter Listener-PID nachziehen.
 - **Die Start-Zeile unverändert lassen** — ein vorangestelltes
   `kill … && … && node … &` backgroundet die ganze Kette (`&` bindet an die
   komplette `&&`-Liste): `$!` liefert dann die Subshell statt node, und die

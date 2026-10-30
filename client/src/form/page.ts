@@ -207,7 +207,33 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     headerText.append(p);
   }
   header.append(logo, headerText);
-  mount.append(header, el(doc, 'hr', 'header-divider'));
+  mount.append(header);
+
+  // ── Hinweis-Banner (BANNER_1_TEXT / BANNER_2_TEXT, optional BANNER_1_URL / BANNER_2_URL) ──
+  // Zwischen Header und erstem Trennstrich; leerer Text = ausgeblendet.
+  // Text als textContent — kein innerHTML mit Konfigurationsdaten.
+  const nonEmptyBanners = [
+    { text: config.banner1Text, url: config.banner1Url },
+    { text: config.banner2Text, url: config.banner2Url },
+  ].filter((b) => b.text !== '');
+  if (nonEmptyBanners.length > 0) {
+    const banners = el(doc, 'div', 'page-banners');
+    for (const banner of nonEmptyBanners) {
+      const box = el(doc, 'div', 'page-banner');
+      if (banner.url !== '') {
+        const a = el(doc, 'a', 'page-banner-link', banner.text);
+        a.href = banner.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        box.append(a);
+      } else {
+        box.append(doc.createTextNode(banner.text));
+      }
+      banners.append(box);
+    }
+    mount.append(banners);
+  }
+  mount.append(el(doc, 'hr', 'header-divider'));
 
   // ── instructions ──
   const instructions = el(doc, 'div', 'instructions');

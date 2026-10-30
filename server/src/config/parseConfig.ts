@@ -34,6 +34,10 @@ export interface ParsedConfig {
   codierungBuchenUrl: string;
   zeigeCodierungInfo: boolean;
   codierungInfoUrl: string;
+  banner1Text: string; // '' = Banner ausgeblendet
+  banner2Text: string; // '' = Banner ausgeblendet
+  banner1Url: string; // '' = Banner ist kein Link
+  banner2Url: string; // '' = Banner ist kein Link
   barcodeTyp: 'code128' | 'code39' | 'code39ext';
   includeBarcodeCheck: boolean; // true iff C39E+
   umlauteImBarcode: boolean;
@@ -290,6 +294,44 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     }
   }
 
+  // Hinweis-Banner: leer (oder unset) = ausgeblendet; sonst Text mit Längenlimit.
+  function bannerText(key: string): string {
+    if (isUnset(key)) return '';
+    const v = raw(key)!.trim();
+    if (v.length > 300) {
+      err(key, `darf höchstens 300 Zeichen lang sein`);
+      return '';
+    }
+    return v;
+  }
+  const banner1Text = bannerText('BANNER_1_TEXT');
+  const banner2Text = bannerText('BANNER_2_TEXT');
+
+  // Optionale Link-Ziele: nur https; ohne zugehörigen Text wirkungslos (Warnung).
+  function bannerUrl(key: string, textKey: string, text: string): string {
+    if (isUnset(key)) return '';
+    const v = raw(key)!.trim();
+    let parsed: URL;
+    try {
+      parsed = new URL(v);
+    } catch {
+      parsed = null as unknown as URL;
+    }
+    if (!parsed || parsed.protocol !== 'https:') {
+      err(key, `muss eine gültige https-URL sein`);
+      return '';
+    }
+    if (text === '') {
+      warnings.push({
+        key: `${key} ohne ${textKey}`,
+        reason: `das Banner wird nicht angezeigt — der Link ist wirkungslos`,
+      });
+    }
+    return v;
+  }
+  const banner1Url = bannerUrl('BANNER_1_URL', 'BANNER_1_TEXT', banner1Text);
+  const banner2Url = bannerUrl('BANNER_2_URL', 'BANNER_2_TEXT', banner2Text);
+
   // Barcode type → bwip-js bcid.
   let barcodeTyp: ParsedConfig['barcodeTyp'] = 'code128';
   let includeBarcodeCheck = false;
@@ -444,6 +486,10 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     codierungBuchenUrl,
     zeigeCodierungInfo,
     codierungInfoUrl,
+    banner1Text,
+    banner2Text,
+    banner1Url,
+    banner2Url,
     barcodeTyp,
     includeBarcodeCheck,
     umlauteImBarcode,
