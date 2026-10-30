@@ -2,8 +2,7 @@
 
 Web-Formular für die ADFC-Fahrradcodierung: Besucher*innen geben Eigentümer- und
 Fahrraddaten ein, die Anwendung löst Ort und Straße gegen das ADFC-Straßen-Code-
-Verzeichnis auf, setzt die persönliche Codier-Nummer (EIN) zusammen und erzeugt den
-unterschriebenen Codierauftrag als PDF — **vollständig im Browser der Besucher*in**.
+Verzeichnis auf, setzt die persönliche Codier-Nummer (EIN) zusammen und erzeugt den Codierauftrag als PDF — **vollständig im Browser der Besucher*in**.
 
 Das gesamte System ist um ein
 Leitprinzip gebaut: **Privacy by Design — personenbezogene Daten verlassen den
