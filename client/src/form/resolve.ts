@@ -221,6 +221,22 @@ export function wireForm(
     })();
   });
 
+  // Warm the lazy PDF chunk while the user fills the form — the first
+  // interaction (typing, tapping into a field, toggling) starts the download
+  // in the background, so the later click-import resolves from the
+  // already-loaded module registry. On failure the flag resets and the next
+  // interaction retries; the click handler stays the safety net either way.
+  let pdfChunkWarm = false;
+  const warmPdfChunk = (): void => {
+    if (pdfChunkWarm) return;
+    pdfChunkWarm = true;
+    import('../pdf/pdf.js').catch(() => {
+      pdfChunkWarm = false;
+    });
+  };
+  page.form.addEventListener('input', warmPdfChunk);
+  page.form.addEventListener('focusin', warmPdfChunk);
+
   // ── resolution ──
 
   function scheduleResolve(delayMs?: number): void {
