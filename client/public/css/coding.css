@@ -576,6 +576,10 @@ div.bottom {
        900 — space-between war zu breit gestreut, 1.25em ließ ~19 px Luft) —
        flex-wrap bleibt als gewollter Umbruch auf schmalen Screens. */
     column-gap: 2em;
+    /* row-gap greift nur beim Umbrechen in eine zweite Zeile
+       (ca. 700-910 px bzw. laengere Eintraege) und schafft dort
+       genug vertikalen Abstand fuer Touch-Ziele */
+    row-gap: 12px;
     font-size: 14px;
     margin: 0 20px 5px;
     color: #555;
@@ -594,7 +598,7 @@ div.bottom {
    Versionsnummer wie die PDF-Fußzeile. */
 .page-version {
     max-width: 960px;
-    margin: 0 auto 10px;
+    margin: 16px auto 10px;
     text-align: center;
     color: #555;
     font-size: 11px;
@@ -661,6 +665,16 @@ table.ein-data td {
     table.ein-data th,
     table.ein-data td {
         padding: 4px;
+    }
+
+    /* Footer-Eintraege (E-Mail, Telefon, Links) auf schmalen Screens
+       untereinander statt in aufeinanderfolgenden Zeilen ohne Abstand:
+       row-gap erzeugt zwischen den gestapelten Zeilen ausreichend
+       grosse Touch-Ziele. */
+    .page-footer {
+        flex-direction: column;
+        row-gap: 12px;
+        align-items: center;
     }
 }
 
