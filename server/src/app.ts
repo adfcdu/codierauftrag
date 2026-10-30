@@ -3,8 +3,10 @@
  *
  * Boot order (matters): parseConfig FIRST (it applies TZ before any date use)
  * → on errors print all Konfigurationsfehler lines and exit(1) → warnings →
- * frozen /api/config JSON + error page → open SQLite (schema, WAL) + boot
- * purge → register routes/handlers/static → purge timer → listen.
+ * frozen /api/config JSON + error page + client index template (read once,
+ * for server-side OG rendering) → open SQLite (schema, WAL) + boot purge →
+ * register routes/handlers (incl. the OG index routes)/static → purge timer
+ * → listen.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -23,6 +25,8 @@ import { createResolver, registerStreetcodeRoute } from './routes/streetcode.js'
 import type { Resolver } from './routes/streetcode.js';
 import { buildPublicConfig } from './routes/config.js';
 import { renderErrorPage } from './errorPage.js';
+import { createIndexPageRenderer } from './indexPage.js';
+import type { IndexPageRenderer } from './indexPage.js';
 
 export interface AppOptions {
   env?: Record<string, string | undefined>;
@@ -63,9 +67,18 @@ export async function createApp(opts: AppOptions = {}): Promise<CreateAppResult>
   const { config, warnings } = parsed;
 
   // 3. frozen /api/config JSON + error page (rendered once)
+  // + client index template for server-side OG rendering
   const version = opts.version ?? readVersionFromCwd();
   const publicConfigJson = JSON.stringify(buildPublicConfig(config, version));
   const errorPageHtml = renderErrorPage(config);
+
+  const clientRoot = opts.clientRoot ?? join(process.cwd(), 'client/dist');
+  const clientIndexHtml = existsSync(join(clientRoot, 'index.html'))
+    ? readFileSync(join(clientRoot, 'index.html'), 'utf8')
+    : null;
+  const indexRenderer: IndexPageRenderer | null = clientIndexHtml !== null
+    ? createIndexPageRenderer(config, clientIndexHtml)
+    : null;
 
   // 4. open the SQLite cache (schema if missing, WAL) + boot purge (catch-up)
   const cache = new StreetcodeCache(config.cacheDbPath, {
@@ -148,6 +161,27 @@ export async function createApp(opts: AppOptions = {}): Promise<CreateAppResult>
 
   registerStreetcodeRoute(app, resolver, limiter);
 
+  // Link preview / SPA entry: index.html is rendered server-side (meta
+  // placeholders — bots do not execute JS). index:false + globIgnore below
+  // keep @fastify/static from registering '/' and '/index.html' itself
+  // (static payload is a stream, and the raw template must never leak).
+  if (indexRenderer !== null) {
+    app.get('/', { config: {} }, async (request, reply) => {
+      // SERVER_BASIS_URL '' → derive from the request host. request.hostname
+      // honors X-Forwarded-Host (trustProxy), matching the X-Forwarded-Proto
+      // handling for the scheme. The derived scheme is always https: the
+      // public instance is TLS-terminated at the reverse proxy, and messengers
+      // ignore non-HTTPS preview images.
+      const baseUrl = config.serverBasisUrl !== ''
+        ? config.serverBasisUrl
+        : `https://${request.hostname}`;
+      reply.header('Content-Type', 'text/html; charset=utf-8');
+      return indexRenderer.render(baseUrl);
+    });
+    app.get('/index.html', { config: {} }, async (_request, reply) => {
+      return reply.redirect('/', 301); // canonical entry; template never leaks
+    });
+  }
 
   app.get('/api/config', { config: {} }, async (_request, reply) => {
     // frozen bytes; config may change on restart → no-store
@@ -162,12 +196,13 @@ export async function createApp(opts: AppOptions = {}): Promise<CreateAppResult>
   });
 
   // static: built client (client/dist)
-  const clientRoot = opts.clientRoot ?? join(process.cwd(), 'client/dist');
   if (existsSync(clientRoot)) {
     await app.register(fastifyStatic, {
       root: clientRoot,
       cacheControl: false, // headers set in the onSend hook below
       wildcard: false, // unknown paths → setNotFoundHandler (error page)
+      index: false, // '/' is served by the renderer route above
+      globIgnore: ['**/index.html'], // no raw '/index.html' route from static
     });
   }
 

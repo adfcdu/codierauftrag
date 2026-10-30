@@ -7,7 +7,7 @@
  * einen Stub-Host, z. B. https://stub/fein).
  */
 
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -29,13 +29,14 @@ function tmpDb(): string {
 
 async function makeApp(
   envOverrides: Record<string, string | undefined> = {},
+  clientRoot?: string,
 ): Promise<Extract<CreateAppResult, { ok: true }>> {
   const env = {
     ...envFixture('kv-beispielstadt.env'),
     CACHE_DB_PATH: tmpDb(),
     ...envOverrides,
   };
-  const handle = await createApp({ env, version: '1.0.0-test' });
+  const handle = await createApp({ env, version: '1.0.0-test', clientRoot });
   if (!handle.ok) throw new Error('app failed to start: ' + JSON.stringify(handle.errors));
   appToClose = handle;
   return handle;
@@ -252,5 +253,110 @@ describe('buildPublicConfig — the generic example body', () => {
       zeitzone: 'Europe/Berlin',
       version: '1.0.0',
     });
+  });
+});
+
+// ── GET / — server-side OG rendering (link preview) ─────────────────────────
+
+// Minimal placeholder head as shipped in client/index.html (after Vite build).
+const INDEX_HTML = `<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <title>{{TITLE}}</title>
+    <meta name="description" content="{{DESCRIPTION}}">
+    <meta property="og:site_name" content="{{SITE_NAME}}">
+    <meta property="og:url" content="{{OG_URL}}">
+    <meta property="og:title" content="{{OG_TITLE}}">
+    <meta property="og:image" content="{{OG_IMAGE}}">
+  </head>
+  <body></body>
+</html>
+`;
+
+// Minimal 1×1 transparent PNG — never the real asset.
+const PNG_1X1 = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+);
+
+function tmpClientRoot(withIndex: boolean): string {
+  const dir = mkdtempSync(join(tmpdir(), 'codierauftrag-client-'));
+  dirs.push(dir); // removed in afterEach
+  mkdirSync(join(dir, 'img'), { recursive: true });
+  writeFileSync(join(dir, 'img', 'og-preview.png'), PNG_1X1);
+  if (withIndex) writeFileSync(join(dir, 'index.html'), INDEX_HTML);
+  return dir;
+}
+
+describe('GET / — server-side OG rendering (link preview)', () => {
+  it('renders substituted meta tags, no raw {{ tokens, correct content type', async () => {
+    const app = await makeApp({}, tmpClientRoot(true));
+    const res = await app.app.inject({ method: 'GET', url: '/' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toBe('text/html; charset=utf-8');
+    expect(res.body).not.toContain('{{');
+    expect(res.body).toContain('<title>Fahrradcodierung - ADFC KV Beispielstadt</title>');
+    expect(res.body).toContain('og:title" content="Fahrradcodierung - ADFC KV Beispielstadt"');
+    expect(res.body).toContain('og:site_name" content="ADFC KV Beispielstadt"');
+  });
+
+  it('GET /index.html → 301 to / (the raw template never leaks)', async () => {
+    const app = await makeApp({}, tmpClientRoot(true));
+    const res = await app.app.inject({ method: 'GET', url: '/index.html' });
+    expect(res.statusCode).toBe(301);
+    expect(res.headers.location).toBe('/');
+  });
+
+  it('empty SERVER_BASIS_URL → derived from the request host, always https', async () => {
+    const app = await makeApp({ SERVER_BASIS_URL: '' }, tmpClientRoot(true));
+    const res = await app.app.inject({
+      method: 'GET',
+      url: '/',
+      headers: { host: 'example.org' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toContain('og:url" content="https://example.org/"');
+    expect(res.body).toContain('og:image" content="https://example.org/img/og-preview.png"');
+  });
+
+  it('configured SERVER_BASIS_URL wins over the request Host header', async () => {
+    const app = await makeApp({}, tmpClientRoot(true));
+    const res = await app.app.inject({
+      method: 'GET',
+      url: '/',
+      headers: { host: 'other.example' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toContain('og:url" content="https://codierformular.beispielstadt.example/"');
+    expect(res.body).toContain(
+      'og:image" content="https://codierformular.beispielstadt.example/img/og-preview.png"',
+    );
+    expect(res.body).not.toContain('other.example');
+  });
+
+  it('clientRoot without index.html → app boots, GET / → 404 error page', async () => {
+    const app = await makeApp({}, tmpClientRoot(false));
+    const res = await app.app.inject({ method: 'GET', url: '/' });
+    expect(res.statusCode).toBe(404);
+    expect(res.headers['content-type']).toContain('text/html');
+    expect(res.body).toContain('<title>Codierformular - Fehler</title>');
+  });
+
+  it('regression: /img/og-preview.png is served by static, not the renderer', async () => {
+    const app = await makeApp({}, tmpClientRoot(true));
+    const res = await app.app.inject({ method: 'GET', url: '/img/og-preview.png' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toBe('image/png');
+  });
+
+  it('regression: /healthz and /api/config are unchanged', async () => {
+    const app = await makeApp({}, tmpClientRoot(true));
+    const healthz = await app.app.inject({ method: 'GET', url: '/healthz' });
+    expect(healthz.statusCode).toBe(200);
+    expect(healthz.body).toBe('ok');
+    const config = await app.app.inject({ method: 'GET', url: '/api/config' });
+    expect(config.statusCode).toBe(200);
+    expect(config.headers['content-type']).toBe('application/json; charset=utf-8');
   });
 });
