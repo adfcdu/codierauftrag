@@ -5,7 +5,7 @@ Fahrraddaten ein, die Anwendung löst Ort und Straße gegen das ADFC-Straßen-Co
 Verzeichnis auf, setzt die persönliche Codier-Nummer (EIN) zusammen und erzeugt den
 unterschriebenen Codierauftrag als PDF — **vollständig im Browser der Besucher*in**.
 
-Produktivinstanz: ADFC Kreisverband Duisburg. Das gesamte System ist um ein
+Das gesamte System ist um ein
 Leitprinzip gebaut: **Privacy by Design — personenbezogene Daten verlassen den
 Browser nie.** Der Server sieht genau zwei Zeichenketten: den getippten Ort und die
 getippte Straße.
