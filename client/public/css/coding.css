@@ -568,13 +568,9 @@ div.bottom {
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: center;
-    /* 14 px statt 15 px: auf Linux wird aus system-ui DejaVu Sans (~13 % breiter
-       als Arial) — die zentrierte Leiste lief damit bei 900 px Kartenbreite über
-       und brach in eine zweite Zeile. Gemessen (Duisburg-Config, 4 Einträge): Arial
-       15px 880 px ✓, DejaVu 15px 979 px ✗, DejaVu 14px 809 px.
-       Gap 2em: DejaVu 14px füllt die Leiste damit randnah aus (893 px von
-       900 — space-between war zu breit gestreut, 1.25em ließ ~19 px Luft) —
-       flex-wrap bleibt als gewollter Umbruch auf schmalen Screens. */
+    /* 14 px statt 15 px da andere Schriftarten breiter rendern als Arial
+       die zentrierte Leiste lief damit bei 900 px Kartenbreite über
+       und brach in eine zweite Zeile. */
     column-gap: 2em;
     /* row-gap greift nur beim Umbrechen in eine zweite Zeile
        (ca. 700-910 px bzw. laengere Eintraege) und schafft dort
