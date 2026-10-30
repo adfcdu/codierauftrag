@@ -363,7 +363,9 @@ sed 's|CACHE_DB_PATH=/data/|CACHE_DB_PATH=./data/|' .env.example > .env
 # .env an die eigene Instanz anpassen (KREIS_VERBAND, Preise, Kontakt …),
 # dann bauen und starten:
 npm run build
-node --env-file=.env dist/app.js > data/server.log 2>&1 & echo $! > data/server.pid
+env -u LD_LIBRARY_PATH -u LD_PRELOAD setsid node --env-file=.env dist/app.js \
+  </dev/null > data/server.log 2>&1 & echo $! > data/server.pid
+exit 0
 # → http://localhost:8080  (kalte Suchen treffen den echten ADFC-Upstream: 4–14 s, dann Cache)
 ```
 
@@ -378,6 +380,17 @@ Stolperfallen, die man kennen sollte:
   Wahrheit: `tail -1 data/server.log` muss frisch `listening` zeigen (nicht
   `listen-failed`), und `ss -ltnp | grep 8080` muss dieselbe PID nennen wie
   `data/server.pid`. Sonst den Port-Halter per exakter PID beenden und neu starten.
+- **`setsid` kann forken** — `$!` ist dann die PID des Setsid-Wrappers, nicht des
+  Listeners. Nach dem Start `ss -ltnp | grep 8080` gegen `data/server.pid` prüfen
+  und die PID-Datei bei Abweichung per exakter Listener-PID korrigieren.
+- **`LD_LIBRARY_PATH` umbiegen, wenn Node mit GLIBCXX-Fehlern startet** — IDEs
+  (z. B. VS Code) legen `LD_LIBRARY_PATH` auf ihre gebündelte `libstdc++`; die
+  lähmt auch das System-Node. Deshalb `env -u LD_LIBRARY_PATH -u LD_PRELOAD`
+  der Start-Zeile voranstellen (ohne sie: `version 'GLIBCXX_3.4.30' not found`).
+- **`setsid` statt `nohup`** — ein plaines `nohup node … &` blockiert aufrufende
+  Werkzeuge (die warten auf die Prozessgruppe, bis in einen Timeout laufen);
+  `setsid` detacht in eine eigene Session, `</dev/null` trennt stdin, und ein
+  abschließendes `exit 0` beendet die Start-Shell sofort.
 - **Die Start-Zeile unverändert lassen** — ein vorangestelltes
   `kill … && … && node … &` backgroundet die ganze Kette (`&` bindet an die
   komplette `&&`-Liste): `$!` liefert dann die Subshell statt node, und die
