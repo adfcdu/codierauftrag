@@ -203,20 +203,31 @@ export function wireForm(
   // PDF erzeugen: lazy chunk (jsPDF + bwip-js stay out of the initial bundle).
   // While the chunk loads and the PDF is generated the button shows a busy
   // spinner — on mobile that can take a while.
+  // MIN_BUSY_MS: keep the lock for at least this long after the click, even
+  // when the (pre-warmed) generation finishes much faster — an accidental
+  // double-click must not trigger a second PDF, and the spinner must not
+  // flicker. Not a debounce: real clicks are never delayed, rapid repeats
+  // within the window are dropped.
+  const MIN_BUSY_MS = 1500; // comfortably above the typical double-click interval (~500 ms)
   let pdfBusy = false;
+  let pdfBusyTimer: ReturnType<typeof setTimeout> | undefined;
   page.genPdf.addEventListener('click', () => {
     const values = readForm(doc);
     if (!genPdfEnabled(values, state) || pdfBusy) return; // the gate is live — never generate an invalid PDF
     pdfBusy = true;
+    const startedAt = Date.now();
     setGenPdfBusy(page, true);
     void (async () => {
       try {
         const { generatePdf } = await import('../pdf/pdf.js');
         await generatePdf(CONFIG, { values, state });
       } finally {
-        pdfBusy = false;
-        setGenPdfBusy(page, false);
-        refreshDisplay(); // recompute the gate from the live form values
+        const remaining = MIN_BUSY_MS - (Date.now() - startedAt);
+        pdfBusyTimer = setTimeout(() => {
+          pdfBusy = false;
+          setGenPdfBusy(page, false);
+          refreshDisplay(); // recompute the gate from the live form values
+        }, Math.max(0, remaining));
       }
     })();
   });
@@ -459,6 +470,7 @@ export function wireForm(
     },
     dispose() {
       clearTimeout(timer);
+      clearTimeout(pdfBusyTimer);
     },
   };
 }

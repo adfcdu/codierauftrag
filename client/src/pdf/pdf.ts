@@ -689,10 +689,27 @@ function textWidthAt(doc: jsPDF, text: string, fontSize: number): number {
   return width;
 }
 
-/** Production entry: build + client-side download. */
+// Functional gate: while a PDF is being generated the disabled button is only
+// the visual side — this flag blocks the generation itself, no matter who
+// calls (button click, programmatic invocation, future callers).
+let generating = false;
+
+/** True while a PDF generation is in flight. */
+export function isPdfGenerating(): boolean {
+  return generating;
+}
+
+/** Production entry: build + client-side download. Rejected (returns false)
+ *  while another generation is still in flight. */
 export async function generatePdf(config: AppConfig, inputs: PdfInputs): Promise<boolean> {
-  const now = new Date(); // one stamp for the metadata title and the file name
-  const { doc, qrOmitted } = await buildPdf(config, inputs, { now });
-  doc.save(pdfFileName(config.zeitzone, now));
-  return qrOmitted;
+  if (generating) return false; // one generation at a time
+  generating = true;
+  try {
+    const now = new Date(); // one stamp for the metadata title and the file name
+    const { doc, qrOmitted } = await buildPdf(config, inputs, { now });
+    doc.save(pdfFileName(config.zeitzone, now));
+    return qrOmitted;
+  } finally {
+    generating = false;
+  }
 }
