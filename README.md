@@ -351,7 +351,24 @@ Reverse-Proxy (TLS-Terminierung); Updates sind immer ein neues Image:
 Benötigt wird genau die im `engines`-Feld (`package.json`) gepinnte Node-Version
 — inklusive des Minors (Begründung siehe oben).
 
+**Für IDE- und Agent-Shells (wichtig):** Erbt die Shell ein `LD_LIBRARY_PATH`,
+das auf das gebündelte `libstdc++` einer IDE zeigt (z. B.
+`~/.vscode-oss/extensions/*/bin/_internal`), startet **kein** Node mehr — jeder
+Aufruf bricht still mit `version 'GLIBCXX_3.4.30' not found` ab, oft ohne
+sichtbare Ausgabe. Das betrifft **jeden** Node-Aufruf: `npm ci`, `npm test`,
+`npm run lint`, `npm run build` und den Serverstart. Abhilfe: die Variable für
+den Aufruf entfernen.
+
 ```bash
+env -u LD_LIBRARY_PATH -u LD_PRELOAD npm test
+# oder kurz (leerer Wert genügt, mit System-libstdc++ funktioniert Node damit):
+LD_LIBRARY_PATH= npm test
+```
+
+In einer normalen Terminal-Shell ohne dieses Erbe kann das Präfix entfallen.
+
+```bash
+# Setup und Checks (in IDE-/Agent-Shells mit dem Präfix von oben):
 npm ci            # Installation (~3 s)
 npm test          # komplette Test-Suite (rund 30 s)
 npm run lint      # eslint + tsc --noEmit (Server + Client)
@@ -359,16 +376,21 @@ npm run build     # tsc + vite build + Bundle-Check (kein jsPDF/bwip-js in den i
 
 # den echten Server lokal starten:
 mkdir -p data
-sed 's|CACHE_DB_PATH=/data/|CACHE_DB_PATH=./data/|' .env.example > .env
-# .env an die eigene Instanz anpassen (KREIS_VERBAND, Preise, Kontakt …),
-# dann bauen und starten:
+[ -f .env ] || sed 's|CACHE_DB_PATH=/data/|CACHE_DB_PATH=./data/|' .env.example > .env
+# → .env nur anlegen, wenn nicht vorhanden; eine bestehende .env nicht überschreiben,
+#   sondern an die eigene Instanz anpassen (KREIS_VERBAND, Preise, Kontakt …).
+
 npm run build
-env -u LD_LIBRARY_PATH -u LD_PRELOAD setsid node --env-file=.env dist/app.js \
-  </dev/null > data/server.log 2>&1 & echo $! > data/server.pid
-exit 0
+( setsid env -u LD_LIBRARY_PATH -u LD_PRELOAD node --env-file=.env dist/app.js \
+  </dev/null > data/server.log 2>&1 & )
+ss -ltnp | grep 8080 | grep -oP 'pid=\K[0-9]+' | head -1 > data/server.pid
 # → http://localhost:8080  (kalte Suchen treffen den echten ADFC-Upstream: 4–14 s, dann Cache)
 
-# den Server wieder stoppen:
+# Start verifizieren: `tail -1 data/server.log` muss frisch `listening` zeigen
+# (nicht `listen-failed`), und `ss -ltnp | grep 8080` muss dieselbe PID nennen
+# wie data/server.pid.
+
+# den Server wieder stoppen — nur per exakter PID, nie per Muster:
 kill "$(cat data/server.pid)"
 ```
 
@@ -377,36 +399,19 @@ Stolperfallen, die man kennen sollte:
 - **Nach jedem Build den Server neu starten** — Vite leert `client/dist/` und der
   laufende Static-Server hält veraltete Referenzen (die Seite lädt ihre Chunks dann
   stillschweigend nicht). Per `data/server.pid` beenden, nie per Muster.
-- **Jeden Restart verifizieren** — schlägt er still fehlt (Port 8080 hält ein
+- **Jeden Restart verifizieren** — schlägt er still fehl (Port 8080 hält ein
   alter, nicht in der PID-Datei erfasster Prozess), antwortet `/healthz` weiter
   vom alten Server, und CSS-Änderungen rendern sogar durch; nur das Log sagt die
   Wahrheit: `tail -1 data/server.log` muss frisch `listening` zeigen (nicht
   `listen-failed`), und `ss -ltnp | grep 8080` muss dieselbe PID nennen wie
   `data/server.pid`. Sonst den Port-Halter per exakter PID beenden und neu starten.
-- **`setsid` kann forken** — `$!` ist dann die PID des Setsid-Wrappers, nicht des
-  Listeners. Nach dem Start `ss -ltnp | grep 8080` gegen `data/server.pid` prüfen
-  und die PID-Datei bei Abweichung per exakter Listener-PID korrigieren.
-- **`LD_LIBRARY_PATH` umbiegen, wenn Node mit GLIBCXX-Fehlern startet** — IDEs
-  (z. B. VS Code) legen `LD_LIBRARY_PATH` auf ihre gebündelte `libstdc++`; die
-  lähmt auch das System-Node. Deshalb `env -u LD_LIBRARY_PATH -u LD_PRELOAD`
-  der Start-Zeile voranstellen (ohne sie: `version 'GLIBCXX_3.4.30' not found`).
-  Das gilt für **jeden** Node-Aufruf in dieser Umgebung — also auch für
-  `npm run build`, `npm test` und `npm run lint`, nicht nur den Server-Start.
-- **`setsid` statt `nohup`** — ein plaines `nohup node … &` blockiert aufrufende
-  Werkzeuge (die warten auf die Prozessgruppe, bis in einen Timeout laufen);
-  `setsid` detacht in eine eigene Session, `</dev/null` trennt stdin, und ein
-  abschließendes `exit 0` beendet die Start-Shell sofort.
-- **Aus Werkzeug-Shells (KI-Agenten, Skript-Runner) subshell-forken** — manche
-  nicht-interaktiven Shells warten trotz `exit 0` auf die Detach-Session und
-  laufen in den Timeout; der Start selbst gelingt trotzdem. Wer das verhindern
-  will, forkt doppelt: `( setsid env -u LD_LIBRARY_PATH -u LD_PRELOAD node \
-  --env-file=.env dist/app.js </dev/null > data/server.log 2>&1 & )` — die
-  Subshell beendet sich sofort, der Server läuft weiter. Danach wie oben
-  verifizieren und `data/server.pid` per exakter Listener-PID nachziehen.
-- **Die Start-Zeile unverändert lassen** — ein vorangestelltes
-  `kill … && … && node … &` backgroundet die ganze Kette (`&` bindet an die
-  komplette `&&`-Liste): `$!` liefert dann die Subshell statt node, und die
-  PID-Datei ist beim ersten Gebrauch veraltet.
+- **Die Subshell-Doppelgabelung beim Start ist Absicht** — ein plaines
+  `nohup node … &` blockiert aufrufende Werkzeuge (die warten auf die
+  Prozessgruppe, bis in einen Timeout laufen); `setsid` detacht in eine eigene
+  Session, `</dev/null` trennt stdin, und die umschließende Subshell beendet sich
+  sofort statt die Detach-Session auszuhalten. Weil `setsid` forkt, wäre `$!`
+  die PID des Wrappers — deshalb die Listener-PID per `ss` in
+  `data/server.pid` schreiben und nicht per `$!`.
 - **Gegen diesen Server testen, nicht nur gegen Vite dev** — nur der echte Server
   sendet die CSP; Inline-Style-Verstöße sind in dev unsichtbar.
 - Das Formular wird zur Laufzeit per JS gebaut; der Seitenquelltext zeigt nur die
