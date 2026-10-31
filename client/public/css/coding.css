@@ -417,34 +417,40 @@ label.required:after {
     border-color: #0f4b7c;
     box-shadow: 0 0 0 3px rgba(15, 75, 124, 0.15);
 }
-/* Datalist statt select/Combobox: Vorschläge laufen über natives
-   <input list> + <datalist>. Firefox/LibreWolf öffnet die nativen
-   Vorschläge aber erst beim Tippen — deshalb öffnet der Pfeil-Button
-   (combobox.ts, ARIA-Combobox-Fallback) die komplette Liste per Klick. */
+/* Eigene Combobox statt nativem Datalist (combobox.ts): das Datalist bleibt
+   reine Datenquelle, das Input hat KEIN list-Attribut — sonst rendern
+   Chromium/Safari ihren eigenen nativen Pfeil und das nicht stylebare
+   native Popup. Eine einzige gestylte Liste (ul.combo-listbox) deckt beide
+   Wege ab: Tippen filtert, Pfeil-Klick zeigt alles. */
 .input-text .combo {
     position: relative;
-    display: flex;
-    align-items: center;
 }
 .input-text .combo input {
-    flex: 1 1 auto;
-    min-width: 0;
+    width: 100%;
     height: 40px;
-    padding: 0 12px;
-    /* margin:0 auto der geteilten Regel überschreiben — im Flex-Row
-       zentriert auto den Input statt ihn füllen zu lassen */
-    margin: 0;
+    /* rechter Platz für den Pfeil IM Feld (absolut rechts innen) */
+    padding: 0 40px 0 12px;
+}
+/* Guard: falls je wieder ein list-Attribut gesetzt wird, darf Chromiums
+   eigener Datalist-Pfeil nie neben dem eigenen Pfeil erscheinen */
+input[list]::-webkit-calendar-picker-indicator {
+    display: none;
 }
 .combo-arrow {
-    flex: 0 0 36px;
-    height: 40px; /* wie Input gesamt */
+    /* Pfeil sitzt IN der Textbox: rechts innen, vertikal zentriert */
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
     box-sizing: border-box;
     /* komplette Kurzform — sonst lebt das margin-top:15px aus `form button`
        weiter und drückt den Pfeil nach unten */
-    margin: 0 0 0 2px;
+    margin: 0;
     padding: 0;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: transparent;
     cursor: pointer;
     /* Flex statt Verlass auf die UA-Button-Content-Zentrierung — die
@@ -462,10 +468,23 @@ label.required:after {
     width: 16px;
     height: 16px;
     margin: 0;
+    transition: transform 0.15s ease;
+}
+/* Pfeil dreht sich bei geöffneter Liste (wie bei Nextcloud) */
+.combo-arrow[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+}
+/* hidden-Attribut muss gegen display:flex gewinnen (Autor-Regel schlägt
+   sonst die UA-Regel [hidden] { display: none }) — Pfeil nur bei
+   vorhandenen Vorschlägen sichtbar */
+.combo-arrow[hidden] {
+    display: none;
 }
 .combo-listbox {
     position: absolute;
-    top: 100%;
+    /* abgesetzt unter dem Feld, volle Radius — schwebende Karte statt
+       angehängter Liste */
+    top: calc(100% + 4px);
     left: 0;
     width: 100%;
     max-height: 220px;
@@ -475,7 +494,7 @@ label.required:after {
     list-style: none;
     background-color: #fff;
     border: 1px solid #c9d3db;
-    border-radius: 0 0 8px 8px;
+    border-radius: 8px;
     box-shadow: 0 6px 16px 2px rgba(5, 5, 5, 0.15);
     z-index: 30;
 }

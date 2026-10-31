@@ -6,6 +6,7 @@
 import { einParts, isEinValid } from '../ein.js';
 import { anyValidationErrors, priceLineText } from '../values.js';
 import type { FormValues, StreetcodeState } from '../values.js';
+import { syncComboArrows } from './combobox.js';
 import type { BuiltPage } from './page.js';
 
 export function buildDatalist(
@@ -19,10 +20,9 @@ export function buildDatalist(
     if (entry.label !== undefined) opt.label = entry.label;
     dl.append(opt);
   }
-  // Klick-Pfeil (combobox.ts) nur anzeigen, solange Vorschläge existieren
-  const linkedInput = dl.ownerDocument.querySelector<HTMLInputElement>(`input[list="${dl.id}"]`);
-  const arrow = linkedInput?.closest('.input-text')?.querySelector('button.combo-arrow');
-  arrow?.toggleAttribute('hidden', entries.length === 0);
+  // Pfeil nur anzeigen, solange Vorschläge existieren; ggf. offene Liste zu
+  // (combobox.ts) — data-list verknüpft Input und Datalist
+  syncComboArrows(dl.ownerDocument);
 }
 
 function fieldContainer(doc: Document, id: string): HTMLElement {

@@ -256,6 +256,10 @@ export function wireForm(
     const ortKey = values.ort.trim();
     const strasseKey = values.strasse.trim();
     if (!ortKey) return; // nothing to resolve without an Ort
+    // 1-char Ort wird nicht aufgelöst: das Upstream liest ein einzelnes
+    // Zeichen als Kfz-Kennzeichen (z. B. „D“ → Düsseldorf) statt als
+    // Präfix — erst ab 2 Zeichen kommen echte Ortsvorschläge
+    if (ortKey.length < 2) return;
 
     const ortNeedsResolve = ortKey !== settled.ort;
     const strasseNeedsResolve = strasseKey !== settled.strasse;
@@ -371,8 +375,11 @@ export function wireForm(
       }
       // the Ort field shows the canonical name
       setInputValue(doc, 'ort', body.city!);
-      buildDatalist(page.datalistOrt, []);
-      if (body.street !== undefined) buildDatalist(page.datalistStrasse, []);
+      // the resolved values stay visible as proposals: the dropdown arrow
+      // stays and (while the field is focused) the list auto-opens with the
+      // resolved entry instead of vanishing after a normalized single match
+      buildDatalist(page.datalistOrt, [{ value: body.city! }]);
+      if (body.street !== undefined) buildDatalist(page.datalistStrasse, [{ value: body.street }]);
       settled = { ort: body.city!.trim(), strasse: readForm(doc).strasse.trim() };
     } else if (body.state === 'street_candidates') {
       state.city = {
@@ -389,6 +396,7 @@ export function wireForm(
       state.originalStrasse = undefined;
       state.streetCandidates = (body.candidates as Array<{ street: string }>).map((c) => c.street);
       setInputValue(doc, 'ort', body.city!);
+      buildDatalist(page.datalistOrt, [{ value: body.city! }]);
       buildDatalist(page.datalistStrasse, state.streetCandidates.map((s) => ({ value: s })));
       settled = { ort: body.city!.trim(), strasse: rawStrasse.trim() };
     } else if (body.state === 'city_candidates') {

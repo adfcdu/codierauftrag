@@ -5,7 +5,7 @@
  */
 
 import type { AppConfig } from '../configTypes.js';
-import { attachDropdownArrow, syncComboArrows } from './combobox.js';
+import { attachCombobox, syncComboArrows } from './combobox.js';
 
 export const TYP_LIST = [
   'Citybike',
@@ -93,7 +93,10 @@ function textField(
   input.name = opts.id;
   if (opts.required) input.required = true;
   if (opts.maxlength !== undefined) input.maxLength = opts.maxlength;
-  if (opts.list) input.setAttribute('list', opts.list);
+  // data-list statt list: das Datalist bleibt reine Datenquelle für die
+  // eigene Combobox (combobox.ts) — ohne list-Attribut rendert kein Browser
+  // seine native Datalist-UI (Chromium-Pfeil/Popup, Safari)
+  if (opts.list) input.dataset.list = opts.list;
   if (opts.date) {
     input.type = 'date';
     input.min = '1950-01-01';
@@ -101,12 +104,12 @@ function textField(
     input.type = 'text';
   }
   if (opts.list) {
-    // Klick-Pfeil für die Vorschlagsliste (combobox.ts) — Firefox/LibreWolf
-    // öffnet native Datalist-Vorschläge erst beim Tippen
+    // Eigene Combobox (combobox.ts): Pfeil IM Feld, eine gemeinsame Liste
+    // für Tippen (Filter) und Pfeil-Klick (alle Werte)
     const combo = el(doc, 'div', 'combo');
     combo.append(input);
     wrap.append(combo);
-    attachDropdownArrow(doc, input);
+    attachCombobox(doc, input);
   } else {
     wrap.append(input);
   }
