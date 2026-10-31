@@ -86,10 +86,7 @@ function textField(
   },
 ): HTMLDivElement {
   const wrap = el(doc, 'div', 'input-text' + (opts.narrow ? ' narrow' : ''));
-  // Jedes Eingabefeld zeigt den roten '*' (Klasse .required, siehe
-  // coding.css) — die Klasse ist rein visuell. `opts.required` steuert nur
-  // noch die Pflichtfeld-Validierung (input.required), nicht das Sternchen.
-  const label = el(doc, 'label', 'required', opts.label) as HTMLLabelElement;
+  const label = el(doc, 'label', opts.required ? 'required' : undefined, opts.label) as HTMLLabelElement;
   wrap.append(label);
   const input = el(doc, 'input') as HTMLInputElement;
   input.id = opts.id;
