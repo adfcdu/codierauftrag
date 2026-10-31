@@ -337,49 +337,40 @@ ul.checklist li::before {
 
 form {
     padding: 0 20px;
-    display: flex;
-    flex-wrap: wrap;
+    /* Dreispaltiges Raster: Textfelder, Datumsfeld und Toggles belegen je
+       eine Spalte (1fr) in voller Zellenbreite — alle Zellen sind gleich
+       breit und exakt spaltenweise ausgerichtet, nichts verschiebt sich.
+       Auf schmalen Screens (siehe Media Query unten) einspaltig. */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 1vw;
     max-width: 960px;
-    align-items: baseline;
     /* Abstand unter dem Formular — kollabiert mit div.bottoms margin-top (5px)
        zu 10px; der Button bringt seine eigenen 10px mit */
     margin-bottom: 10px;
 }
+/* Überschriften, Zeilenumbrüche (div.break) und der Button spannen alle
+   drei Spalten */
+form h2,
+form .break,
+form button {
+    grid-column: 1 / -1;
+}
 form h2 {
     padding: 0 0.5vw;
-    flex-basis: 100%;
     margin: 8px 0 0;
+}
+form button {
+    justify-self: start;
 }
 
 .input-text,
 .input-check,
 .input-date {
     padding: 3px 0.5vw;
-}
-.input-text {
-    flex-grow: 2;
-    /* Basis 260 statt 300: die Kaufen-Zeile trägt vier Felder
-       (Verkäufer, Kaufort, Kaufdatum, Kaufbeleg-Toggle) — mit 300-px-Basis
-       lief die Zeile über die Kartenbreite und das Toggle brach allein um;
-       260 passt alle vier (grow 2 füllt die Zeile trotzdem auf). Übrige
-       Zeilen packen dadurch enger (Marke/Modell/Farbe teilen sich eine). */
-    width: 260px;
-}
-.input-text.narrow {
-    flex-grow: 0.5;
-    width: 120px;
-}
-/* Datum braucht mehr als die schmalen Textfelder: 16-px-Schrift + 2×12-px-
-   Padding + das UA-Kalender-Icon des Date-Inputs — 120 px schnitten die
-   Jahreszahl um ~3 Zeichen ab */
-.input-date {
-    flex-grow: 0.5;
-    width: 150px;
-}
-/* Toggle-Reihe: natürliche Zeilenbreite statt fixer 120 px — jedes Toggle
-   bricht als Ganzes um, nie Text und Schalter getrennt */
-.input-check {
-    flex: 0 0 auto;
+    /* Grid-Items dürfen unter die Inhaltsbreite schrumpfen — sonst drückt
+       ein langes Label oder der Combo-Pfeil die 1fr-Spalte auseinander */
+    min-width: 0;
 }
 
 .input-text label,
@@ -520,17 +511,13 @@ input[list]::-webkit-calendar-picker-indicator {
 }
 /* Toggle-Schalter statt native Checkbox: das input bleibt
    Zustandsquelle (values.ts liest .checked) — nur die Optik ist ersetzt.
-   Zweizeiliger Block wie die Textfelder: Labeltext oben (gleicher Rhythmus
-   wie .input-text label), Schalter darunter — horizontal unter den Text
-   zentriert (fit-content schrumpft den Block auf die Textbreite, margin
-   auto zentriert den Schalter darin). Touch-Ziel ist der ganze Label-Block;
+   Zweizeiliger Block wie die Textfelder in derselben Grid-Spalte:
+   Labeltext oben (gleicher Rhythmus wie .input-text label), Schalter
+   darunter linksbündig — so sitzen alle Steuerelemente spaltenweise
+   im selben Raster. Touch-Ziel ist der ganze Label-Block;
    der Schalter selbst misst 44×24 px. Ein = ADFC-Blau, Aus = Rand-Grau. */
-.input-check {
-    flex: 0 0 auto;
-}
 label.toggle {
     display: block;
-    width: fit-content;
     margin-top: 8px; /* wie .input-text label */
     font-size: 16px;
     line-height: 1.2;
@@ -550,10 +537,10 @@ label.toggle input {
     display: block;
     width: 44px;
     height: 24px;
-    /* zentriert den 24-px-Schalter horizontal unter dem Labeltext (margin
-       auto im fit-content-Block) und vertikal im 40-px-Band, in dem bei
-       Textfeldern der Input sitzt: (40−24)/2 = 8px unter der Labelzeile */
-    margin: 8px auto 0;
+    /* linksbündig unter dem Labeltext (wie die Inputs der Textfelder) und
+       vertikal zentriert im 40-px-Band, in dem bei Textfeldern der Input
+       sitzt: (40−24)/2 = 8px unter der Labelzeile */
+    margin: 8px 0 0;
     border-radius: 12px;
     background-color: #c9d3db;
     position: relative;
@@ -591,7 +578,6 @@ label.toggle input:focus-visible {
 
 
 form .break {
-    flex-basis: 100%;
     height: 0;
 }
 form .break.divider {
@@ -707,6 +693,12 @@ table.ein-data td {
    unvorhersehbaren Umbruellen (Text umfliesst die Tabelle mal links,
    mal darunter), daher auf schmalen Screens deterministisch stapeln. */
 @media (max-width: 700px) {
+    /* Formular auf schmalen Screens einspaltig — drei Spalten wären dort
+       zu eng; die Zellen bleiben gleich breit (volle Kartenbreite) */
+    form {
+        grid-template-columns: 1fr;
+    }
+
     /* div.bottom als Flex-Spalte, damit die Preisangabe per order:-1
        ueber der EIN-Tabelle angezeigt werden kann (DOM-Reihenfolge ist
        Tabelle zuerst - Desktop-Float-Layout bleibt unberuehrt) */

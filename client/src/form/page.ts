@@ -81,11 +81,10 @@ function textField(
     required?: boolean;
     maxlength?: number;
     list?: string;
-    narrow?: boolean;
     date?: boolean;
   },
 ): HTMLDivElement {
-  const wrap = el(doc, 'div', 'input-text' + (opts.narrow ? ' narrow' : ''));
+  const wrap = el(doc, 'div', 'input-text');
   const label = el(doc, 'label', opts.required ? 'required' : undefined, opts.label) as HTMLLabelElement;
   wrap.append(label);
   const input = el(doc, 'input') as HTMLInputElement;
@@ -319,8 +318,18 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   mount.append(instructions, el(doc, 'hr', 'header-divider'));
 
   // ── form ──
+  // Dreispaltiges Raster (coding.css: form als Grid mit repeat(3, 1fr)):
+  // Jedes Feld und jeder Toggle belegt genau eine Spalte in voller
+  // Zellenbreite — alle Zellen gleich breit und spaltenweise ausgerichtet.
+  // div.break und die h2-Überschriften spannen alle drei Spalten und
+  // trennen die Zeilengruppen.
   const form = el(doc, 'form') as HTMLFormElement;
   form.id = 'form'; // purely structural — no action, no method: the form never submits
+  const anzGaenge = textField(doc, { id: 'anzGaenge', label: 'Anz. Gänge' });
+  const anzGaengeInput = anzGaenge.querySelector('input') as HTMLInputElement;
+  anzGaengeInput.type = 'number';
+  anzGaengeInput.min = '0';
+  anzGaengeInput.max = '36';
   form.append(el(doc, 'div', 'break'));
   form.append(el(doc, 'h2', undefined, 'Eigentümer*in'));
   form.append(
@@ -330,37 +339,30 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     el(doc, 'div', 'break'),
     textField(doc, { id: 'ort', label: 'Ort', required: true, maxlength: MAX_LENGTHS['ort']!, list: 'dl-ort' }),
     textField(doc, { id: 'strasse', label: 'Straße', required: true, maxlength: MAX_LENGTHS['strasse']!, list: 'dl-strasse' }),
-    textField(doc, { id: 'hausnr', label: 'Hausnr.', required: true, maxlength: MAX_LENGTHS['hausnr']!, narrow: true }),
+    textField(doc, { id: 'hausnr', label: 'Hausnr.', required: true, maxlength: MAX_LENGTHS['hausnr']! }),
     el(doc, 'div', 'break divider'),
     el(doc, 'h2', undefined, 'Fahrrad/Anhänger'),
+    // Zeile: Marke | Modell | Farbe
     textField(doc, { id: 'marke', label: 'Marke', maxlength: MAX_LENGTHS['marke']! }),
     textField(doc, { id: 'modell', label: 'Modell', maxlength: MAX_LENGTHS['modell']! }),
     textField(doc, { id: 'farbe', label: 'Farbe', maxlength: MAX_LENGTHS['farbe']! }),
+    el(doc, 'div', 'break'),
+    // Zeile: Radtyp | Radart
     textField(doc, { id: 'typ', label: 'Radtyp (bzw. Anhänger)', maxlength: MAX_LENGTHS['typ']!, list: 'dl-typ' }),
     textField(doc, { id: 'art', label: 'Radart', maxlength: MAX_LENGTHS['art']!, list: 'dl-art' }),
-    // Carbon-Rahmen in der Radtyp/Radart-Zeile — Rahmeneigenschaft gehört zu
-    // Radtyp/Radart; bleibt links von Pedelec/E-Bike
-    ...(config.zeigeCarbonRahmen ? [checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen')] : []),
     el(doc, 'div', 'break'),
-    // Pedelec/E-Bike + Akku öffnen die Schaltungs-Zeile — Toggles vor den
-    // Textfeldern, wie Carbon in der Zeile darüber
+    // Eigene Toggle-Zeile: Carbon-Rahmen | Pedelec/E-Bike | Akku codieren
+    ...(config.zeigeCarbonRahmen ? [checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen')] : []),
     checkboxField(doc, 'ebike', 'Pedelec/E-Bike'),
     ...(config.zeigeAkku ? [checkboxField(doc, 'akku', 'Akku codieren')] : []),
+    el(doc, 'div', 'break'),
+    // Eigene Zeile: Schaltung | Anz. Gänge
     textField(doc, { id: 'schaltung', label: 'Schaltung', maxlength: MAX_LENGTHS['schaltung']!, list: 'dl-schaltung' }),
-  );
-  const anzGaenge = textField(doc, { id: 'anzGaenge', label: 'Anz. Gänge', narrow: true });
-  const anzGaengeInput = anzGaenge.querySelector('input') as HTMLInputElement;
-  anzGaengeInput.type = 'number';
-  anzGaengeInput.min = '0';
-  anzGaengeInput.max = '36';
-  form.append(anzGaenge);
-  form.append(el(doc, 'div', 'break'));
-  form.append(
+    anzGaenge,
+    el(doc, 'div', 'break'),
+    // Zeile: Rahmennummer | Position Rahmennummer | Kaufdatum
     textField(doc, { id: 'rahmenNr', label: 'Rahmennummer', maxlength: MAX_LENGTHS['rahmenNr']! }),
     textField(doc, { id: 'nrPos', label: 'Position Rahmennummer', maxlength: MAX_LENGTHS['nrPos']!, list: 'dl-nrpos' }),
-    el(doc, 'div', 'break'),
-    textField(doc, { id: 'verkaeufer', label: 'Verkäufer', maxlength: MAX_LENGTHS['verkaeufer']! }),
-    textField(doc, { id: 'kaufOrt', label: 'Kaufort', maxlength: MAX_LENGTHS['kaufOrt']! }),
     (() => {
       const field = textField(doc, { id: 'kaufDatum', label: 'Kaufdatum', date: true });
       field.classList.remove('input-text');
@@ -368,6 +370,10 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
       (field.querySelector('input') as HTMLInputElement).max = todayYmd(config.zeitzone);
       return field;
     })(),
+    el(doc, 'div', 'break'),
+    // Zeile: Verkäufer | Kaufort | Kaufbeleg vorh.
+    textField(doc, { id: 'verkaeufer', label: 'Verkäufer', maxlength: MAX_LENGTHS['verkaeufer']! }),
+    textField(doc, { id: 'kaufOrt', label: 'Kaufort', maxlength: MAX_LENGTHS['kaufOrt']! }),
     checkboxField(doc, 'beleg', 'Kaufbeleg vorh.'),
     el(doc, 'div', 'break'),
   );
