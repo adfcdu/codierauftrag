@@ -251,6 +251,9 @@ h3 {
 
 .step p {
     margin: 0;
+    /* UA-Default (~1,2) lässt umgebrochene Zeilen mit dem Button zu eng
+       aneinander rücken. */
+    line-height: 1.5;
 }
 
 .step p .btn {
@@ -263,8 +266,8 @@ h3 {
     display: inline-block;
     background-color: #ee7f00;
     border-radius: 0;
-    padding: 8px 12px;
-    font-size: 16px;
+    padding: 6px 10px;
+    font-size: 15px;
     font-style: italic;
     font-weight: 400;
     line-height: 1.2;
@@ -285,10 +288,6 @@ h3 {
     display: flex;
     align-items: center;
     margin-bottom: 8px;
-}
-
-.step p.withButton {
-    line-height: 1.5;
 }
 
 .instructions > div:last-child {

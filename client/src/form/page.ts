@@ -258,7 +258,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   };
   if (config.zeigeCodierungBuchen) {
     const p = el(doc, 'p');
-    p.append(doc.createTextNode('Einen Termin buchen: '));
+    p.append(doc.createTextNode('Einen Termin (im Infoladen) buchen: '));
     const a = el(doc, 'a', 'btn') as HTMLAnchorElement;
     a.href = config.codierungBuchenUrl;
     a.target = '_blank';
