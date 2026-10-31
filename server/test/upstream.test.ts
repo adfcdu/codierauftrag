@@ -108,6 +108,25 @@ describe('parseUpstreamHtml — frozen fixture map (07)', () => {
     });
   });
 
+  it('city_candidates: multi-PLZ orte keep the complete comma-separated PLZ list', () => {
+    const r = parseUpstreamHtml(upstreamFixtureHtml('resp-fa-fein-neustadt-ortselection.html'));
+    expect(r?.state).toBe('city_candidates');
+    // große Städte tragen ALLE PLZ — die Legacy-Anwendung zeigte die volle
+    // Liste, bislang truncierte der Parser auf die erste Zifferngruppe
+    expect(r).toMatchObject({
+      candidates: expect.arrayContaining([
+        { kz: 'NW 000', display: 'Neustadt an der Weinstraße (PLZ: 67433,67434,67435)', ags: '07316000' },
+        { kz: 'PIR 260', display: 'Neustadt in Sachsen (PLZ: 01844,01844,01904)', ags: '14628260' },
+      ]),
+    });
+    const weinstrasse = r!.candidates.find((c) => c.display.includes('Weinstraße'));
+    expect(splitOrtPlz(weinstrasse!.display)).toEqual({
+      display: 'Neustadt an der Weinstraße (PLZ: 67433,67434,67435)',
+      name: 'Neustadt an der Weinstraße',
+      plz: '67433,67434,67435',
+    });
+  });
+
   it('not_found: no hidden inputs, no candidate rows', () => {
     const r = parseUpstreamHtml(upstreamFixtureHtml('resp-fa-fein-ort-notfound.html'));
     expect(r).toEqual({ state: 'not_found' });
@@ -193,7 +212,7 @@ describe('kz split + splitOrtPlz (ports)', () => {
     expect(parseUpstreamHtml(hamburg)).toMatchObject({ plateCode: 'HH', subCode: '-' });
   });
 
-  it('splitOrtPlz: strips the PLZ parenthetical, keeps the full display, captures the digits', () => {
+  it('splitOrtPlz: strips the PLZ parenthetical, keeps the full display, captures ALL PLZ', () => {
     expect(splitOrtPlz('Friedberg (Hessen) (PLZ: 61169)')).toEqual({
       display: 'Friedberg (Hessen) (PLZ: 61169)',
       name: 'Friedberg (Hessen)',
@@ -203,6 +222,17 @@ describe('kz split + splitOrtPlz (ports)', () => {
       display: 'Friedberg, Bayern (PLZ: 86316)',
       name: 'Friedberg, Bayern',
       plz: '86316',
+    });
+    // große Städte: der Upstream listet ALLE PLZ kommagetrennt — keine truncation
+    expect(splitOrtPlz('Bergheim, Rheinland (PLZ: 50126,50127,50129\r)')).toEqual({
+      display: 'Bergheim, Rheinland (PLZ: 50126,50127,50129\r)',
+      name: 'Bergheim, Rheinland',
+      plz: '50126,50127,50129',
+    });
+    expect(splitOrtPlz('Neustadt an der Weinstraße (PLZ: 67433,67434,67435)')).toEqual({
+      display: 'Neustadt an der Weinstraße (PLZ: 67433,67434,67435)',
+      name: 'Neustadt an der Weinstraße',
+      plz: '67433,67434,67435',
     });
     expect(splitOrtPlz('Duisburg')).toEqual({ display: 'Duisburg', name: 'Duisburg', plz: '' });
   });

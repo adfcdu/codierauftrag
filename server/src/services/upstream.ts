@@ -102,25 +102,28 @@ export function parseUpstreamHtml(html: string): UpstreamResult | null {
   return { state: 'not_found' };
 }
 
-// ── splitOrtPlz (plz digits captured server-side) ──
+// ── splitOrtPlz (plz list captured server-side) ──
 
 export interface OrtPlz {
   /** full display string incl. (PLZ: …) — the cmp0 sort key */
   display: string;
   /** name without the PLZ parenthetical */
   name: string;
-  /** the digits captured from the PLZ parenthetical ('' if absent) */
+  /** ALL PLZ of the ort, comma-separated exactly as the upstream lists them
+   *  ('' if absent). Große Städte tragen mehrere — z. B.
+   *  'Neustadt … (PLZ: 67433,67434,67435)'; bislang wurde nur die erste
+   *  erfasst und die Liste damit verstümmelt. */
   plz: string;
 }
 
 export function splitOrtPlz(display: string): OrtPlz {
   const m = display.match(/\s*\(PLZ:[^)]+\)$/);
   if (!m) return { display, name: display, plz: '' };
-  const digits = m[0].match(/\d+/);
+  // der komplette Klammerinhalt — nicht nur die erste Zifferngruppe
   return {
     display,
     name: display.slice(0, m.index).trim(),
-    plz: digits ? digits[0] : '',
+    plz: m[0].slice(m[0].lastIndexOf(':') + 1, -1).trim(),
   };
 }
 

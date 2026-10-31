@@ -417,6 +417,8 @@ export function wireForm(
         page.datalistOrt,
         state.cityCandidates.map((c) => ({
           value: c.name,
+          // plz = KOMMA-GETRENNTE Liste (Upstream liefert alle PLZ des Orts,
+          // z. B. '67433,67434,67435' — wie die Legacy-Anwendung)
           label: c.plz ? `${c.name} (PLZ: ${c.plz})` : c.name,
         })),
       );
