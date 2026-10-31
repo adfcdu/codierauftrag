@@ -256,10 +256,18 @@ h3 {
     line-height: 1.5;
 }
 
+/* Orange-Kasten wie .step p a.btn, aber ohne die kursiven Button-Typo —
+   der span braucht display:inline-block, damit Padding greift */
 .step p .btn {
+    display: inline-block;
     background-color: #ee7f00;
+    border-radius: 0;
+    padding: 6px 10px;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.2;
     color: #fff;
-    padding: .3rem;
+    text-decoration: none;
 }
 
 .step p a.btn {
