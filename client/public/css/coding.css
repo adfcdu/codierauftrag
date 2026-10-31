@@ -195,6 +195,16 @@ body.impressum {
         font-size: clamp(16px, 4.5vw, 21px);
         padding: 8px 12px;
     }
+
+    /* Checkliste: Auf Desktop verteilt justify-content:space-between die
+       Eintraege ueber die volle Spaltenhoehe. Einspaltig kollabiert die
+       Listenhoehe auf den Inhalt — ohne diese Regel bleibt dann nur das
+       8px-Padding als Abstand. Hier mehr Luft zwischen den Punkten und
+       hoehere Zeilenhoehe fuer umgebrochene Eintraege. */
+    ul.checklist li {
+        padding-bottom: 14px;
+        line-height: 1.5;
+    }
 }
 
 #logo {
