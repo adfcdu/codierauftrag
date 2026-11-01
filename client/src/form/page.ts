@@ -130,6 +130,14 @@ function checkboxField(doc: Document, id: string, label: string): HTMLDivElement
   return wrap;
 }
 
+/** Zeilenanfang im Formular-Raster: zwingt das Feld in Spalte 1 einer neuen
+ *  Grid-Zeile (ersetzt die früheren div.break-Elemente — der row-gap im CSS
+ *  liefert den einheitlichen Zeilenabstand). */
+function rowStart<T extends HTMLElement>(node: T): T {
+  node.classList.add('row-start');
+  return node;
+}
+
 export interface BuiltPage {
   form: HTMLFormElement;
   genPdf: HTMLButtonElement;
@@ -321,8 +329,9 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   // Dreispaltiges Raster (coding.css: form als Grid mit repeat(3, 1fr)):
   // Jedes Feld und jeder Toggle belegt genau eine Spalte in voller
   // Zellenbreite — alle Zellen gleich breit und spaltenweise ausgerichtet.
-  // div.break und die h2-Überschriften spannen alle drei Spalten und
-  // trennen die Zeilengruppen.
+  // Zeilen, die einer unvollständigen Zeile folgen, beginnen mit
+  // rowStart(...) in Spalte 1; die h2-Überschriften spannen alle drei
+  // Spalten. Der row-gap im CSS hält den Zeilenabstand gleichmäßig.
   const form = el(doc, 'form') as HTMLFormElement;
   form.id = 'form'; // purely structural — no action, no method: the form never submits
   const anzGaenge = textField(doc, { id: 'anzGaenge', label: 'Anz. Gänge' });
@@ -330,38 +339,32 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   anzGaengeInput.type = 'number';
   anzGaengeInput.min = '0';
   anzGaengeInput.max = '36';
-  form.append(el(doc, 'div', 'break'));
   form.append(el(doc, 'h2', undefined, 'Eigentümer*in'));
   form.append(
     textField(doc, { id: 'vorname', label: 'Vorname(n)', required: true, maxlength: MAX_LENGTHS['vorname']! }),
     textField(doc, { id: 'nachname', label: 'Nachname', required: true, maxlength: MAX_LENGTHS['nachname']! }),
     checkboxField(doc, 'mitglied', 'ADFC-Mitglied'),
-    el(doc, 'div', 'break'),
     textField(doc, { id: 'ort', label: 'Ort', required: true, maxlength: MAX_LENGTHS['ort']!, list: 'dl-ort' }),
     textField(doc, { id: 'strasse', label: 'Straße', required: true, maxlength: MAX_LENGTHS['strasse']!, list: 'dl-strasse' }),
     textField(doc, { id: 'hausnr', label: 'Hausnr.', required: true, maxlength: MAX_LENGTHS['hausnr']! }),
-    el(doc, 'div', 'break divider'),
     el(doc, 'h2', undefined, 'Fahrrad/Anhänger'),
     // Toggle-Zeile direkt unter der Überschrift: Carbon-Rahmen | Pedelec/E-Bike | Akku codieren
     ...(config.zeigeCarbonRahmen ? [checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen')] : []),
     checkboxField(doc, 'ebike', 'Pedelec/E-Bike'),
     ...(config.zeigeAkku ? [checkboxField(doc, 'akku', 'Akku codieren')] : []),
-    el(doc, 'div', 'break'),
-    // Zeile: Marke | Modell | Farbe
-    textField(doc, { id: 'marke', label: 'Marke', maxlength: MAX_LENGTHS['marke']! }),
+    // Zeile: Marke | Modell | Farbe (row-start: Toggle-Zeile kann unvollständig sein)
+    rowStart(textField(doc, { id: 'marke', label: 'Marke', maxlength: MAX_LENGTHS['marke']! })),
     textField(doc, { id: 'modell', label: 'Modell', maxlength: MAX_LENGTHS['modell']! }),
     textField(doc, { id: 'farbe', label: 'Farbe', maxlength: MAX_LENGTHS['farbe']! }),
-    el(doc, 'div', 'break'),
-    // Zeile: Radtyp | Radart
+    // Zeile: Radtyp | Radart (füllt die Zeile nach einer vollen Zeile von selbst)
     textField(doc, { id: 'typ', label: 'Radtyp (bzw. Anhänger)', maxlength: MAX_LENGTHS['typ']!, list: 'dl-typ' }),
     textField(doc, { id: 'art', label: 'Radart', maxlength: MAX_LENGTHS['art']!, list: 'dl-art' }),
-    el(doc, 'div', 'break'),
-    // Eigene Zeile: Schaltung | Anz. Gänge
-    textField(doc, { id: 'schaltung', label: 'Schaltung', maxlength: MAX_LENGTHS['schaltung']!, list: 'dl-schaltung' }),
+    // Eigene Zeile: Schaltung | Anz. Gänge (row-start: Radtyp-Zeile hat nur 2 Felder)
+    rowStart(textField(doc, { id: 'schaltung', label: 'Schaltung', maxlength: MAX_LENGTHS['schaltung']!, list: 'dl-schaltung' })),
     anzGaenge,
-    el(doc, 'div', 'break'),
     // Zeile: Rahmennummer | Position Rahmennummer | Kaufdatum
-    textField(doc, { id: 'rahmenNr', label: 'Rahmennummer', maxlength: MAX_LENGTHS['rahmenNr']! }),
+    // (row-start: Schaltung-Zeile hat nur 2 Felder)
+    rowStart(textField(doc, { id: 'rahmenNr', label: 'Rahmennummer', maxlength: MAX_LENGTHS['rahmenNr']! })),
     textField(doc, { id: 'nrPos', label: 'Position Rahmennummer', maxlength: MAX_LENGTHS['nrPos']!, list: 'dl-nrpos' }),
     (() => {
       const field = textField(doc, { id: 'kaufDatum', label: 'Kaufdatum', date: true });
@@ -370,12 +373,10 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
       (field.querySelector('input') as HTMLInputElement).max = todayYmd(config.zeitzone);
       return field;
     })(),
-    el(doc, 'div', 'break'),
-    // Zeile: Verkäufer | Kaufort | Kaufbeleg vorh.
+    // Zeile: Verkäufer | Kaufort | Kaufbeleg vorh. (folgt auf eine volle Zeile)
     textField(doc, { id: 'verkaeufer', label: 'Verkäufer', maxlength: MAX_LENGTHS['verkaeufer']! }),
     textField(doc, { id: 'kaufOrt', label: 'Kaufort', maxlength: MAX_LENGTHS['kaufOrt']! }),
     checkboxField(doc, 'beleg', 'Kaufbeleg vorh.'),
-    el(doc, 'div', 'break'),
   );
 
   const genPdf = el(doc, 'button') as HTMLButtonElement;
