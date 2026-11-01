@@ -434,16 +434,17 @@ form .required-note {
     font-size: 12px;
     color: #b0564d;
 }
-/* Eingabefelder: weißer Grund, 1-px-Rand statt UA-Default-Optik, 8-px-Radius,
-   40 px hoch (Touch-Ziel), 16 px Schrift (verhindert zudem den iOS-Zoom beim
-   Fokus). border-box: width: 100% statt calc(100% - 6px). */
+/* Eingabefelder: weißer Grund, 2-px-Rand in gedecktem Grau-Blau (deutlich
+   sichtbar, aber unaufdringlich), 8-px-Radius, 40 px hoch (Touch-Ziel),
+   16 px Schrift (verhindert zudem den iOS-Zoom beim Fokus).
+   border-box: width: 100% statt calc(100% - 6px). */
 .input-text > input,
 .input-date > input,
 .input-text .combo input {
     font-family: inherit;
     font-size: 16px;
     box-sizing: border-box;
-    border: 1px solid #c9d3db;
+    border: 2px solid #9db0c0;
     border-radius: 8px;
     background-color: #fff;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -457,16 +458,19 @@ form .required-note {
 .input-text > input:hover,
 .input-date > input:hover,
 .input-text .combo input:hover {
-    /* dasselbe Blau wie beim Label-Hover und beim Fokus (#0f4b7c) — eine
-       einheitliche Hover-Sprache über alle Felder und Toggles */
+    /* Hover: blauer Rand plus dezenter Ring (2px, 0.1) — der blaue Rand
+       trägt den Hover-Effekt, der Ring hellt nur leicht auf; box-shadow
+       statt dickem Rand, also kein Layout-Shift */
     border-color: #0f4b7c;
+    box-shadow: 0 0 2px 2px rgba(15, 75, 124, 0.1);
 }
 .input-text > input:focus,
 .input-date > input:focus,
 .input-text .combo input:focus {
     outline: none;
     border-color: #0f4b7c;
-    box-shadow: 0 0 0 3px rgba(15, 75, 124, 0.15);
+    /* dezent reduzierter Fokus-Ring (vorher 0.25) */
+    box-shadow: 0 0 0 3px rgba(15, 75, 124, 0.18);
 }
 /* Eigene Combobox statt nativem Datalist (combobox.ts): das Datalist bleibt
    reine Datenquelle, das Input hat KEIN list-Attribut — sonst rendern
