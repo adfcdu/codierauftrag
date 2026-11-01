@@ -342,7 +342,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   // Spalten. Der row-gap im CSS hält den Zeilenabstand gleichmäßig.
   const form = el(doc, 'form') as HTMLFormElement;
   form.id = 'form'; // purely structural — no action, no method: the form never submits
-  const anzGaenge = textField(doc, { id: 'anzGaenge', label: 'Anz. Gänge' });
+  const anzGaenge = textField(doc, { id: 'anzGaenge', label: 'Anzahl Gänge' });
   const anzGaengeInput = anzGaenge.querySelector('input') as HTMLInputElement;
   anzGaengeInput.type = 'number';
   anzGaengeInput.min = '0';
@@ -359,7 +359,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     checkboxField(doc, 'mitglied', 'ADFC-Mitglied'),
     textField(doc, { id: 'ort', label: 'Ort', required: true, maxlength: MAX_LENGTHS['ort']!, list: 'dl-ort' }),
     textField(doc, { id: 'strasse', label: 'Straße', required: true, maxlength: MAX_LENGTHS['strasse']!, list: 'dl-strasse' }),
-    textField(doc, { id: 'hausnr', label: 'Hausnr.', required: true, maxlength: MAX_LENGTHS['hausnr']! }),
+    textField(doc, { id: 'hausnr', label: 'Hausnummer', required: true, maxlength: MAX_LENGTHS['hausnr']! }),
     el(doc, 'h2', 'section-divider', 'Fahrrad/Anhänger'),
     // Toggle-Zeile direkt unter der Überschrift: Carbon-Rahmen | Pedelec/E-Bike | Akku codieren
     ...(config.zeigeCarbonRahmen ? [checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen')] : []),
@@ -372,7 +372,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     // Zeile: Radtyp | Radart (füllt die Zeile nach einer vollen Zeile von selbst)
     textField(doc, { id: 'typ', label: 'Radtyp (bzw. Anhänger)', maxlength: MAX_LENGTHS['typ']!, list: 'dl-typ' }),
     textField(doc, { id: 'art', label: 'Radart', maxlength: MAX_LENGTHS['art']!, list: 'dl-art' }),
-    // Eigene Zeile: Schaltung | Anz. Gänge (row-start: Radtyp-Zeile hat nur 2 Felder)
+    // Eigene Zeile: Schaltung | Anzahl Gänge (row-start: Radtyp-Zeile hat nur 2 Felder)
     rowStart(textField(doc, { id: 'schaltung', label: 'Schaltung', maxlength: MAX_LENGTHS['schaltung']!, list: 'dl-schaltung' })),
     anzGaenge,
     // Zeile: Rahmennummer | Position Rahmennummer | Kaufdatum
@@ -386,10 +386,10 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
       (field.querySelector('input') as HTMLInputElement).max = todayYmd(config.zeitzone);
       return field;
     })(),
-    // Zeile: Verkäufer | Kaufort | Kaufbeleg vorh. (folgt auf eine volle Zeile)
+    // Zeile: Verkäufer | Kaufort | Kaufbeleg vorhanden (folgt auf eine volle Zeile)
     textField(doc, { id: 'verkaeufer', label: 'Verkäufer', maxlength: MAX_LENGTHS['verkaeufer']! }),
     textField(doc, { id: 'kaufOrt', label: 'Kaufort', maxlength: MAX_LENGTHS['kaufOrt']! }),
-    checkboxField(doc, 'beleg', 'Kaufbeleg vorh.'),
+    checkboxField(doc, 'beleg', 'Kaufbeleg vorhanden'),
   );
 
   const genPdf = el(doc, 'button') as HTMLButtonElement;
