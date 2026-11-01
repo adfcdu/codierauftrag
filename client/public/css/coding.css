@@ -444,7 +444,7 @@ form .required-note {
     font-family: inherit;
     font-size: 16px;
     box-sizing: border-box;
-    border: 2px solid #9db0c0;
+    border: 1px solid #9db0c0;
     border-radius: 8px;
     background-color: #fff;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
