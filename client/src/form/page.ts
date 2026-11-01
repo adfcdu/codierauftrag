@@ -173,18 +173,24 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   logoText.textContent = config.logoText;
   logo.append(logoPicture, logoText);
   const headerText = el(doc, 'div', 'header-text');
-  headerText.append(el(doc, 'h2', undefined, 'Fahrrad-/Anhänger-Codierauftrag'));
+  // Banner im Stil der Hauptwebsite: blaues Band mit Titel + Intro.
+  // Intro bleibt klassenlos (EasyList-Absicherung), Note via
+  // `.header-text > p:first-of-type` strukturell — intakte Reihenfolge:
+  // Banner (h2+intro) zuerst, danach der Datenschutz-Hinweis.
+  // Banner im Stil der Hauptwebsite: blaues Band enthält NUR die Überschrift.
+  // Intro, CTA und Datenschutz-Hinweis liegen darunter in einem hellgrauen
+  // Kasten (div.header-info) — wie der Kontaktkasten auf der Hauptwebsite.
+  const banner = el(doc, 'div', 'header-banner');
+  banner.append(el(doc, 'h2', undefined, 'Fahrrad-/Anhänger-Codierauftrag'));
+  headerText.append(banner);
+  const infoBox = el(doc, 'div', 'header-info');
   const intro = el(doc, 'p');
   intro.append(
     doc.createTextNode(
       'Auf dieser Website können Sie Ihre Daten für die Codierung Ihres Fahrrades oder Fahrradanhängers erfassen und ausdrucken. Das spart Zeit beim Codierungstermin.',
     ),
   );
-  headerText.append(intro);
-  // Plain paragraph without any class — uBlock/EasyList cosmetic filters hid
-  // classed variants (.privacy-note) with display:none in LibreWolf. Styled
-  // smaller via the structural selector `.header-text > p:nth-of-type(2)`
-  // in coding.css — keep this the 2nd paragraph of .header-text.
+  infoBox.append(intro);
   const privacyNote = el(doc, 'p');
   privacyNote.append(
     doc.createTextNode(
@@ -199,7 +205,8 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   datenschutzLink.target = '_blank';
   datenschutzLink.rel = 'noopener';
   privacyNote.append(datenschutzLink);
-  headerText.append(privacyNote);
+  // Datenschutz-Hinweis über dem CTA — der Button schließt den Kasten ab
+  infoBox.append(privacyNote);
   if (config.zeigeCodierungInfo) {
     const p = el(doc, 'p');
     const a = el(doc, 'a') as HTMLAnchorElement;
@@ -211,8 +218,9 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     a.rel = 'noopener';
     a.classList.add('codierung-info-link');
     p.append(a);
-    headerText.append(p);
+    infoBox.append(p);
   }
+  headerText.append(infoBox);
   header.append(logo, headerText);
   mount.append(header);
 
@@ -240,7 +248,6 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     }
     mount.append(banners);
   }
-  mount.append(el(doc, 'hr', 'header-divider'));
 
   // ── instructions ──
   const instructions = el(doc, 'div', 'instructions');
@@ -275,7 +282,8 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
         const s = el(doc, 'span', 'btn-text', 'Zur Buchung');
         return s;
       })(),
-      el(doc, 'span', 'btn-arrow', '>'),
+      // gleicher Pfeil wie der Codierung-Info-Link (CSS \2192)
+      el(doc, 'span', 'btn-arrow', '\u2192'),
     );
     p.append(a);
     steps.append(step(stepIcon('icon-calendar-booking', 'Termin buchen'), p));
@@ -283,7 +291,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   steps.append(
     step(
       stepIcon('icon-keyboard', 'Tastatur'),
-      el(doc, 'p', undefined, 'Dieses Formular ausfüllen'),
+      el(doc, 'p', undefined, 'Dieses Formular möglichst vollständig ausfüllen'),
     ),
   );
   const pdfStepP = el(doc, 'p', 'withButton');
@@ -323,7 +331,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   ul.append(lastLi);
   checklistWrap.append(ul);
   instructions.append(steps, checklistWrap);
-  mount.append(instructions, el(doc, 'hr', 'header-divider'));
+  mount.append(instructions);
 
   // ── form ──
   // Dreispaltiges Raster (coding.css: form als Grid mit repeat(3, 1fr)):
@@ -390,7 +398,14 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   genPdf.disabled = true;
   genPdf.textContent = 'PDF erzeugen';
   form.append(genPdf);
-  mount.append(form);
+  // Karte um das Formular — gleiche Optik wie die Header-Text-Karte:
+  // blaues Banner (Klasse .header-banner, gemeinsames Styling) über dem
+  // hellgrauen Formularkörper (.form-card + form im CSS).
+  const formCard = el(doc, 'div', 'form-card');
+  const formBanner = el(doc, 'div', 'header-banner');
+  formBanner.append(el(doc, 'h2', undefined, 'Codierauftrag ausfüllen'));
+  formCard.append(formBanner, form);
+  mount.append(formCard);
 
   // datalists
   const datalistOrt = doc.createElement('datalist');
@@ -418,9 +433,22 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   syncComboArrows(doc);
 
   // ── EIN box + price ──
-  const bottom = el(doc, 'div', 'bottom');
+  // Optik nach dem echten Codier-Aufkleber: orangefarbene Karte mit weißem
+  // 'adfc' (Platzhalter bis das weiße Logo-Bild kommt) und dem Claim
+  // 'RAD IST CODIERT', darunter die EIN als schwarze Zeichen auf
+  // silbergrauem Streifen (Punkt-Schrift folgt später — Default-Font).
   const einBox = el(doc, 'div', 'ein-box');
-  einBox.append(el(doc, 'h4', 'ein-title', 'Ihr EIN-Code:'));
+  // weißes ADFC-Logo (295×115) statt Text-Platzhalter
+  const einLogo = el(doc, 'img', 'ein-logo') as HTMLImageElement;
+  einLogo.src = 'img/adfc.png';
+  einLogo.alt = 'ADFC';
+  // Claim + Gravurstreifen in einem gemeinsamen Wrapper: rechte Kanten
+  // bündig, der sitzt direkt über dem Streifen (wie auf dem Aufkleber)
+  const einBody = el(doc, 'div', 'ein-body');
+  einBody.append(el(doc, 'span', 'ein-claim', 'RAD IST CODIERT'));
+  const einStrip = el(doc, 'div', 'ein-strip');
+  // URL-Zeile wie auf dem echten Aufkleber, unten rechts
+  const einUrl = el(doc, 'span', 'ein-url', 'www.adfc.de/code');
   const table = el(doc, 'table', 'ein-data');
   const headRow = el(doc, 'tr');
   const dataRow = el(doc, 'tr');
@@ -440,18 +468,27 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     dataRow.append(td);
   }
   table.append(headRow, dataRow);
-  einBox.append(table);
+  einStrip.append(table);
+  einBody.append(einStrip);
+  einBox.append(einLogo, einBody, einUrl);
   einBox.style.display = 'none';
-  bottom.append(einBox);
+  // EIN-Box in die Formular-Karte, unter dem Eigentümer*-in-Abschnitt
+  // (vor dem Fahrrad/Anhänger-Trenner): die EIN setzt sich aus genau den
+  // dort eingetragenen Daten zusammen — Resultat direkt am Ursprung.
+  const divider = form.querySelector('h2.section-divider') as HTMLHeadingElement;
+  form.insertBefore(einBox, divider);
 
   let price: HTMLSpanElement | null = null;
   if (config.zeigePreise) {
+    // Preis in eigener blauer Leiste (Farbband wie das Header-Banner) —
+    // hebt die Zeile auch im Initialzustand (ohne EIN-Tabelle) klar vom
+    // Footer ab
+    const priceBar = el(doc, 'div', 'price-bar');
     price = el(doc, 'span') as HTMLSpanElement;
     price.id = 'price';
-    bottom.append(price);
+    priceBar.append(price);
+    mount.append(priceBar);
   }
-  bottom.append(el(doc, 'div', 'clear'));
-  mount.append(bottom, el(doc, 'hr', 'header-divider'));
 
   // ── footer ──
   const footer = el(doc, 'div', 'page-footer');
@@ -486,11 +523,11 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   footer.append(datenschutz);
   mount.append(footer);
 
-  // kleine Versionszeile unterhalb der weißen Karte (body > div#app) —
+  // kleine Versionszeile im grauen Footer-Band (wie die Hauptwebsite) —
   // dieselbe Quelle wie die PDF-Fußzeile: __APP_VERSION__
   // (dev = package.json, Release = Git-Tag)
   const versionLine = el(doc, 'div', 'page-version', `codierauftrag V${__APP_VERSION__}`);
-  doc.body.append(versionLine);
+  footer.append(versionLine);
 
   return { form, genPdf, price, einBox, einCells, datalistOrt, datalistStrasse };
 }

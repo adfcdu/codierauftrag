@@ -1,18 +1,88 @@
+/* Selbst gehostete Roboto (Apache 2.0 / OFL — Dateien in /fonts/):
+   alle im Design genutzten Gewichte. font-display: swap rendert sofort
+   mit dem Fallback und tauscht, sobald die Datei da ist. Root-relative
+   Pfade, damit der Pfad unabhängig vom Mounting stimmt. */
+@font-face {
+    font-family: "Roboto";
+    src: url("/fonts/Roboto-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Roboto";
+    src: url("/fonts/Roboto-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Roboto";
+    src: url("/fonts/Roboto-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Roboto";
+    src: url("/fonts/Roboto-Black.ttf") format("truetype");
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Matrix Sans Print SC (SIL OFL 1.1 — Lizenz in /fonts/MatrixSansPrint-OFL.txt,
+   Quelle: https://github.com/FriedOrange/MatrixSans). Punktdrucker-Look
+   für die EIN-Zeichenfolge auf dem Codier-Streifen; SC = Small-Caps-Schnitt. */
+@font-face {
+    font-family: "Matrix Sans Print SC";
+    src: url("/fonts/MatrixSansPrintSC-Regular.woff2") format("woff2"),
+        url("/fonts/MatrixSansPrintSC-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Farbtokens — deckungsgleich mit der Hauptwebsite (duisburg.adfc.de).
+   Alle Regeln greifen auf diese Variablen zu, damit Anpassungen zentral
+   wirken. */
+:root {
+    --adfc-blue: #004b7c;
+    --adfc-orange: #ee7f00;
+    --color-dark: #737373;
+    --color-medium: #8c8c8c;
+    --color-light: #dedede;
+    --color-lighter: #fff;
+    --color-light40: #f2f2f2;
+    --font-body: Roboto, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    /* Schriftgrößen-Skala: 6 Stufen, alle Angaben im File greifen auf
+       diese Tokens zu — eine Änderung hier wirkt zentral */
+    --text-2xs: 11px;  /* Versionszeile */
+    --text-xs: 12px;   /* Hinweistexte (Pflichtfeld, Validierung) */
+    --text-sm: 14px;   /* Footer */
+    --text-base: 16px; /* Fließtext, Steuerelemente (Inputs: kein iOS-Zoom) */
+    --text-md: 17px;   /* betonte UI-Schrift (Labels, Buttons, Preis) */
+    --text-lg: 21px;   /* Untergliederung (Impressum h2, Mobile-CTA-Max) */
+    --text-xl: 28px;   /* Banner-/Seiten-Titel */
+}
+
 body {
     margin: 0;
     /* Modern System-Font-Stack — Arial nur als Fallback.
        Das Logo (#logo-text) bleibt auf Arial gepinnt: dom.ts misst den
        Auto-Fit per Canvas mit Arial. */
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 15px;
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: var(--text-base);
 }
 
-/* Karte = #app — auf #app gescopet, damit die Versionszeile
-   (body > div.page-version, unterhalb der Karte) keinen Karten-Stil erbt */
+/* Karte = #app — Padding sitzt in den Sektionen, damit graue Bänder
+   (Instructions, Footer) die volle Kartenbreite erreichen. */
+/* Volle Breite — die Sektionsbänder (grau/weiß wie die Hauptwebsite)
+   laufen bis an den Rand; der Inhalt bleibt zentriert über das
+   horizontale Padding max(20px, (100% − 960px)/2) jeder Sektion. */
 body > div#app {
-    max-width: 960px;
-    background-color: white;
-    padding: 10px;
+    background-color: var(--color-lighter);
 }
 
 /* Icon sprite — CSP forbids inline styles. */
@@ -23,13 +93,13 @@ body > div#app {
     overflow: hidden;
 }
 .std-stroke {
-    stroke: #ee7f00;
+    stroke: var(--adfc-orange);
     stroke-width: 10px;
     fill: none;
     stroke-linecap: round;
 }
 .fill-bright {
-    fill: #ee7f00;
+    fill: var(--adfc-orange);
     fill-opacity: 0.3;
 }
 .stroke-medium-bright {
@@ -37,30 +107,73 @@ body > div#app {
 }
 .filled-rect {
     stroke-width: 1px;
-    stroke: #ee7f00;
-    fill: #ee7f00;
+    stroke: var(--adfc-orange);
+    fill: var(--adfc-orange);
 }
 .white-filled {
     stroke: #fff;
     stroke-width: 8px;
-    fill: #ee7f00;
+    fill: var(--adfc-orange);
+}
+.fill-solid {
+    fill: var(--adfc-orange);
 }
 
-@media only screen and (min-width: 990px) {
-    body {
-        background-color: #f2f6f8;
-    }
-    
-    body > div#app {
-        margin: 1vw auto;
-        border-radius:10px;
-        box-shadow: 5px 5px 5px 1px rgba(5, 5, 5, 0.19);
-    }
+/* Grauer Seitenhintergrund auf allen Breiten — die weiße Karte liest sich
+   so immer als Karte, auch mobil. */
+body {
+    background-color: var(--color-light40);
 }
 
 body.impressum {
     margin: 8px;
     max-width: 960px;
+    /* Static page without #app card: white surface on the grey canvas */
+    background-color: var(--color-lighter);
+    /* gleiche Typografie wie die Hauptseite — die @font-face-Roboto
+       oben in dieser Datei gilt hier automatisch mit */
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: var(--text-base);
+    line-height: 1.5;
+    color: #000;
+    padding: 16px 24px 32px;
+    box-sizing: border-box;
+}
+
+/* Überschriften in ADFC-Blau wie die Hauptwebsite; Gewichte dezent
+   (die Hauptseite arbeitet mit 300/400, nicht fett) */
+body.impressum h1 {
+    color: var(--adfc-blue);
+    font-size: var(--text-xl);
+    font-weight: 300;
+    line-height: 1.25;
+    margin: 24px 0 12px;
+}
+body.impressum h2 {
+    color: var(--adfc-blue);
+    font-size: var(--text-lg);
+    font-weight: 400;
+    margin: 24px 0 8px;
+}
+body.impressum h3 {
+    color: var(--adfc-blue);
+    font-size: var(--text-md);
+    font-weight: 400;
+    margin: 16px 0 8px;
+}
+/* Fließtext/Listen: gleiche Zeilenhöhe wie die Hauptseite */
+body.impressum p,
+body.impressum ul,
+body.impressum ol {
+    margin: 0 0 12px;
+}
+body.impressum li {
+    margin-bottom: 6px;
+}
+body.impressum a,
+body.impressum a:visited {
+    color: var(--adfc-blue);
 }
 
 .header,
@@ -72,34 +185,37 @@ body.impressum {
 }
 
 .header {
+    /* Logo oben links (Spalte 1), Header-Text rechts. Die Textspalte ist
+       bewusst deutlich breiter als die Logospalte (~1:2,2) — die Karte
+       füllt den größten Teil der Kartenbreite; der Spaltenabstand von
+       48px hält den Abstand zum Logo. Keine explizite Platzierung:
+       Auto-Placement sortiert nach DOM-Reihenfolge (#logo zuerst,
+       .header-text danach) — auf Desktop in Spalte 1/2, in der
+       Einspalten-Media-Query gestapelt. */
+    grid-template-columns: 1fr 2.0fr;
+    column-gap: 48px;
     align-items: start;
-    padding-top: 1vw;
+    padding: 24px max(20px, calc((100% - 960px) / 2)) 16px;
 }
 
-.header-divider {
-    border: none;
-    height: 3px;
-    background-color: #ee7f00;
-    margin: 15px 20px 15px;
-}
-
-/* Letzter Trennstrich (unter EIN-Tabelle/Preis, vor dem Footer):
-   mehr Abstand nach oben, damit die Karte vor dem Footer Luft hat */
-.header-divider:last-of-type {
-    margin-top: 30px;
+/* Graues Band statt Trennstrich: die Sektion zwischen Header-Bannern und
+   Formular setzt sich über die Hintergrundfläche ab */
+.instructions {
+    background-color: var(--color-light40);
+    padding: 24px max(20px, calc((100% - 960px) / 2));
 }
 
 /* Hinweis-Banner (BANNER_1_TEXT / BANNER_2_TEXT) zwischen Header und
-   erstem Trennstrich — auffälliger Kasten in den ADFC-Farben */
+   instructions — auffälliger Kasten in den ADFC-Farben */
 .page-banners {
-    padding: 0 20px;
+    padding: 0 max(20px, calc((100% - 960px) / 2)) 16px;
 }
 
 .page-banner {
     margin-bottom: 10px;
     padding: 12px 16px;
     background-color: #fdeed9;
-    border: 2px solid #ee7f00;
+    border: 2px solid var(--adfc-orange);
     border-left-width: 8px;
     border-radius: 6px;
     font-weight: 600;
@@ -112,7 +228,7 @@ body.impressum {
 
 .page-banner::before {
     content: "Hinweis: ";
-    color: #ee7f00;
+    color: var(--adfc-orange);
     font-weight: 700;
 }
 
@@ -128,21 +244,47 @@ body.impressum {
     color: #cc6600;
 }
 
-.header-text h2 {
-    font-size: 1.8em;
-    margin-top: 0;
-    margin-bottom: 8px;
+/* CTA-Kasten im Stil der Hauptwebsite: blaues Banner nur mit der
+   Überschrift, darunter hellgrauer Kasten mit Text + orangefarbenem
+   Button (section.section-contact auf duisburg.adfc.de) */
+.header-banner {
+    background-color: var(--adfc-blue);
+    color: var(--color-lighter);
+    padding: 10px 24px;
 }
-/* Intro-Absatz: UA-Margin (1em) kollabiert mit der h2-Margin zu 15px —
-   auf 8px reduzieren, dafür die h2-Margin wirken lassen */
-.header-text h2 + p {
-    margin-top: 0;
+.header-banner h2 {
+    color: var(--color-lighter);
+    font-size: var(--text-xl);
+    font-weight: 300;
+    margin: 0;
+    line-height: 1.25;
+}
+
+.header-info {
+    background-color: var(--color-light40);
+    padding: 20px 24px 22px;
+}
+/* Beide Absätze im Kasten teilen denselben Textstil; nur den Links
+   braucht eigenes Styling. Klassenlos — uBlock/EasyList-Filter konnten
+   klassierte Varianten ausblenden. */
+.header-info > p {
+    /* Abstand zwischen den Absätzen; der erste Absatz setzt unten an —
+       das Kasten-Padding liefert den Rand nach oben (sonst stapeln sich
+       20px Padding + 14px Margin zu viel grauem Leerraum). */
+    margin: 0 0 14px;
+    font-weight: 300;
+    line-height: 1.5;
+}
+.header-info > p:last-child {
+    margin-bottom: 0;
 }
 
 .header-text a,
 .header-text a:visited {
-    color: #0f4b7c;
-    font-size: 2.0em;
+    color: var(--adfc-blue);
+    /* fix in px: bewusst großer Zier-Link — soll mit der Basis
+       (15→16px) nicht mitwachsen */
+    font-size: 30px;
     text-decoration: none;
 }
 /* Bei Hover nur den Linktext (span) unterstreichen, nicht den Pfeil (::after) */
@@ -150,18 +292,18 @@ body.impressum {
     text-decoration: underline;
 }
 .header-text a.codierung-info-link::after {
-    content: "\00a0>";
+    content: "\00a0\2192"; /* Pfeil wie auf der Hauptwebsite */
 }
-/* "Informationen zur Codierung" als blauer Button — Rezept wie .step p a.btn,
-   nur in #0f4b7c mit weißer Schrift statt Orange */
+/* "Informationen zur Codierung" als ORANGE CTA — Rezept button1 der
+   Hauptwebsite: var(--adfc-orange), weiße Schrift, kursiv, eckig */
 .header-text a.codierung-info-link,
 .header-text a.codierung-info-link:visited {
     display: inline-block;
-    background-color: #0f4b7c;
+    background-color: var(--adfc-orange);
     color: #fff;
     border-radius: 0;
-    padding: 10px 16px;
-    font-size: 21px;
+    padding: 0.7em 1em;
+    font-size: var(--text-md);
     font-weight: 400;
     line-height: 1.2;
     text-decoration: none;
@@ -172,14 +314,8 @@ body.impressum {
     text-decoration: underline;
 }
 
-/* Datenschutz-Hinweis: der 2. Absatz im Header-Text (nach dem Intro).
-   Bewusst ohne Klasse stylen*/
-.header-text > p:nth-of-type(2) {
-    font-size: 13px;
-    color: #555;
-    margin: 8px 0 0;
-}
-.header-text > p:nth-of-type(2) a {
+.header-info > p a {
+    color: var(--adfc-blue);
     font-size: inherit;
 }
 
@@ -191,19 +327,14 @@ body.impressum {
 
     .header-text a.codierung-info-link,
     .header-text a.codierung-info-link:visited {
-        font-size: clamp(16px, 4.5vw, 21px);
+        font-size: clamp(var(--text-base), 4.5vw, var(--text-lg));
         padding: 8px 12px;
     }
 
-    /* Checkliste: Auf Desktop verteilt justify-content:space-between die
-       Eintraege ueber die volle Spaltenhoehe. Einspaltig kollabiert die
-       Listenhoehe auf den Inhalt — ohne diese Regel bleibt dann nur das
-       8px-Padding als Abstand. Hier mehr Luft zwischen den Punkten und
-       hoehere Zeilenhoehe fuer umgebrochene Eintraege. */
-    ul.checklist li {
-        padding-bottom: 14px;
-        line-height: 1.5;
-    }
+    /* Checkliste: eigene Abstandsregel bewusst im UNTEREN Media-Query
+       (nach der Basisregel ul.checklist li) — hier waere sie durch die
+       Quellreihenfolge wirkungslos (gleiche Spezifitaet, Basisregel
+       gewinnt). */
 }
 
 #logo {
@@ -211,22 +342,23 @@ body.impressum {
        fit-content-groß — ohne definite Breite kollabiert #logo-text
        (margin-left: 40%) und der Canvas-Auto-Fit misst einen viel zu
        kleinen Kasten → winzige Schrift. Mit width:100% ist die Breite
-       definitiv (max-width deckelt auf 400px) und auto zentriert nur. */
+       definitiv (max-width deckelt auf die kompakte Größe) und
+       margin-left:auto schiebt es an den rechten Rand der Spalte. */
     width: 100%;
-    max-width: 400px;
-    margin: 15px auto 0;
+    max-width: 280px;
+    margin: 0;
 }
 #logo-picture {
     width: 100%
 }
 #logo-text {
-    color: #0f4b7c;
+    color: var(--adfc-blue);
     /* Arial gepinnt — dom.ts misst den Auto-Fit per Canvas mit Arial */
     font-family: Arial, sans-serif;
-    font-size: 20px;
+    font-size: 18px;
     margin-left: 40%;
     margin-top: -14%;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     /* auto-fit wraps long KV names at spaces — the \n must render as a break;
        wrapped lines are shrunk by the auto-fit and stack tightly */
     white-space: pre-line;
@@ -269,10 +401,10 @@ h3 {
    damit Padding greift */
 .step p .btn {
     display: inline-block;
-    background-color: #ee7f00;
+    background-color: var(--adfc-orange);
     border-radius: 0;
     padding: 6px 10px;
-    font-size: 15px;
+    font-size: var(--text-base);
     font-weight: 400;
     line-height: 1.2;
     color: #fff;
@@ -281,10 +413,10 @@ h3 {
 
 .step p a.btn {
     display: inline-block;
-    background-color: #ee7f00;
+    background-color: var(--adfc-orange);
     border-radius: 0;
     padding: 6px 10px;
-    font-size: 15px;
+    font-size: var(--text-base);
     font-weight: 400;
     line-height: 1.2;
     color: #fff;
@@ -303,7 +435,9 @@ h3 {
 .step {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    /* Abstand zwischen den Schritten — mehr Luft, damit die drei
+       Schritte als eigenständige Blöcke lesbar sind */
+    margin-bottom: 16px;
 }
 
 .instructions > div:last-child {
@@ -323,28 +457,46 @@ ul.checklist {
 }
 
 ul.checklist li:last-child {
-    padding-bottom: 0;
+    padding-bottom: 5px;
 }
 
 ul.checklist li {
-    padding-bottom: 8px;
+    /* Abstand zwischen den Checklisteneinträgen — symmetrisch zum
+       .step-Abstand der linken Spalte */
+    padding-bottom: 14px;
     padding-left: 20px;
     position: relative;
 }
 
 ul.checklist li::before {
     content: "";
-    width: 0.6em;
-    height: 0.6em;
-    border: 0.15em solid #0f4b7c;
+    /* gefüllter ADFC-Orange-Punkt wie auf duisburg.adfc.de */
+    width: 0.45em;
+    height: 0.45em;
+    background-color: var(--adfc-orange);
     border-radius: 50%;
     position: absolute;
     left: 0;
-    top: 0.15em;
+    /* leicht unter die Versalhöhe gerückt — sitzt optisch mittig zur Zeile */
+    top: 0.35em;
+}
+
+/* Formular-Karte — gleiche Optik wie die Header-Text-Karte: blaues Banner
+   (div.header-banner, wiederverwendet) über dem form als hellgrauem
+   Körper. Die Karte läuft in der 960px-Inhaltsbreite, zentriert wie die
+   anderen Sektionen (Gutter über width statt Padding, damit der graue
+   Hintergrund als Kasten lesbar bleibt und nicht bandartig wirkt). */
+.form-card {
+    width: min(960px, calc(100% - 40px));
+    margin: 24px auto 24px;
 }
 
 form {
-    padding: 0 20px;
+    /* Körper der Formular-Karte: hellgrau wie .header-info. Die inneren
+       Gruppen (Eigentümer*in / Fahrrad/Anhänger) trennt die Haarlinie
+       an form h2.section-divider. */
+    background-color: var(--color-light40);
+    padding: 16px 24px;
     /* Dreispaltiges Raster: Textfelder, Datumsfeld und Toggles belegen je
        eine Spalte (1fr) in voller Zellenbreite — alle Zellen sind gleich
        breit und exakt spaltenweise ausgerichtet, nichts verschiebt sich.
@@ -359,10 +511,6 @@ form {
        gesetzte Validierungsmeldung (.validation-msg) mit Luft in die
        Lücke zwischen zwei Zeilen passt, ohne sie zu verändern. */
     row-gap: 18px;
-    max-width: 960px;
-    /* Abstand unter dem Formular — kollabiert mit div.bottoms margin-top (5px)
-       zu 10px; der Button bringt seine eigenen 10px mit */
-    margin-bottom: 10px;
 }
 /* Zeilenanfang: Felder, die einer unvollständigen Zeile folgen, müssen in
    Spalte 1 einer neuen Zeile — das Auto-Placement würde sonst die freie
@@ -383,9 +531,14 @@ form h2 {
    Rasterbreite (an den Input-Kanten ausgerichtet) und mehr Luft oben,
    damit die beiden Abschnitte als Gruppen lesbar sind */
 form h2.section-divider {
-    margin: 24px 0.5vw 0;
-    padding: 16px 0 0;
-    border-top: 1px solid #c9d3db;
+    /* Gruppentrenner im Formular: gepunktete Linie über die volle
+       Rasterbreite — exakt das hr.dotted-line der Hauptwebsite
+       (4px dotted #bebdbd, oben, keine anderen Ränder) plus Luft.
+       margin-top bewusst klein: oberhalb sitzt die EIN-Box — row-gap
+       (18px) + 12px = 30px, gleicher Abstand wie über der Box. */
+    margin: 12px 0.5vw 0;
+    padding: 28px 0 0;
+    border-top: 4px dotted #bebdbd;
 }
 form button {
     justify-self: start;
@@ -407,10 +560,14 @@ form button {
     /* Zeilenabstand liefert der row-gap des Formular-Grids — hier nur noch
        der Abstand Label ↔ eigenes Eingabefeld */
     margin-bottom: 4px;
-    font-size: 16px; /* body default 15px — Lesbarkeit */
+    font-size: var(--text-md);
+    /* auf dem hellgrauen Kartenhintergrund deutlich lesbar: sattes Schwarz
+       statt der dünnen 300er-Grundschrift */
+    color: #000;
+    font-weight: 400;
 }
 label.required:after {
-    color: #b0564d;
+    color: #b3261e;
     content: " *";
 }
 
@@ -429,8 +586,8 @@ form .form-head {
 }
 form .required-note {
     margin-right: 0.5vw;
-    font-size: 12px;
-    color: #b0564d;
+    font-size: var(--text-xs);
+    color: #b3261e;
 }
 /* Eingabefelder: weißer Grund, 2-px-Rand in gedecktem Grau-Blau (deutlich
    sichtbar, aber unaufdringlich), 8-px-Radius, 40 px hoch (Touch-Ziel),
@@ -440,9 +597,9 @@ form .required-note {
 .input-date > input,
 .input-text .combo input {
     font-family: inherit;
-    font-size: 16px;
+    font-size: var(--text-base);
     box-sizing: border-box;
-    border: 1px solid #94a3b8;
+    border: 1px solid var(--color-medium);
     border-radius: 6px;
     background-color: #fff;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -459,16 +616,16 @@ form .required-note {
     /* Hover: blauer Rand plus dezenter Ring (2px, 0.1) — der blaue Rand
        trägt den Hover-Effekt, der Ring hellt nur leicht auf; box-shadow
        statt dickem Rand, also kein Layout-Shift */
-    border-color: #0f4b7c;
-    box-shadow: 0 0 2px 2px rgba(15, 75, 124, 0.1);
+    border-color: var(--adfc-blue);
+    box-shadow: 0 0 2px 2px rgba(0, 75, 124, 0.1);
 }
 .input-text > input:focus,
 .input-date > input:focus,
 .input-text .combo input:focus {
     outline: none;
-    border-color: #0f4b7c;
+    border-color: var(--adfc-blue);
     /* dezent reduzierter Fokus-Ring (vorher 0.25) */
-    box-shadow: 0 0 0 3px rgba(15, 75, 124, 0.18);
+    box-shadow: 0 0 0 3px rgba(0, 75, 124, 0.18);
 }
 /* Eigene Combobox statt nativem Datalist (combobox.ts): das Datalist bleibt
    reine Datenquelle, das Input hat KEIN list-Attribut — sonst rendern
@@ -525,7 +682,7 @@ input[type='number'] {
 }
 .combo-arrow:hover,
 .combo-arrow[aria-expanded="true"] {
-    background-color: #f2f6f8;
+    background-color: var(--color-light40);
 }
 .combo-arrow svg {
     display: block;
@@ -557,14 +714,14 @@ input[type='number'] {
     padding: 4px 0;
     list-style: none;
     background-color: #fff;
-    border: 1px solid #c9d3db;
+    border: 1px solid var(--color-light);
     border-radius: 6px;
     box-shadow: 0 6px 16px 2px rgba(5, 5, 5, 0.15);
     z-index: 30;
 }
 .combo-listbox li {
     padding: 8px 10px;
-    font-size: 15px;
+    font-size: var(--text-base);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -572,7 +729,7 @@ input[type='number'] {
 }
 .combo-listbox li.active,
 .combo-listbox li:hover {
-    background-color: #f2f6f8;
+    background-color: var(--color-light40);
 }
 /* Toggle-Schalter statt native Checkbox: das input bleibt
    Zustandsquelle (values.ts liest .checked) — nur die Optik ist ersetzt.
@@ -580,11 +737,14 @@ input[type='number'] {
    Labeltext oben (gleicher Rhythmus wie .input-text label), Schalter
    darunter linksbündig — so sitzen alle Steuerelemente spaltenweise
    im selben Raster. Touch-Ziel ist der ganze Label-Block;
-   der Schalter selbst misst 44×24 px. Ein = ADFC-Blau, Aus = Rand-Grau. */
+   der Schalter selbst misst 44×24 px. Ein = ADFC-Blau, Aus = hellgrau. */
 label.toggle {
     display: block;
     /* Zeilenabstand liefert der row-gap des Formular-Grids */
-    font-size: 16px;
+    font-size: var(--text-md);
+    /* gleiche Lesbarkeit wie die Feldlabels: Schwarz, normalgewichtig */
+    color: #000;
+    font-weight: 400;
     line-height: 1.2;
     cursor: pointer;
 }
@@ -594,7 +754,7 @@ label.toggle .toggle-text {
     transition: color 0.15s ease;
 }
 label.toggle:hover .toggle-text {
-    color: #0f4b7c;
+    color: var(--adfc-blue);
 }
 label.toggle input {
     appearance: none;
@@ -607,7 +767,10 @@ label.toggle input {
        sitzt: (40−28)/2 = 6px unter der Labelzeile */
     margin: 6px 0 0;
     border-radius: 14px;
-    background-color: #94a3b8;
+    /* Aus-Zustand: helles neutrales Grau — hebt sich klar vom blauen
+       Ein-Zustand ab und wirkt auf dem grauen Kartenhintergrund nicht
+       wie ein zweiter schwerer Block */
+    background-color: #b9bcc0;
     position: relative;
     cursor: pointer;
     transition: background-color 0.2s ease;
@@ -625,7 +788,7 @@ label.toggle input::after {
     transition: transform 0.2s ease;
 }
 label.toggle input:checked {
-    background-color: #0f4b7c;
+    background-color: var(--adfc-blue);
 }
 label.toggle input:checked::after {
     /* 48 − 24 (Knob) − 2 × 2 (Inset) = 20px — unverändert, da Track von 44→48px
@@ -633,7 +796,7 @@ label.toggle input:checked::after {
     transform: translateX(20px);
 }
 label.toggle input:focus-visible {
-    outline: 2px solid rgba(15, 75, 124, 0.55);
+    outline: 2px solid rgba(0, 75, 124, 0.55);
     outline-offset: 2px;
 }
 .validation-msg {
@@ -648,8 +811,8 @@ label.toggle input:focus-visible {
     height: 14px;
     line-height: 14px;
     margin: 0;
-    font-size: 11px;
-    color: #b0564d;
+    font-size: var(--text-xs);
+    color: #b3261e;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -659,10 +822,12 @@ label.toggle input:focus-visible {
 form button { /* ADFC style */
     border: none;
     border-radius: 0;
-    margin: 20px 0.5vw 20px;
-    background-color: #ee7f00;
+    /* mehr Luft über dem Button — trennt ihn als Abschluss unter dem
+       letzten Formularblock; unten etwas mehr Abstand zur Kartenkante */
+    margin: 32px 0.5vw 32px;
+    background-color: var(--adfc-orange);
     color: #fff;
-    font-size: 17px;
+    font-size: var(--text-md);
     padding: .8rem 1.5rem;
     cursor: pointer;
 }
@@ -674,23 +839,20 @@ form button:not([disabled]):hover {
     text-decoration: underline;
 }
 
+/* Blaue Preisleiste — Farbband wie das Header-Banner. Die Preiszeile ist
+   so auch im Initialzustand (ohne EIN-Tabelle) ein eigenständiges Element
+   mit klarer Abgrenzung zur dunklen Fußzeile; erscheint die EIN-Tabelle,
+   liegt sie als graues Band darunter. */
+.price-bar {
+    background-color: var(--adfc-blue);
+    color: var(--color-lighter);
+    padding: 14px max(20px, calc((100% - 960px) / 2));
+}
 #price {
-    font-size: 17px;
+    font-size: var(--text-md);
     font-weight: bold;
     margin-left: 0.5vw;
     display: block;
-    margin-top: 15px;
-}
-
-div.bottom {
-    width: 100%;
-    max-width: 960px;
-    /* border-box, sonst wird div.bottom um das Padding 40px breiter
-       als die Karte und ragt auf schmalen Screens ueber den rechten Rand
-       hinaus (EIN-Tabelle klebt dann am Bildschirmrand) */
-    box-sizing: border-box;
-    padding: 0 20px;
-    margin: 5px 0;
 }
 
 .page-footer {
@@ -698,6 +860,9 @@ div.bottom {
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: center;
+    /* dunkles Footer-Band wie auf der Hauptwebsite
+       (section.section-footer → background var(--color-dark), weißer Text) */
+    background-color: var(--color-dark);
     /* 14 px statt 15 px da andere Schriftarten breiter rendern als Arial
        die zentrierte Leiste lief damit bei 900 px Kartenbreite über
        und brach in eine zweite Zeile. */
@@ -706,13 +871,13 @@ div.bottom {
        (ca. 700-910 px bzw. laengere Eintraege) und schafft dort
        genug vertikalen Abstand fuer Touch-Ziele */
     row-gap: 12px;
-    font-size: 14px;
-    margin: 0 20px 5px;
-    color: #555;
+    font-size: var(--text-sm);
+    padding: 18px max(20px, calc((100% - 960px) / 2)) 10px;
+    color: var(--color-lighter);
 }
 
 .page-footer a {
-    color: #555;
+    color: var(--color-lighter);
     text-decoration: none;
 }
 
@@ -720,50 +885,153 @@ div.bottom {
     text-decoration: underline;
 }
 
-/* Kleine Versionszeile unterhalb der weißen Karte — dieselbe
+/* Kleine Versionszeile im Footer-Band (letzte Flex-Zeile) — dieselbe
    Versionsnummer wie die PDF-Fußzeile. */
 .page-version {
-    max-width: 960px;
-    margin: 16px auto 10px;
+    width: 100%;
+    margin: 4px 0 2px;
     text-align: center;
-    color: #555;
-    font-size: 11px;
+    /* Weiß transparent abgestuft — Version klein, aber auf dem dunklen
+       Band lesbar */
+    color: rgba(255, 255, 255, 0.75);
+    font-size: var(--text-2xs);
 }
 
+/* EIN-Box im Stil des echten Codier-Aufklebers: orangefarbene Karte mit
+   abgerundeten Ecken, weißes ADFC-Logo (img/adfc.png) oben links, Claim
+   'RAD IST CODIERT' rechtsbündig über dem silbergrauen Streifen mit der
+   EIN in schwarzen Zeichen (Matrix Sans Print), URL unten rechts. */
 .ein-box {
-    float: right;
-    margin: 0 10px 15px 20px;
+    /* Grid-Item in der Formular-Karte: eigenständiges Aufkleber-Objekt mit
+       fester Breite, linksbündig im Raster (bündig mit den Feldern).
+       Mindesthöhe (Aufkleber-Proportion), Inhalt (Claim, Streifen, URL)
+       verteilt sich per auto-Margin. */
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: min(560px, 100%);
+    margin: 16px 0 0;
+    background-color: var(--adfc-orange);
+    border-radius: 18px;
+    padding: 16px 18px;
+    box-sizing: border-box;
+    /* min-height statt height: die Box umschließt den Inhalt — schrumpft
+       der fluid skalierte Inhalt (cqw-Schrift) auf schmalen Screens,
+       schrumpft die Box mit, statt orange Leerfläche zu halten */
+    min-height: 176px;
+    display: flex;
+    flex-direction: column;
+    /* Size-Container: die EIN-Schrift (cqw in table.ein-data td) skaliert
+       mit der Box-Breite, statt an Breakpoints zu springen */
+    container-type: inline-size;
+    /* Anker für das absolut gesetzte Logo */
+    position: relative;
+    /* kein space-between: die URL bekommt feste 16px über und unten
+       (Box-Padding), der Body zentriert sich per auto-Margin dazwischen */
 }
-
-.ein-title {
-    margin: 0 0 6px 0;
-    font-size: 20px;
-    color: #000;
+.ein-logo {
+    /* weißes ADFC-Logo (295×115), absolut in der Ecke: kein eigener
+       Zeilenfluss — die Höhe der Box bestimmen Claim, Streifen und URL */
+    position: absolute;
+    /* top < left: das PNG trägt interne transparente Rand-Polsterung
+       oben (~16px gerendert) — der Versatz gleicht das aus, damit die
+       sichtbaren Abstände zu Ober- und Linkskante gleich groß sind */
+    top: 8px;
+    left: 12px;
+    /* max. Größe: Unterkante knapp über der Streifen-Oberkante; die
+       horizontale Überlappung mit dem rechtsbündigen Claim bleibt
+       unkritisch, da Logo- und Claim-X-Bereiche getrennt sind */
+    height: 62px;
+    width: auto;
+}
+/* Claim + Streifen teilen einen Wrapper (.ein-body): der Claim sitzt
+   rechtsbündig direkt über dem Streifen, beide Kanten fluchten — der
+   Wrapper trägt den seitlichen Rand (wie der Aufkleber-Rand um die
+   Gravur), den früher der Streifen allein hatte. */
+.ein-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    /* Body sitzt unter dem Logo, flex:1 drückt die URL an die
+       Boxunterkante. 82% Breite, zentriert: schmalerer Streifen mit
+       gleichen Orange-Rändern links und rechts — Claim und
+       Streifen-Rechtskante bleiben bündig (align-items: flex-end wirkt
+       innerhalb des schmaleren Bodys). justify-content: flex-end senkt
+       Claim+Streifen an die Body-Unterkante — ohne ihn sammelt sich der
+       Flex-Überschuss UNTER dem Streifen (großes Loch über der URL). So
+       bleibt nur der feste 16px-Abstand (margin-top der URL) zwischen
+       Streifen und URL. */
+    justify-content: flex-end;
+    flex: 1;
+    width: 82%;
+    margin: 24px auto 0;
+}
+.ein-claim {
+    color: #fff;
+    font-weight: 900;
+    /* fluid wie der Streifen: skaliert mit der Box, 24px am Desktop-Maximum */
+    font-size: clamp(15px, 4.3cqw, 24px);
+    letter-spacing: 2px;
+    /* letter-spacing hängt auch nach dem letzten Zeichen — negative
+       margin zieht den visuellen Textabschluss auf die Kante des Streifens */
+    margin-right: -2px;
+    margin-bottom: 4px;
+}
+/* Silbergrauer Gravur-Streifen — die EIN-Zeichen stehen schwarz darauf.
+   Heller als der graue Kartenhintergrund (#f2f2f2), kühl-silbrig getönt. */
+.ein-strip {
+    background-color: #f5f6f8;
+    border-radius: 0;
+    padding: 6px 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.ein-url {
+    color: #fff;
+    font-weight: 900;
+    /* fluid wie Claim und Streifen — die gesamte Skizze skaliert als Objekt */
+    font-size: clamp(12px, 3.2cqw, 17px);
+    letter-spacing: 1px;
+    text-align: right;
+    /* rechte Kante an der Body-/Streifen-Rechtskante: Body-Einsatz
+       (100% − 82%) / 2 = 9% der Boxbreite; der 1px-Abzug gleicht den
+       letter-spacing-Nachlauf aus */
+    margin: 16px calc(9% - 1px) 0 0;
+    /* Zeilenbox = Schriftgröße: ohne die Leading-Luft über den Glyphen
+       wären die sichtbaren Orange-Ränder oben/unten ungleich */
+    line-height: 1;
 }
 
 table.ein-data {
-    background-color: #0f4b7c;
-    color: white;
-    border: 3px solid #ee7f00;
+    background-color: transparent;
+    color: #000;
+    border: none;
     border-collapse: collapse;
+    width: 100%;
 }
 
-table.ein-data th,
+table.ein-data th {
+    /* keine Segment-Label auf dem Streifen — der Aufkleber zeigt nur die
+       gravierte Zeichenfolge */
+    display: none;
+}
+
 table.ein-data td {
     text-align: center;
-    font-weight: normal;
-    padding: 8px;
-    border: 1px solid white;
+    /* Punktdrucker-Schrift für die EIN-Zeichen; nur Regular geschnitten,
+       daher Gewicht 400 (kein synthetisches Bold) */
+    font-family: "Matrix Sans Print SC", var(--font-body);
+    font-weight: 400;
+    color: #000;
+    padding: 2px 6px;
+    border: none;
+    /* fluid: 33px am Desktop-Maximum, schmaler werdende Boxen verkleinern
+       die Schrift proportional (8cqw − 12px passt die 6-Spalten-Folge in
+       den 82%-Streifen); 14px Untergrenze für sehr schmale Screens */
+    font-size: clamp(14px, calc(8cqw - 12px), 33px);
+    /* Gravur-Optik: die Zeichenfolge wirkt wie ein durchgehender Code */
+    letter-spacing: 2px;
 }
 
-table.ein-data td {
-    font-size: 24px;
-}
-
-/* Auf schmalen Bildschirmen EIN-Tabelle und Preis untereinander statt
-   als Float nebeneinander anzuordnen - Floats fuehren dort zu
-   unvorhersehbaren Umbruellen (Text umfliesst die Tabelle mal links,
-   mal darunter), daher auf schmalen Screens deterministisch stapeln. */
 @media (max-width: 700px) {
     /* Formular auf schmalen Screens einspaltig — drei Spalten wären dort
        zu eng; die Zellen bleiben gleich breit (volle Kartenbreite) */
@@ -771,32 +1039,57 @@ table.ein-data td {
         grid-template-columns: 1fr;
     }
 
-    /* div.bottom als Flex-Spalte, damit die Preisangabe per order:-1
-       ueber der EIN-Tabelle angezeigt werden kann (DOM-Reihenfolge ist
-       Tabelle zuerst - Desktop-Float-Layout bleibt unberuehrt) */
-    div.bottom {
-        display: flex;
-        flex-direction: column;
+    /* Checkliste: mehr Luft zwischen den Eintraegen als auf Desktop.
+       Steht bewusst NACH der Basisregel ul.checklist li — im frueheren
+       Media-Query oben im File würde die spaetere Basisregel (gleiche
+       Spezifitaet) diese Regel ueberschreiben und sie wirkungslos machen.
+       Auf Desktop verteilt justify-content:space-between die Eintraege
+       ueber die volle Spaltenhoehe; einspaltig kollabiert die Listenhoehe
+       auf den Inhalt, daher kommt der Abstand allein aus diesem Padding. */
+    ul.checklist li {
+        padding-bottom: 28px;
     }
 
-    /* hoehere Spezifitaet als .ein-box, damit die Regel unabhaengig
-       von der Reihenfolge im Stylesheet gewinnt */
-    div.bottom .ein-box {
-        float: none;
-        /* linker Rand wie bei Formularfeldern und Buttons (0.5vw),
-           15px Abstand nach unten zum orangefarbenen Trennstrich */
-        margin: 15px 0 15px 0.5vw;
-    }
-
-    div.bottom #price {
-        order: -1;
-        display: block;
-        margin-top: 15px;
-    }
-
-    table.ein-data th,
     table.ein-data td {
-        padding: 4px;
+        /* Schriftgröße kommt aus der fluiden clamp-Regel oben (cqw) */
+        padding: 2px 4px;
+    }
+
+    /* EIN-Sticker mobil moderat verkleinert: die Desktop-Schriftgrößen
+       passen nebeneinander auf 412px nicht — Logo und Claim rutschen
+       ineinander. Die Größen bleiben aber lesbar (Logo 24px, Claim 16px);
+       reicht die Breite nicht, bricht der Claim um statt zu kollidieren. */
+    .ein-box {
+        min-height: 136px;
+        padding: 14px;
+        border-radius: 14px;
+    }
+    .ein-logo {
+        /* mobil bis knapp über die Streifen-Oberkante, an der Breite
+           durch die linke Claim-Kante begrenzt; top < left gleicht wie
+           Desktop die PNG-Rand-Polsterung aus */
+        height: 42px;
+        top: 8px;
+        left: 11px;
+    }
+    .ein-body {
+        /* gleiche Zentrierung wie Desktop (Breite 82% geerbt) */
+        flex: 1;
+        margin: 16px auto 0;
+    }
+    .ein-claim {
+        /* Größe kommt aus der fluiden clamp-Regel oben (cqw) */
+        letter-spacing: 1px;
+    }
+    .ein-strip {
+        padding: 4px 8px;
+    }
+    .ein-url {
+        /* Größe kommt aus der fluiden clamp-Regel oben (cqw) */
+        letter-spacing: 0.5px;
+        line-height: 1;
+        /* rechte Kante an der Body-/Streifen-Rechtskante wie Desktop */
+        margin: 14px calc(9% - 1px) 0 0;
     }
 
     /* Footer-Eintraege (E-Mail, Telefon, Links) auf schmalen Screens
@@ -805,7 +1098,7 @@ table.ein-data td {
        grosse Touch-Ziele. */
     .page-footer {
         flex-direction: column;
-        row-gap: 12px;
+        row-gap: 16px;
         align-items: center;
     }
 }
@@ -823,7 +1116,7 @@ p.price {
     height: 12px;
     margin-left: 8px;
     vertical-align: middle;
-    border: 2px solid #ee7f00;
+    border: 2px solid var(--adfc-orange);
     border-top-color: transparent;
     border-radius: 50%;
     animation: busy-spin 0.8s linear infinite;

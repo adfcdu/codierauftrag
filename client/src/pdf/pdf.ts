@@ -400,7 +400,8 @@ export async function buildPdf(
 
     if (displayedEin !== barcodeLabel) {
       setFont(10, 'normal');
-      doc.setTextColor(255, 0, 0);
+      // gleiche Warn-Rot wie die Seite (#b3261e) — satter als RGB-Rot
+      doc.setTextColor(179, 38, 30);
       doc.text('Umlaute und/oder Akzente im Code!', 10 + PAD, lineBaseline(34, 10), { baseline: 'alphabetic' });
       doc.setTextColor(0, 0, 0);
     }
