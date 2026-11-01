@@ -352,7 +352,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     textField(doc, { id: 'ort', label: 'Ort', required: true, maxlength: MAX_LENGTHS['ort']!, list: 'dl-ort' }),
     textField(doc, { id: 'strasse', label: 'Straße', required: true, maxlength: MAX_LENGTHS['strasse']!, list: 'dl-strasse' }),
     textField(doc, { id: 'hausnr', label: 'Hausnr.', required: true, maxlength: MAX_LENGTHS['hausnr']! }),
-    el(doc, 'h2', undefined, 'Fahrrad/Anhänger'),
+    el(doc, 'h2', 'section-divider', 'Fahrrad/Anhänger'),
     // Toggle-Zeile direkt unter der Überschrift: Carbon-Rahmen | Pedelec/E-Bike | Akku codieren
     ...(config.zeigeCarbonRahmen ? [checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen')] : []),
     checkboxField(doc, 'ebike', 'Pedelec/E-Bike'),
