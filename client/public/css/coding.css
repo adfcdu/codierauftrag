@@ -413,12 +413,21 @@ label.required:after {
     content: " *";
 }
 
-/* Legende neben dem "PDF erzeugen"-Button: der Button belegt nur noch
-   Rasterspalte 1, der Hinweis rückt automatisch in Spalte 2 derselben
-   Zeile (auf schmalen Screens einspaltig darunter). */
+/* Kopfzeile "Eigentümer*in | * = Pflichtfeld": eigene volle Rasterzeile,
+   Flex mit space-between — Überschrift links, Legende rechtsbündig in
+   derselben Zeile, ohne Auto-Placement-Konflikte (die frühere Variante
+   mit grid-row:1 + spannender Überschrift schob die Überschrift in
+   Zeile 2). margin-right richtet die Legende an den Input-Rändern aus
+   (0.5vw Zellpadding). Auf schmalen Screens bleibt dies bestehen —
+   Überschrift und Legende passen dort in eine Zeile. */
+form .form-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
 form .required-note {
-    align-self: center;
-    margin-left: 12px;
+    margin-right: 0.5vw;
     font-size: 12px;
     color: #b0564d;
 }

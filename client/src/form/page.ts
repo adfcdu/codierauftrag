@@ -339,7 +339,12 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   anzGaengeInput.type = 'number';
   anzGaengeInput.min = '0';
   anzGaengeInput.max = '36';
-  form.append(el(doc, 'h2', undefined, 'Eigentümer*in'));
+  // Kopfzeile: Überschrift links, Pflichtfeld-Legende rechts — als eigene
+  // volle Rasterzeile, damit Legende und Überschrift garantiert gemeinsam
+  // in einer Zeile liegen (siehe .form-head im CSS)
+  const formHead = el(doc, 'div', 'form-head');
+  formHead.append(el(doc, 'h2', undefined, 'Eigentümer*in'), el(doc, 'span', 'required-note', '* = Pflichtfeld'));
+  form.append(formHead);
   form.append(
     textField(doc, { id: 'vorname', label: 'Vorname(n)', required: true, maxlength: MAX_LENGTHS['vorname']! }),
     textField(doc, { id: 'nachname', label: 'Nachname', required: true, maxlength: MAX_LENGTHS['nachname']! }),
@@ -384,7 +389,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   genPdf.type = 'button';
   genPdf.disabled = true;
   genPdf.textContent = 'PDF erzeugen';
-  form.append(genPdf, el(doc, 'span', 'required-note', '* = Pflichtfeld'));
+  form.append(genPdf);
   mount.append(form);
 
   // datalists
