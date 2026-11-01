@@ -31,6 +31,7 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.umsatzsteuerProzent).toBe(0);
     expect(c.zeigeBarzahlung).toBe(true);
     expect(c.zeigeKartenzahlung).toBe(false);
+    expect(c.zeigeEigentumsnachweis).toBe(true); // Default, steht nicht im Fixture
     expect(c.pdfNurEineSeite).toBe(false);
     expect(c.zeigeCodierungBuchen).toBe(true);
     expect(c.banner1Text).toBe('Angebots-Hinweis 1');
@@ -95,6 +96,14 @@ describe('parseConfig — valid fixtures', () => {
     const base = envFixture('kv-beispielstadt.env');
     const result = parseConfig({ ...base, EMAIL_ADRESSE: 'https://beispielstadt.example' });
     expect('errors' in result).toBe(true);
+  });
+
+  it('accepts ZEIGE_EIGENTUMSNACHWEIS=false (das Kästchen entfällt im PDF)', () => {
+    const base = envFixture('kv-beispielstadt.env');
+    const result = parseConfig({ ...base, ZEIGE_EIGENTUMSNACHWEIS: 'false' });
+    expect('errors' in result).toBe(false);
+    if ('errors' in result) return;
+    expect(result.config.zeigeEigentumsnachweis).toBe(false);
   });
 });
 

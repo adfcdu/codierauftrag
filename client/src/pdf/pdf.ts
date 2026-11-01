@@ -609,13 +609,16 @@ export async function buildPdf(
     }
     // ID check + proof-of-ownership check share one 16 mm frame — the rows sit
     // where the two separate 8 mm boxes were, without the dividing line
-    doc.rect(122, idCheckPos, RIGHT_X - 122, 16);
+    const idCheckHeight = config.zeigeEigentumsnachweis ? 16 : 8;
+    doc.rect(122, idCheckPos, RIGHT_X - 122, idCheckHeight);
     doc.text('Ausweis überprüft', 129 + PAD, lineBaseline(idCheckPos + 1, 12), { baseline: 'alphabetic' });
     doc.circle(126, idCheckPos + 3.8, 2);
-    doc.text('Eigentumsnachweis überprüft', 129 + PAD, lineBaseline(idCheckPos + 9, 12), {
-      baseline: 'alphabetic',
-    });
-    doc.circle(126, idCheckPos + 11.8, 2);
+    if (config.zeigeEigentumsnachweis) {
+      doc.text('Eigentumsnachweis überprüft', 129 + PAD, lineBaseline(idCheckPos + 9, 12), {
+        baseline: 'alphabetic',
+      });
+      doc.circle(126, idCheckPos + 11.8, 2);
+    }
 
     // footer (bordered 5 mm cells, centered)
     setFont(6, 'normal');

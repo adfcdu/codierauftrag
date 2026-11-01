@@ -26,6 +26,7 @@ export interface AppConfig {
   umsatzsteuerProzent: number;
   zeigeBarzahlung: boolean;
   zeigeKartenzahlung: boolean;
+  zeigeEigentumsnachweis: boolean;
   pdfNurEineSeite: boolean;
   zeigeCodierungBuchen: boolean;
   codierungBuchenUrl: string;

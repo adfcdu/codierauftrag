@@ -28,6 +28,7 @@ export interface PublicConfig {
   umsatzsteuerProzent: number;
   zeigeBarzahlung: boolean;
   zeigeKartenzahlung: boolean;
+  zeigeEigentumsnachweis: boolean;
   pdfNurEineSeite: boolean;
   zeigeCodierungBuchen: boolean;
   codierungBuchenUrl: string;
@@ -69,6 +70,7 @@ export function buildPublicConfig(config: ParsedConfig, version: string): Public
     umsatzsteuerProzent: config.umsatzsteuerProzent,
     zeigeBarzahlung: config.zeigeBarzahlung,
     zeigeKartenzahlung: config.zeigeKartenzahlung,
+    zeigeEigentumsnachweis: config.zeigeEigentumsnachweis,
     pdfNurEineSeite: config.pdfNurEineSeite,
     zeigeCodierungBuchen: config.zeigeCodierungBuchen,
     codierungBuchenUrl: config.codierungBuchenUrl,

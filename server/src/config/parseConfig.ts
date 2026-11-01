@@ -29,6 +29,7 @@ export interface ParsedConfig {
   umsatzsteuerProzent: number; // 0 when off
   zeigeBarzahlung: boolean;
   zeigeKartenzahlung: boolean;
+  zeigeEigentumsnachweis: boolean;
   pdfNurEineSeite: boolean;
   zeigeCodierungBuchen: boolean;
   codierungBuchenUrl: string;
@@ -111,6 +112,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
   const zeigeUmsatzsteuerRaw = bool('ZEIGE_UMSATZSTEUER', false);
   const zeigeBarzahlung = bool('ZEIGE_BARZAHLUNG', false);
   const zeigeKartenzahlung = bool('ZEIGE_KARTENZAHLUNG', false);
+  const zeigeEigentumsnachweis = bool('ZEIGE_EIGENTUMSNACHWEIS', true);
   const pdfNurEineSeite = bool('PDF_NUR_EINE_SEITE', false);
   const zeigeCodierungBuchen = bool('ZEIGE_CODIERUNG_BUCHEN', false);
   const zeigeCodierungInfo = bool('ZEIGE_CODIERUNG_INFO', false);
@@ -481,6 +483,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     umsatzsteuerProzent,
     zeigeBarzahlung,
     zeigeKartenzahlung,
+    zeigeEigentumsnachweis,
     pdfNurEineSeite,
     zeigeCodierungBuchen,
     codierungBuchenUrl,
