@@ -388,6 +388,14 @@ form button {
     margin-top: 8px;
     margin-bottom: 2px;
     font-size: 16px; /* body default 15px — Lesbarkeit */
+    /* gleiche Hover-Sprache wie label.toggle: Text färbt sich in ADFC-Blau */
+    transition: color 0.15s ease;
+}
+/* Hover über dem Feld block: Label-Text UND Input-Rand in demselben Blau —
+   der Fokus bleibt durch den zusätzlichen box-shadow-Ring unterscheidbar */
+.input-text:hover > label,
+.input-date:hover > label {
+    color: #0f4b7c;
 }
 label.required:after {
     color: #b0564d;
@@ -426,7 +434,9 @@ form .required-note {
 .input-text > input:hover,
 .input-date > input:hover,
 .input-text .combo input:hover {
-    border-color: #9db0c0;
+    /* dasselbe Blau wie beim Label-Hover und beim Fokus (#0f4b7c) — eine
+       einheitliche Hover-Sprache über alle Felder und Toggles */
+    border-color: #0f4b7c;
 }
 .input-text > input:focus,
 .input-date > input:focus,
