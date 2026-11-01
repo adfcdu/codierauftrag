@@ -444,7 +444,7 @@ form .required-note {
     font-family: inherit;
     font-size: 16px;
     box-sizing: border-box;
-    border: 1px solid #9db0c0;
+    border: 1px solid #94a3b8;
     border-radius: 8px;
     background-color: #fff;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -591,14 +591,14 @@ label.toggle input {
     appearance: none;
     -webkit-appearance: none;
     display: block;
-    width: 44px;
-    height: 24px;
+    width: 48px;
+    height: 28px;
     /* linksbündig unter dem Labeltext (wie die Inputs der Textfelder) und
        vertikal zentriert im 40-px-Band, in dem bei Textfeldern der Input
-       sitzt: (40−24)/2 = 8px unter der Labelzeile */
-    margin: 8px 0 0;
-    border-radius: 12px;
-    background-color: #c9d3db;
+       sitzt: (40−28)/2 = 6px unter der Labelzeile */
+    margin: 6px 0 0;
+    border-radius: 14px;
+    background-color: #94a3b8;
     position: relative;
     cursor: pointer;
     transition: background-color 0.2s ease;
@@ -608,8 +608,8 @@ label.toggle input::after {
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background-color: #fff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -619,6 +619,8 @@ label.toggle input:checked {
     background-color: #0f4b7c;
 }
 label.toggle input:checked::after {
+    /* 48 − 24 (Knob) − 2 × 2 (Inset) = 20px — unverändert, da Track von 44→48px
+       und Knob von 20→24px gleich viel wachsen */
     transform: translateX(20px);
 }
 label.toggle input:focus-visible {
