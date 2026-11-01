@@ -94,7 +94,9 @@ body > div#app {
 }
 .std-stroke {
     stroke: var(--adfc-orange);
-    stroke-width: 10px;
+    /* duennerer Strich: die Schritte wirken leichter neben dem
+       Formulartext (10px vorher) */
+    stroke-width: 8px;
     fill: none;
     stroke-linecap: round;
 }
@@ -384,8 +386,8 @@ h3 {
 }
 
 .step svg.icon {
-    width: 50px;
-    height: 50px;
+    width: 38px;
+    height: 38px;
     margin: 0 14px 0 0;
     flex-shrink: 0;
 }
