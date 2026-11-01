@@ -1,6 +1,6 @@
 {
   "name": "codierauftrag",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "ADFC Codierauftrag — Straßen-Code-Lookup mit Cache + clientseitigem Formular und PDF-Erzeugung",
   "type": "module",
