@@ -491,6 +491,17 @@ form .required-note {
 input[list]::-webkit-calendar-picker-indicator {
     display: none;
 }
+/* Kein nativer Number-Spinner (Anz. Gänge): die winzigen Pfeile passen
+   nicht zur eigenen Combobox-Optik, min/max 0–36 machen sie entbehrlich */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
 .combo-arrow {
     /* Pfeil sitzt IN der Textbox: rechts innen, vertikal zentriert */
     position: absolute;
