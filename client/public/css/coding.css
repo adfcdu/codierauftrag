@@ -359,11 +359,10 @@ form {
        zu 10px; der Button bringt seine eigenen 10px mit */
     margin-bottom: 10px;
 }
-/* Überschriften, Zeilenumbrüche (div.break) und der Button spannen alle
-   drei Spalten */
+/* Überschriften und Zeilenumbrüche (div.break) spannen alle drei Spalten —
+   der Button nur Spalte 1, damit die Pflichtfeld-Legende daneben passt */
 form h2,
-form .break,
-form button {
+form .break {
     grid-column: 1 / -1;
 }
 form h2 {
@@ -391,8 +390,18 @@ form button {
     font-size: 16px; /* body default 15px — Lesbarkeit */
 }
 label.required:after {
-    color: red;
+    color: #b0564d;
     content: " *";
+}
+
+/* Legende neben dem "PDF erzeugen"-Button: der Button belegt nur noch
+   Rasterspalte 1, der Hinweis rückt automatisch in Spalte 2 derselben
+   Zeile (auf schmalen Screens einspaltig darunter). */
+form .required-note {
+    align-self: center;
+    margin-left: 12px;
+    font-size: 12px;
+    color: #b0564d;
 }
 /* Eingabefelder: weißer Grund, 1-px-Rand statt UA-Default-Optik, 8-px-Radius,
    40 px hoch (Touch-Ziel), 16 px Schrift (verhindert zudem den iOS-Zoom beim
@@ -581,9 +590,8 @@ label.toggle input:focus-visible {
 }
 .validation-msg {
     margin: 5px 0;
-    font-size: 12px;
-    font-style: italic;
-    color: red;
+    font-size: 11px;
+    color: #b0564d;
 }
 
 

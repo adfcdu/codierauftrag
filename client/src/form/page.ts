@@ -342,6 +342,11 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     textField(doc, { id: 'hausnr', label: 'Hausnr.', required: true, maxlength: MAX_LENGTHS['hausnr']! }),
     el(doc, 'div', 'break divider'),
     el(doc, 'h2', undefined, 'Fahrrad/Anhänger'),
+    // Toggle-Zeile direkt unter der Überschrift: Carbon-Rahmen | Pedelec/E-Bike | Akku codieren
+    ...(config.zeigeCarbonRahmen ? [checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen')] : []),
+    checkboxField(doc, 'ebike', 'Pedelec/E-Bike'),
+    ...(config.zeigeAkku ? [checkboxField(doc, 'akku', 'Akku codieren')] : []),
+    el(doc, 'div', 'break'),
     // Zeile: Marke | Modell | Farbe
     textField(doc, { id: 'marke', label: 'Marke', maxlength: MAX_LENGTHS['marke']! }),
     textField(doc, { id: 'modell', label: 'Modell', maxlength: MAX_LENGTHS['modell']! }),
@@ -350,11 +355,6 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     // Zeile: Radtyp | Radart
     textField(doc, { id: 'typ', label: 'Radtyp (bzw. Anhänger)', maxlength: MAX_LENGTHS['typ']!, list: 'dl-typ' }),
     textField(doc, { id: 'art', label: 'Radart', maxlength: MAX_LENGTHS['art']!, list: 'dl-art' }),
-    el(doc, 'div', 'break'),
-    // Eigene Toggle-Zeile: Carbon-Rahmen | Pedelec/E-Bike | Akku codieren
-    ...(config.zeigeCarbonRahmen ? [checkboxField(doc, 'carbonRahmen', 'Carbon-Rahmen')] : []),
-    checkboxField(doc, 'ebike', 'Pedelec/E-Bike'),
-    ...(config.zeigeAkku ? [checkboxField(doc, 'akku', 'Akku codieren')] : []),
     el(doc, 'div', 'break'),
     // Eigene Zeile: Schaltung | Anz. Gänge
     textField(doc, { id: 'schaltung', label: 'Schaltung', maxlength: MAX_LENGTHS['schaltung']!, list: 'dl-schaltung' }),
@@ -383,7 +383,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   genPdf.type = 'button';
   genPdf.disabled = true;
   genPdf.textContent = 'PDF erzeugen';
-  form.append(genPdf);
+  form.append(genPdf, el(doc, 'span', 'required-note', '* = Pflichtfeld'));
   mount.append(form);
 
   // datalists
