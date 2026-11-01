@@ -280,12 +280,36 @@ export function attachCombobox(doc: Document, input: HTMLInputElement): void {
     }
   });
 
+  // Tipp-Erkennung statt sofortiger Auswahl: auf Touch-Geräten ist dieselbe
+  // Geste zugleich Scroll-Start (Liste hat max-height + overflow-y). Erst ein
+  // kurzer Tipp — pointerdown und pointerup ohne nennenswerte Bewegung —
+  // wählt aus; Wischbewegungen (pointermove > Toleranz oder pointercancel
+  // durch den Browser) wählen nichts aus. preventDefault hält dabei den
+  // Fokus im Feld (kein vorzeitiges Blur-Resolve); touch-action: pan-y im
+  // CSS erlaubt das vertikale Scrollen der Liste.
+  let tapOption: HTMLLIElement | null = null;
+  let tapOrigin: { x: number; y: number } | null = null;
+  const resetTap = (): void => {
+    tapOption = null;
+    tapOrigin = null;
+  };
   listbox.addEventListener('pointerdown', (e) => {
-    const li = (e.target as Element).closest('li') as HTMLLIElement | null;
-    if (!li) return;
     e.preventDefault(); // focus stays in the field — no premature blur-resolve
-    select(Number(li.dataset.index));
+    tapOption = (e.target as Element).closest('li') as HTMLLIElement | null;
+    tapOrigin = { x: e.clientX, y: e.clientY };
+    // Capture, damit pointerup auch bei Maus-Drag außerhalb der Liste ankommt
+    listbox.setPointerCapture?.(e.pointerId);
   });
+  listbox.addEventListener('pointermove', (e) => {
+    if (!tapOrigin) return;
+    if (Math.hypot(e.clientX - tapOrigin.x, e.clientY - tapOrigin.y) > 10) resetTap();
+  });
+  listbox.addEventListener('pointerup', () => {
+    const li = tapOption;
+    resetTap();
+    if (li && listbox.contains(li)) select(Number(li.dataset.index));
+  });
+  listbox.addEventListener('pointercancel', resetTap);
   listbox.addEventListener('pointerover', (e) => {
     const li = (e.target as Element).closest('li') as HTMLLIElement | null;
     if (li) setActive(Number(li.dataset.index));

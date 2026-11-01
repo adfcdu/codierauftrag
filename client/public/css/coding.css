@@ -710,6 +710,9 @@ input[type='number'] {
     width: 100%;
     max-height: 220px;
     overflow-y: auto;
+    /* Touch: vertikales Scrollen der Liste explizit erlauben (die Geste
+       darf nicht als Klick/Tipp auf einen Eintrag interpretiert werden) */
+    touch-action: pan-y;
     margin: 0;
     padding: 4px 0;
     list-style: none;
