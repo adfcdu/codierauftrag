@@ -445,7 +445,7 @@ form .required-note {
     font-size: 16px;
     box-sizing: border-box;
     border: 1px solid #94a3b8;
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: #fff;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -549,7 +549,7 @@ input[list]::-webkit-calendar-picker-indicator {
     list-style: none;
     background-color: #fff;
     border: 1px solid #c9d3db;
-    border-radius: 8px;
+    border-radius: 6px;
     box-shadow: 0 6px 16px 2px rgba(5, 5, 5, 0.15);
     z-index: 30;
 }
