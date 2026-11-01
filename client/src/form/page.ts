@@ -187,7 +187,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   const intro = el(doc, 'p');
   intro.append(
     doc.createTextNode(
-      'Auf dieser Website können Sie Ihre Daten für die Codierung Ihres Fahrrades oder Fahrradanhängers erfassen und ausdrucken. Das spart Zeit beim Codierungstermin.',
+      'Auf dieser Webseite können Sie Ihre Daten für die Codierung Ihres Fahrrades oder Fahrradanhängers erfassen und ausdrucken. Das spart Zeit beim Codierungstermin.',
     ),
   );
   infoBox.append(intro);
