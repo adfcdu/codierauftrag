@@ -162,7 +162,6 @@ body.impressum {
     border-radius: 0;
     padding: 10px 16px;
     font-size: 21px;
-    font-style: italic;
     font-weight: 400;
     line-height: 1.2;
     text-decoration: none;
@@ -266,8 +265,8 @@ h3 {
     line-height: 1.5;
 }
 
-/* Orange-Kasten wie .step p a.btn, aber ohne die kursiven Button-Typo —
-   der span braucht display:inline-block, damit Padding greift */
+/* Orange-Kasten wie .step p a.btn — der span braucht display:inline-block,
+   damit Padding greift */
 .step p .btn {
     display: inline-block;
     background-color: #ee7f00;
@@ -286,7 +285,6 @@ h3 {
     border-radius: 0;
     padding: 6px 10px;
     font-size: 15px;
-    font-style: italic;
     font-weight: 400;
     line-height: 1.2;
     color: #fff;
