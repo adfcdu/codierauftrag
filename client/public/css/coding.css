@@ -357,8 +357,10 @@ form {
     /* Einheitlicher Zeilenrhythmus: der Abstand zwischen allen Zeilen kommt
        allein aus dem row-gap (früher: label margin-top) — robust auch bei
        zweizeiligen Labels; die h2-Überschriften addieren ihr eigenes
-       margin-top für die stärkere Gruppentrennung */
-    row-gap: 14px;
+       margin-top für die stärkere Gruppentrennung. 20px, damit die absolute
+       gesetzte Validierungsmeldung (.validation-msg) mit Luft in die
+       Lücke zwischen zwei Zeilen passt, ohne sie zu verändern. */
+    row-gap: 18px;
     max-width: 960px;
     /* Abstand unter dem Formular — kollabiert mit div.bottoms margin-top (5px)
        zu 10px; der Button bringt seine eigenen 10px mit */
@@ -386,6 +388,7 @@ form button {
 .input-text,
 .input-check,
 .input-date {
+    position: relative; /* Anker für die absolut gesetzte Validierungsmeldung */
     padding: 3px 0.5vw;
     /* Grid-Items dürfen unter die Inhaltsbreite schrumpfen — sonst drückt
        ein langes Label oder der Combo-Pfeil die 1fr-Spalte auseinander */
@@ -619,9 +622,22 @@ label.toggle input:focus-visible {
     outline-offset: 2px;
 }
 .validation-msg {
-    margin: 5px 0;
+    /* schwebt im row-gap unter dem Feld: top 100% + 1px setzt sie direkt
+       unter den Input-Block, außerhalb der Zeile — die Zeilenhöhe (und damit
+       das gesamte Raster) bleibt unberührt, ob eine Meldung da ist oder
+       nicht. Lange Meldungen laufen einzeilig mit Auslassungspunkten aus. */
+    position: absolute;
+    left: 0.5vw;
+    right: 0.5vw;
+    top: calc(100% + 1px);
+    height: 14px;
+    line-height: 14px;
+    margin: 0;
     font-size: 11px;
     color: #b0564d;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 
