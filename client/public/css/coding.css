@@ -68,9 +68,7 @@
 
 body {
     margin: 0;
-    /* Modern System-Font-Stack — Arial nur als Fallback.
-       Das Logo (#logo-text) bleibt auf Arial gepinnt: dom.ts misst den
-       Auto-Fit per Canvas mit Arial. */
+    /* Modern System-Font-Stack — Arial nur als Fallback. */
     font-family: var(--font-body);
     font-weight: 300;
     font-size: var(--text-base);
@@ -347,30 +345,32 @@ body.impressum a:visited {
 }
 
 #logo {
-    /* width: 100% zwingend: auto-Margins machen ein Grid-Item
-       fit-content-groß — ohne definite Breite kollabiert #logo-text
-       (margin-left: 40%) und der Canvas-Auto-Fit misst einen viel zu
-       kleinen Kasten → winzige Schrift. Mit width:100% ist die Breite
-       definitiv (max-width deckelt auf die kompakte Größe) und
-       margin-left:auto schiebt es an den rechten Rand der Spalte. */
+    /* Definite Breite (max-width deckelt auf die kompakte Größe), damit die
+       Prozent-Margins von #logo-text (42 % / -14 %) auf die Logo-Breite
+       skalieren. container-type macht #logo zum Container für die
+       cqw-Schriftgröße von #logo-text. */
     width: 100%;
     max-width: 280px;
     margin: 0;
+    container-type: inline-size;
 }
 #logo-picture {
     width: 100%
 }
 #logo-text {
     color: var(--adfc-blue);
-    /* Arial gepinnt — dom.ts misst den Auto-Fit per Canvas mit Arial */
-    font-family: Arial, sans-serif;
-    font-size: 18px;
-    margin-left: 40%;
+    /* Feste Schriftgröße, proportional zur Logo-Breite (9cqw ≈ 25px bei
+       vollem Logo). Umbrochen wird an Leerzeichen und nach Bindestrichen;
+       text-wrap: balance verteilt die Zeilen gleichmäßig. Überlange
+       Einzelwörter: echte Silbentrennung (hyphens, wirkt dank lang="de"),
+       notfalls hartes Umbrechen statt Überlappen (overflow-wrap). */
+    font-size: 9cqw;
+    text-wrap: balance;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    margin-left: 41%;
     margin-top: -14%;
     margin-bottom: 12px;
-    /* auto-fit wraps long KV names at spaces — the \n must render as a break;
-       wrapped lines are shrunk by the auto-fit and stack tightly */
-    white-space: pre-line;
     line-height: 1;
 }
 

@@ -7,7 +7,6 @@
 import { setConfig } from './configTypes.js';
 import type { AppConfig } from './configTypes.js';
 import { buildPage } from './form/page.js';
-import { resizeLogoText } from './form/dom.js';
 import { wireForm } from './form/resolve.js';
 import type { Wiring } from './form/resolve.js';
 import { decodeLocation } from './qr.js';
@@ -30,10 +29,6 @@ export function initPage(config: AppConfig, doc: Document, opts: { fetchFn?: typ
     const ort = doc.getElementById('ort') as HTMLInputElement;
     if (ort.value === '') ort.value = config.ortInitial;
   }
-
-  // logo auto-fit + re-run on resize
-  resizeLogoText(doc);
-  doc.defaultView?.addEventListener('resize', () => resizeLogoText(doc));
 
   wiring.refreshDisplay();
   return { wiring };
