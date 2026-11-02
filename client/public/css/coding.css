@@ -203,12 +203,18 @@ body.impressum a:visited {
 .instructions {
     background-color: var(--color-light40);
     padding: 24px max(20px, calc((100% - 960px) / 2));
+    /* Zeilenabstand für die Stapel-Ansicht (Mobile) — entspricht dem
+       Padding, damit der Blockabstand dem Randabstand gleicht. Desktop
+       hat nur eine Zeile, dort wirkungslos. */
+    row-gap: 24px;
 }
 
 /* Hinweis-Banner (BANNER_1_TEXT / BANNER_2_TEXT) zwischen Header und
    instructions — auffälliger Kasten in den ADFC-Farben */
 .page-banners {
-    padding: 16px max(20px, calc((100% - 960px) / 2)) 24px;
+    /* Oben nur 8px: zum Header-Abstand kommen dessen 16px padding-bottom,
+       zusammen also 24px — ebenso viel wie unten vor dem grauen Band. */
+    padding: 8px max(20px, calc((100% - 960px) / 2)) 24px;
 }
 
 .page-banner {
@@ -332,6 +338,16 @@ body.impressum a:visited {
         grid-template-columns: 1fr;
     }
 
+    .header {
+        /* Gestapelt: mehr Luft unter dem Logo-Block (Desktop trennt über
+           den Spaltenabstand, hier braucht es einen Zeilenabstand). Der
+           obere Padding gleicht das aus: unter dem Logo-Block wirken
+           row-gap (24px) + margin-bottom von #logo-text (12px) zusammen,
+           oben steht sonst nur die Basis-Padding von 24px. */
+        padding-top: 28px;
+        row-gap: 16px;
+    }
+
     .header-text a.codierung-info-link,
     .header-text a.codierung-info-link:visited {
         font-size: clamp(var(--text-base), 4.5vw, var(--text-lg));
@@ -382,14 +398,14 @@ h3 {
     padding-top: 8px;
 }
 
-/* Die globale h3-Regel stackt mit der UA-Default-Margin (~17,5 px) —
-   die Instructions-Überschrift begann dadurch deutlich tiefer als
-   form h2 unter demselben Trennstrich. Gleicher Rhythmus wie form h2:
-   15 px Divider-Margin + 8 px margin-top, ohne Padding. */
+/* Ausgeglichener Rhythmus in der grauen Box: ohne oberen Margin beginnt
+   die Überschrift erst beim Box-Padding (24px), der untere Abstand
+   entspricht dem Schritt-/Listenabstand (16px). Die globale h3-Regel
+   stackt mit der UA-Default-Margin (~17,5 px) — deshalb hier explizit 0. */
 .instructions h3 {
-    margin: 8px 0 8px;
+    margin: 0 0 16px;
     padding-top: 0;
-    padding-bottom: 5px;
+    padding-bottom: 0;
 }
 
 .step svg.icon {
@@ -449,6 +465,13 @@ h3 {
     margin-bottom: 16px;
 }
 
+.step:last-child {
+    /* Kein Zusatz-Abstand nach dem letzten Schritt — sonst endet die
+       linke Spalte tiefer im Box-Padding als die rechte und die graue
+       Box wirkt unten schwerer. */
+    margin-bottom: 0;
+}
+
 .instructions > div:last-child {
     display: flex;
     flex-direction: column;
@@ -466,13 +489,15 @@ ul.checklist {
 }
 
 ul.checklist li:last-child {
-    padding-bottom: 5px;
+    /* Kein Schleppenraum nach dem letzten Eintrag — das Box-Padding (24px)
+       schließt die Liste genauso ab, wie es die Überschrift oben öffnet */
+    padding-bottom: 0;
 }
 
 ul.checklist li {
-    /* Abstand zwischen den Checklisteneinträgen — symmetrisch zum
+    /* Abstand zwischen den Checklisteneinträgen — gleicher Wert wie der
        .step-Abstand der linken Spalte */
-    padding-bottom: 14px;
+    padding-bottom: 16px;
     padding-left: 20px;
     position: relative;
     /* Blocksatz + Silbentrennung: ohne sie endet der Flattersatz bis zu
