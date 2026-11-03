@@ -1,7 +1,7 @@
 # ADFC Codierauftrag — production image
 
 # 1. Build stage
-FROM node:26.12-slim AS build
+FROM node:26.13-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -16,7 +16,7 @@ RUN APP_VERSION=${APP_VERSION} npm run build
 RUN npm ci --omit=dev
 
 # 2. Runtime stage
-FROM node:26.12-slim
+FROM node:26.13-slim
 WORKDIR /app
 ENV NODE_ENV=production
 # the base image's 'node' user (uid/gid 1000) runs the app — non-root, and a
