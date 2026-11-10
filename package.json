@@ -23,7 +23,7 @@
     "@fastify/static": "^10.1.8",
     "@sinclair/typebox": "^0.34.52",
     "cheerio": "^1.2.0",
-    "fastify": "^5.12.7",
+    "fastify": "^5.12.8",
     "jspdf": "^4.2.1"
   },
   "devDependencies": {
