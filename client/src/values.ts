@@ -188,9 +188,6 @@ export function anyValidationErrors(values: FormValues, state: StreetcodeState):
     const msg = validateField(id, values, state);
     if (msg !== false && !isInfoMessage(msg)) return true;
   }
-  // Kaufdatum: eine nicht auswertbare Eingabe blockiert ebenso das PDF
-  // (die frühere Native-Date-Validation mit min/max lieferte das gratis)
-  if (kaufDatumMessage(values) !== false) return true;
   return false;
 }
 
