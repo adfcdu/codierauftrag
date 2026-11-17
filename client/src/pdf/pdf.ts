@@ -12,7 +12,7 @@ import {
   einParts,
   einText,
 } from '../ein.js';
-import { computePrice, formatPrice, formatVatPercent, isTrailer, vatAmounts } from '../values.js';
+import { computePrice, formatPrice, formatVatPercent, isTrailer, kaufDatumDisplayYmd, vatAmounts } from '../values.js';
 import { encodeUrl } from '../qr.js';
 import { render1DBarcode, renderQrCode } from './barcodes.js';
 import type { BarcodeDeps } from './barcodes.js';
@@ -106,12 +106,6 @@ export function pdfFileName(zeitzone: string, now: Date = new Date()): string {
  */
 export function pdfTitle(zeitzone: string, now: Date = new Date()): string {
   return `ADFC Codierauftrag ${pdfStamp(zeitzone, now).replaceAll('_', ' ')}`;
-}
-
-export function kaufDatumDisplay(kaufDatum: string): string {
-  const m = kaufDatum.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return kaufDatum;
-  return `${m[3]}.${m[2]}.${m[1]}`;
 }
 
 /** Line height for a font size in points → mm. */
@@ -531,7 +525,7 @@ export async function buildPdf(
     pdfDataBoxHeader(148, 'Erwerb:', 'Kaufbeleg:', values.beleg);
     pdfDataBox(PAGEWIDTH * 0.4, 'Verkäufer:', values.verkaeufer);
     pdfDataBox(PAGEWIDTH * 0.45, 'Ort:', values.kaufOrt);
-    pdfDataBox(PAGEWIDTH * 0.15, 'Datum:', kaufDatumDisplay(values.kaufDatum));
+    pdfDataBox(PAGEWIDTH * 0.15, 'Datum:', kaufDatumDisplayYmd(values.kaufDatum));
 
     // legal texts (verbatim — including the double space after "dass")
     justifiedText(

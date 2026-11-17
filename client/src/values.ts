@@ -79,6 +79,10 @@ export function readForm(doc: Document): FormValues {
   for (const id of TEXT_FIELD_IDS) {
     values[id] = (doc.getElementById(id) as HTMLInputElement | null)?.value ?? '';
   }
+  // Kaufdatum: kanonisch nach Y-m-d (PDF-Anzeige und QR-URL erwarten das) —
+  // unauswertbare Eingaben bleiben stehen (Meldung + PDF-Sperre übernehmen).
+  const parsedKaufDatum = parseKaufDatum(values.kaufDatum, todayYmd(CONFIG.zeitzone));
+  if (parsedKaufDatum !== false) values.kaufDatum = parsedKaufDatum;
   for (const id of CHECKBOX_IDS) {
     values[id] = (doc.getElementById(id) as HTMLInputElement | null)?.checked ?? false;
   }
@@ -184,7 +188,103 @@ export function anyValidationErrors(values: FormValues, state: StreetcodeState):
     const msg = validateField(id, values, state);
     if (msg !== false && !isInfoMessage(msg)) return true;
   }
+  // Kaufdatum: eine nicht auswertbare Eingabe blockiert ebenso das PDF
+  // (die frühere Native-Date-Validation mit min/max lieferte das gratis)
+  if (kaufDatumMessage(values) !== false) return true;
   return false;
+}
+
+// ── Kaufdatum (eigenes Textfeld, kein <input type="date">) ──
+// Safaris segmentierte Date-Inputs zerlegen getippte Jahre (bekannter
+// WebKit-Fehler: „2016“ wird zu „0006“) und sind aus JS nicht korrigierbar.
+// Daher: eigenes Textfeld mit toleranter Auswertung. `todayYmd` ersetzt das
+// frühere max-Attribut — Daten in der Zukunft gelten als ungültig.
+
+/** Today's date as Y-m-d in the given timezone (Kaufdatum upper bound). */
+export function todayYmd(zeitzone: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: zeitzone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date()); // en-CA yields Y-m-d
+}
+
+function isLeapYear(year: number): boolean {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+function daysInMonth(year: number, month: number): number {
+  const lengths = [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return lengths[month - 1]!;
+}
+
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : String(n);
+}
+
+/**
+ * Flexible entry → canonical Y-m-d, or false if not a valid purchase date.
+ * Accepted: TT.MM.JJJJ, TT.MM.JJ, TT.MM.Y (ein- bis zweistellig), reine
+ * Ziffernfolgen zu 6 (TTMMJJ) bzw. 8 (TTMMJJJJ) Stellen und ISO JJJJ-MM-TT.
+ * Bounds mirror the former native attributes: min 1950-01-01, max today.
+ */
+export function parseKaufDatum(raw: string, today: string): string | false {
+  const value = raw.trim();
+  if (!value) return false;
+
+  let d: number | undefined;
+  let m: number | undefined;
+  let y: number;
+
+  const iso = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const dmy = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4}|\d{2})$/);
+  const compact = value.replace(/\D/g, '');
+  if (iso) {
+    y = Number(iso[1]);
+    m = Number(iso[2]);
+    d = Number(iso[3]);
+  } else if (dmy) {
+    d = Number(dmy[1]);
+    m = Number(dmy[2]);
+    y = Number(dmy[3]);
+    if (dmy[3].length === 2) y += y >= 70 ? 1900 : 2000; // 16 → 2016, 99 → 1999
+  } else if (compact.length === 8) {
+    d = Number(compact.slice(0, 2));
+    m = Number(compact.slice(2, 4));
+    y = Number(compact.slice(4, 8));
+  } else if (compact.length === 6) {
+    d = Number(compact.slice(0, 2));
+    m = Number(compact.slice(2, 4));
+    y = Number(compact.slice(4, 6));
+    y += y >= 70 ? 1900 : 2000;
+  } else {
+    return false;
+  }
+
+  const minYear = Number(today.slice(0, 4));
+  if (d === undefined || m === undefined) return false;
+  if (y < 1950 || y > minYear) return false;
+  if (m < 1 || m > 12) return false;
+  if (d < 1 || d > daysInMonth(y, m)) return false;
+
+  const ymd = `${y}-${pad2(m)}-${pad2(d)}`;
+  if (ymd > today) return false;
+  return ymd;
+}
+
+/** Canonical Y-m-d → German display TT.MM.JJJJ (PDF prints this). */
+export function kaufDatumDisplayYmd(ymd: string): string {
+  const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return ymd;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
+/** German user-facing message for the Kaufdatum field (optional field). */
+export function kaufDatumMessage(values: FormValues): string | false {
+  if (!values.kaufDatum) return false;
+  if (parseKaufDatum(values.kaufDatum, todayYmd(CONFIG.zeitzone)) !== false) return false;
+  return 'Bitte ein gültiges Kaufdatum eingeben (Tag.Monat.Jahr, z. B. 15.06.2016)';
 }
 
 // ── Price (computed live on every relevant change) ──

@@ -5,6 +5,10 @@
 
 import {
   readForm,
+  kaufDatumDisplayYmd,
+  kaufDatumMessage,
+  parseKaufDatum,
+  todayYmd,
   validateField,
 } from '../values.js';
 import type { FormValues, StreetcodeState } from '../values.js';
@@ -93,6 +97,14 @@ export function wireForm(
         if (!msg.startsWith('geändert von ')) errored.add(id);
       }
     }
+    // Kaufdatum: eigene Meldung (optionales Feld — Fehler nur nach Berührung)
+    const kdMsg = kaufDatumMessage(values);
+    if (kdMsg === false) {
+      showMessage(doc, 'kaufDatum', false);
+    } else if (touched.has('kaufDatum') || errored.has('kaufDatum')) {
+      showMessage(doc, 'kaufDatum', kdMsg);
+      errored.add('kaufDatum');
+    }
     updatePriceLine(page, values);
     updateEinBox(page, values, state);
     updateGenPdfGate(page, values, state);
@@ -169,6 +181,12 @@ export function wireForm(
     });
     input.addEventListener('blur', () => {
       touched.add(id);
+      if (id === 'kaufDatum') {
+        // Auswertbare Eingabe beim Verlassen in TT.MM.JJJJ gliedern —
+        // „1562016“ oder „2016-06-15“ wird zum einheitlich dargestellten Datum.
+        const parsed = parseKaufDatum(input.value, todayYmd(CONFIG.zeitzone));
+        if (parsed !== false) input.value = kaufDatumDisplayYmd(parsed);
+      }
       if (id === 'ort' || id === 'strasse') runResolveNow();
       refreshDisplay();
     });

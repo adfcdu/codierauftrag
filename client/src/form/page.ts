@@ -106,8 +106,15 @@ function textField(
     input.autocomplete = 'off';
   }
   if (opts.date) {
-    input.type = 'date';
-    input.min = '1950-01-01';
+    // Eigenes Textfeld statt <input type="date">: Safaris segmentierte
+    // Date-Inputs zerlegen getippte Jahre (bekannter WebKit-Fehler:
+    // „2016“ wird zu „0006“) und sind aus JS nicht zugreifbar. Auswertung
+    // und Schranken übernimmt parseKaufDatum (values.ts).
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.maxLength = 10;
+    input.placeholder = 'TT.MM.JJJJ';
+    input.autocomplete = 'off';
   } else {
     input.type = 'text';
   }
@@ -155,17 +162,6 @@ export interface BuiltPage {
   einCells: Record<'kz' | 'ags' | 'str' | 'hs' | 'ini' | 'jahr', HTMLTableCellElement>;
   datalistOrt: HTMLDataListElement;
   datalistStrasse: HTMLDataListElement;
-}
-
-/** Today's date as Y-m-d in the configured timezone (kaufDatum max). */
-export function todayYmd(zeitzone: string): string {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: zeitzone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
-  return parts; // en-CA yields Y-m-d
 }
 
 export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement): BuiltPage {
@@ -392,7 +388,6 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
       const field = textField(doc, { id: 'kaufDatum', label: 'Kaufdatum', date: true });
       field.classList.remove('input-text');
       field.classList.add('input-date');
-      (field.querySelector('input') as HTMLInputElement).max = todayYmd(config.zeitzone);
       return field;
     })(),
     // Zeile: Verkäufer | Kaufort | Kaufbeleg vorhanden (folgt auf eine volle Zeile)
