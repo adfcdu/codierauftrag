@@ -55,15 +55,23 @@
     --color-lighter: #fff;
     --color-light40: #f2f2f2;
     --font-body: Roboto, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-    /* Schriftgrößen-Skala: 6 Stufen, alle Angaben im File greifen auf
-       diese Tokens zu — eine Änderung hier wirkt zentral */
-    --text-2xs: 11px;  /* Versionszeile */
-    --text-xs: 12px;   /* Hinweistexte (Pflichtfeld, Validierung) */
-    --text-sm: 14px;   /* Footer */
-    --text-base: 16px; /* Fließtext, Steuerelemente (Inputs: kein iOS-Zoom) */
-    --text-md: 17px;   /* betonte UI-Schrift (Labels, Buttons, Preis) */
-    --text-lg: 21px;   /* Untergliederung (Impressum h2, Mobile-CTA-Max) */
-    --text-xl: 28px;   /* Banner-/Seiten-Titel */
+    /* Schriftgrößen-Skala: 7 Stufen, alle Angaben im File greifen auf
+       diese Tokens zu — eine Änderung hier wirkt zentral.
+       Einheit rem (nicht px): ohne eigene font-size auf <html> löst 1rem
+       auf die vom Nutzer gewählte Standard-Schriftgröße des Browsers auf
+       (Chrome „Schriftgröße“, Firefox Standard-Schrift) — Nutzer mit
+       größer eingestellter Schrift bekommen die gesamte Seite inkl. der
+       Dropdown-Listen proportional größer. Bei Werkseinstellung
+       (1rem = 16px) ist das Rendering pixelidentisch zur früheren
+       px-Skala; nur die iOS-16px-Untergrenze für Inputs ist separat
+       abgesichert (s. unten). */
+    --text-2xs: 0.6875rem;  /* 11px — Versionszeile */
+    --text-xs: 0.75rem;     /* 12px — Hinweistexte (Pflichtfeld, Validierung) */
+    --text-sm: 0.875rem;    /* 14px — Footer */
+    --text-base: 1rem;      /* 16px — Fließtext, Steuerelemente */
+    --text-md: 1.0625rem;   /* 17px — betonte UI-Schrift (Labels, Buttons, Preis) */
+    --text-lg: 1.3125rem;   /* 21px — Untergliederung (Impressum h2, Mobile-CTA-Max) */
+    --text-xl: 1.75rem;     /* 28px — Banner-/Seiten-Titel */
 }
 
 body {
@@ -633,12 +641,16 @@ form .required-note {
 /* Eingabefelder: weißer Grund, 2-px-Rand in gedecktem Grau-Blau (deutlich
    sichtbar, aber unaufdringlich), 8-px-Radius, 40 px hoch (Touch-Ziel),
    16 px Schrift (verhindert zudem den iOS-Zoom beim Fokus).
-   border-box: width: 100% statt calc(100% - 6px). */
+   border-box: width: 100% statt calc(100% - 6px).
+   max(…, 16px): bei kleiner gewählter Browser-Standard-Schrift bleibt die
+   iOS-Zoom-Untergrenze erhalten — Schriftgrößen ≥ 16px (die Regel) folgen
+   weiterhin der Nutzer-Einstellung. Bei Werkseinstellung 16px ist max()
+   wirkungslos. */
 .input-text > input,
 .input-date > input,
 .input-text .combo input {
     font-family: inherit;
-    font-size: var(--text-base);
+    font-size: max(var(--text-base), 16px);
     box-sizing: border-box;
     border: 1px solid var(--color-medium);
     border-radius: 6px;
@@ -749,13 +761,16 @@ input[type='number'] {
     top: calc(100% + 4px);
     left: 0;
     width: 100%;
-    max-height: 220px;
+    /* 220px als rem-Angabe: das Scrollmaximum wächst proportional zur
+       Schriftgröße mit (Nutzer mit größerer Standard-Schrift sehen
+       entsprechend mehr Einträge, nicht weniger) */
+    max-height: 13.75rem;
     overflow-y: auto;
     /* Touch: vertikales Scrollen der Liste explizit erlauben (die Geste
        darf nicht als Klick/Tipp auf einen Eintrag interpretiert werden) */
     touch-action: pan-y;
     margin: 0;
-    padding: 4px 0;
+    padding: 0.25em 0;
     list-style: none;
     background-color: #fff;
     border: 1px solid var(--color-light);
@@ -764,7 +779,11 @@ input[type='number'] {
     z-index: 30;
 }
 .combo-listbox li {
-    padding: 8px 10px;
+    /* em-Padding statt px: die komplette Liste skaliert als eine Einheit
+       mit der (rem-basierten, nutzerbestimmten) Schriftgröße — die
+       Dropdown-Zeilen können nicht kleiner ausfallen als der Text im
+       zugehörigen Eingabefeld */
+    padding: 0.5em 0.625em;
     font-size: var(--text-base);
     white-space: nowrap;
     overflow: hidden;
@@ -852,8 +871,10 @@ label.toggle input:focus-visible {
     left: 0.5vw;
     right: 0.5vw;
     top: calc(100% + 1px);
-    height: 14px;
-    line-height: 14px;
+    /* 14px als rem-Angabe: wächst mit der rem-Skala mit, damit die Zeile
+       die (größer skalierte) Meldung nicht abschneidet */
+    height: 0.875rem;
+    line-height: 0.875rem;
     margin: 0;
     font-size: var(--text-xs);
     color: #b3261e;
