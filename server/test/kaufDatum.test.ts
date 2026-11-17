@@ -1,72 +1,72 @@
 /**
  * parseKaufDatum — the flexible purchase-date parser (client/src/values.ts).
- * Pure function: today's Y-m-d is passed in, no CONFIG / DOM / clock needed.
+ * Pure function, no CONFIG / DOM / clock needed.
  */
 
 import { describe, expect, it } from 'vitest';
 
 import { kaufDatumDisplayYmd, parseKaufDatum } from '../../client/src/values.js';
 
-// fixed "today" so bounds and the future check are deterministic
-const TODAY = '2025-06-20'; // equals the upper bound of the year rule
-
 describe('parseKaufDatum — accepted formats', () => {
   it('accepts TT.MM.JJJJ', () => {
-    expect(parseKaufDatum('15.06.2016', TODAY)).toBe('2016-06-15');
+    expect(parseKaufDatum('15.06.2016')).toBe('2016-06-15');
   });
 
   it('accepts one- or two-digit day and month', () => {
-    expect(parseKaufDatum('1.6.2016', TODAY)).toBe('2016-06-01');
-    expect(parseKaufDatum('05.3.2010', TODAY)).toBe('2010-03-05');
+    expect(parseKaufDatum('1.6.2016')).toBe('2016-06-01');
+    expect(parseKaufDatum('05.3.2010')).toBe('2010-03-05');
   });
 
   it('accepts two-digit years by pivot (>=70 → 19xx, else 20xx)', () => {
-    expect(parseKaufDatum('15.6.16', TODAY)).toBe('2016-06-15');
-    expect(parseKaufDatum('15.06.99', TODAY)).toBe('1999-06-15');
-    expect(parseKaufDatum('15.06.24', TODAY)).toBe('2024-06-15');
+    expect(parseKaufDatum('15.6.16')).toBe('2016-06-15');
+    expect(parseKaufDatum('15.06.99')).toBe('1999-06-15');
+    expect(parseKaufDatum('15.06.24')).toBe('2024-06-15');
   });
 
   it('accepts compact 6-digit (TTMMJJ) and 8-digit (TTMMJJJJ) entry', () => {
-    expect(parseKaufDatum('15062016', TODAY)).toBe('2016-06-15');
-    expect(parseKaufDatum('150616', TODAY)).toBe('2016-06-15'); // TTMMJJ
-    expect(parseKaufDatum('180516', TODAY)).toBe('2016-05-18'); // TTMMJJ, other date
+    expect(parseKaufDatum('15062016')).toBe('2016-06-15');
+    expect(parseKaufDatum('150616')).toBe('2016-06-15'); // TTMMJJ
+    expect(parseKaufDatum('180516')).toBe('2016-05-18'); // TTMMJJ, other date
   });
 
   it('accepts whitespace padding', () => {
-    expect(parseKaufDatum('  15.06.2016  ', TODAY)).toBe('2016-06-15');
+    expect(parseKaufDatum('  15.06.2016  ')).toBe('2016-06-15');
   });
 
   it('accepts ISO JJJJ-MM-TT (canonical form, QR prefill)', () => {
-    expect(parseKaufDatum('2016-06-15', TODAY)).toBe('2016-06-15');
+    expect(parseKaufDatum('2016-06-15')).toBe('2016-06-15');
+  });
+
+  it('accepts dates in the future (no upper bound — the field polices nothing)', () => {
+    expect(parseKaufDatum('03.12.2026')).toBe('2026-12-03');
+    expect(parseKaufDatum('03.12.2030')).toBe('2030-12-03');
   });
 });
 
 describe('parseKaufDatum — rejected input', () => {
   it('rejects junk and partial entries', () => {
-    expect(parseKaufDatum('', TODAY)).toBe(false);
-    expect(parseKaufDatum('   ', TODAY)).toBe(false);
-    expect(parseKaufDatum('abc', TODAY)).toBe(false);
-    expect(parseKaufDatum('2016', TODAY)).toBe(false); // year alone is not a date
-    expect(parseKaufDatum('15.06.', TODAY)).toBe(false);
-    expect(parseKaufDatum('15.6', TODAY)).toBe(false);
+    expect(parseKaufDatum('')).toBe(false);
+    expect(parseKaufDatum('   ')).toBe(false);
+    expect(parseKaufDatum('abc')).toBe(false);
+    expect(parseKaufDatum('2016')).toBe(false); // year alone is not a date
+    expect(parseKaufDatum('15.06.')).toBe(false);
+    expect(parseKaufDatum('15.6')).toBe(false);
   });
 
   it('rejects impossible calendar dates', () => {
-    expect(parseKaufDatum('31.02.2016', TODAY)).toBe(false); // no Feb 31
-    expect(parseKaufDatum('30.02.2016', TODAY)).toBe(false);
-    expect(parseKaufDatum('29.02.2023', TODAY)).toBe(false); // no leap year
-    expect(parseKaufDatum('29.02.2024', TODAY)).toBe('2024-02-29'); // leap year ok
-    expect(parseKaufDatum('0.6.2016', TODAY)).toBe(false);
-    expect(parseKaufDatum('00.06.2016', TODAY)).toBe(false);
-    expect(parseKaufDatum('15.13.2016', TODAY)).toBe(false);
-    expect(parseKaufDatum('15.00.2016', TODAY)).toBe(false);
+    expect(parseKaufDatum('31.02.2016')).toBe(false); // no Feb 31
+    expect(parseKaufDatum('30.02.2016')).toBe(false);
+    expect(parseKaufDatum('29.02.2023')).toBe(false); // no leap year
+    expect(parseKaufDatum('29.02.2024')).toBe('2024-02-29'); // leap year ok
+    expect(parseKaufDatum('0.6.2016')).toBe(false);
+    expect(parseKaufDatum('00.06.2016')).toBe(false);
+    expect(parseKaufDatum('15.13.2016')).toBe(false);
+    expect(parseKaufDatum('15.00.2016')).toBe(false);
   });
 
-  it('enforces the former attribute bounds: min 1950, max today', () => {
-    expect(parseKaufDatum('01.01.1949', TODAY)).toBe(false);
-    expect(parseKaufDatum('01.01.1950', TODAY)).toBe('1950-01-01');
-    expect(parseKaufDatum('20.06.2025', TODAY)).toBe('2025-06-20'); // today itself ok
-    expect(parseKaufDatum('21.06.2025', TODAY)).toBe(false); // tomorrow
+  it('enforces the former min attribute: 1950', () => {
+    expect(parseKaufDatum('01.01.1949')).toBe(false);
+    expect(parseKaufDatum('01.01.1950')).toBe('1950-01-01');
   });
 });
 

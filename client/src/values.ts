@@ -81,7 +81,7 @@ export function readForm(doc: Document): FormValues {
   }
   // Kaufdatum: kanonisch nach Y-m-d (PDF-Anzeige und QR-URL erwarten das) —
   // unauswertbare Eingaben bleiben stehen (Meldung + PDF-Sperre übernehmen).
-  const parsedKaufDatum = parseKaufDatum(values.kaufDatum, todayYmd(CONFIG.zeitzone));
+  const parsedKaufDatum = parseKaufDatum(values.kaufDatum);
   if (parsedKaufDatum !== false) values.kaufDatum = parsedKaufDatum;
   for (const id of CHECKBOX_IDS) {
     values[id] = (doc.getElementById(id) as HTMLInputElement | null)?.checked ?? false;
@@ -224,9 +224,11 @@ function pad2(n: number): string {
  * Flexible entry → canonical Y-m-d, or false if not a valid purchase date.
  * Accepted: TT.MM.JJJJ, TT.MM.JJ, TT.MM.Y (ein- bis zweistellig), reine
  * Ziffernfolgen zu 6 (TTMMJJ) bzw. 8 (TTMMJJJJ) Stellen und ISO JJJJ-MM-TT.
- * Bounds mirror the former native attributes: min 1950-01-01, max today.
+ * Untere Schranke wie das frühere min-Attribut (1950). Keine Obergrenze und
+ * keine Zukunfts-Ablehnung: das Feld poliziert nichts (kein PDF-Gate) —
+ * ein neu gekauftes Rad darf sich auch einmal in der Zukunft datieren.
  */
-export function parseKaufDatum(raw: string, today: string): string | false {
+export function parseKaufDatum(raw: string): string | false {
   const value = raw.trim();
   if (!value) return false;
 
@@ -259,15 +261,12 @@ export function parseKaufDatum(raw: string, today: string): string | false {
     return false;
   }
 
-  const minYear = Number(today.slice(0, 4));
   if (d === undefined || m === undefined) return false;
-  if (y < 1950 || y > minYear) return false;
+  if (y < 1950) return false;
   if (m < 1 || m > 12) return false;
   if (d < 1 || d > daysInMonth(y, m)) return false;
 
-  const ymd = `${y}-${pad2(m)}-${pad2(d)}`;
-  if (ymd > today) return false;
-  return ymd;
+  return `${y}-${pad2(m)}-${pad2(d)}`;
 }
 
 /** Canonical Y-m-d → German display TT.MM.JJJJ (PDF prints this). */
@@ -280,7 +279,7 @@ export function kaufDatumDisplayYmd(ymd: string): string {
 /** German user-facing message for the Kaufdatum field (optional field). */
 export function kaufDatumMessage(values: FormValues): string | false {
   if (!values.kaufDatum) return false;
-  if (parseKaufDatum(values.kaufDatum, todayYmd(CONFIG.zeitzone)) !== false) return false;
+  if (parseKaufDatum(values.kaufDatum) !== false) return false;
   return 'Bitte ein gültiges Kaufdatum eingeben (Tag.Monat.Jahr, z. B. 15.06.2016)';
 }
 

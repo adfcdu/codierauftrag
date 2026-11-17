@@ -2,12 +2,11 @@
  * Kompakte Datumsauswahl fürs Kaufdatum: das Feld-Symbol öffnet eine
  * Popup-Karte mit drei eigenen Eingabefeldern — Tag, Monat, Jahr —, jeweils
  * mit Dropdown aus der bestehenden Combobox-Mechanik (filterndes Tippen,
- * Eintrag-Klick). Bewusst KEIN Kalender-Raster: konsistent mit der Optik
- * des Formulars und frei von den Safari-Fehlern nativer Date-Inputs (s.
- * values.ts/page.ts).
+ * Eintrag-Klick). Bewusst KEIN Kalender-Raster und frei von den Safari-
+ * Fehlern nativer Date-Inputs (s. values.ts/page.ts).
  *
- * Sobald alle drei Teile ein gültiges Kaufdatum ergeben (Schranken des
- * Parsers: 1950-01-01 bis heute), übernimmt der Hauptfeld-Wert im
+ * Sobald alle drei Teile ein gültiges Kaufdatum ergeben (untere Schranke
+ * 1950 des Parsers, keine Obergrenze), übernimmt der Hauptfeld-Wert im
  * gewohnten TT.MM.JJJJ und feuert input+change wie ein nativer Pick
  * (treibt die reaktive Wiring in resolve.ts). Unvollständige oder
  * unmögliche Kombinationen (31.02.) werden ignoriert, bis sie gültig sind.
@@ -26,18 +25,14 @@ const MONTH_NAMES = [
 
 /**
  * Drei Teilfeld-Eingaben → Anzeige TT.MM.JJJJ, oder false, solange etwas
- * fehlt oder die Kombination kein gültiges Kaufdatum in den Schranken ist.
- * Der Parser akzeptiert auch zweistellige Jahre („16“ → 2016) und einstellige
- * Tag/Monat-Angaben — die Teilfelder sind also tolerant wie das Hauptfeld.
+ * fehlt oder die Kombination kein gültiges Kaufdatum ist (untere Schranke
+ * 1950 des Parsers; keine Oberschranke). Der Parser akzeptiert auch
+ * zweistellige Jahre („16“ → 2016) und einstellige Tag/Monat-Angaben — die
+ * Teilfelder sind also tolerant wie das Hauptfeld.
  */
-export function compositeKaufDatum(
-  day: string,
-  month: string,
-  year: string,
-  today: string,
-): string | false {
+export function compositeKaufDatum(day: string, month: string, year: string): string | false {
   if (!day.trim() || !month.trim() || !year.trim()) return false;
-  const parsed = parseKaufDatum(`${day.trim()}.${month.trim()}.${year.trim()}`, today);
+  const parsed = parseKaufDatum(`${day.trim()}.${month.trim()}.${year.trim()}`);
   return parsed === false ? false : kaufDatumDisplayYmd(parsed);
 }
 
@@ -157,7 +152,7 @@ export function attachDatePicker(doc: Document, input: HTMLInputElement): void {
 
   function open(): void {
     // Teile aus dem aktuellen Feldstand vorbefüllen (vollständig oder leer)
-    const parsed = parseKaufDatum(input.value, todayYmd(CONFIG.zeitzone));
+    const parsed = parseKaufDatum(input.value);
     if (parsed !== false) {
       dayPart.input.value = String(Number(parsed.slice(8, 10)));
       monthPart.input.value = String(Number(parsed.slice(5, 7)));
@@ -174,15 +169,14 @@ export function attachDatePicker(doc: Document, input: HTMLInputElement): void {
       dayPart.input.value,
       monthPart.input.value,
       yearPart.input.value,
-      todayYmd(CONFIG.zeitzone),
     );
-    if (display !== false && input.value !== display) {
-      input.value = display;
-      // dieselben Events wie ein nativer Date-Pick — treibt die reaktive
-      // Wiring in resolve.ts (refreshDisplay, Meldungs-Aufbau)
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+    if (display === false || input.value === display) return;
+    input.value = display;
+    // dieselben Events wie ein nativer Date-Pick — treibt die reaktive
+    // Wiring in resolve.ts (refreshDisplay, Meldungs-Aufbau)
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    close(); // vollständig übernommen — die Karte hat ihren Zweck erfüllt
   }
 
   for (const part of [dayPart, monthPart, yearPart]) {

@@ -8,7 +8,6 @@ import {
   kaufDatumDisplayYmd,
   kaufDatumMessage,
   parseKaufDatum,
-  todayYmd,
   validateField,
 } from '../values.js';
 import type { FormValues, StreetcodeState } from '../values.js';
@@ -184,7 +183,7 @@ export function wireForm(
       if (id === 'kaufDatum') {
         // Auswertbare Eingabe beim Verlassen in TT.MM.JJJJ gliedern —
         // „1562016“ oder „2016-06-15“ wird zum einheitlich dargestellten Datum.
-        const parsed = parseKaufDatum(input.value, todayYmd(CONFIG.zeitzone));
+        const parsed = parseKaufDatum(input.value);
         if (parsed !== false) input.value = kaufDatumDisplayYmd(parsed);
       }
       if (id === 'ort' || id === 'strasse') runResolveNow();
