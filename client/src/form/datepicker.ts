@@ -16,7 +16,7 @@ import { CONFIG } from '../configTypes.js';
 import { attachCombobox } from './combobox.js';
 import { kaufDatumDisplayYmd, parseKaufDatum, todayYmd } from '../values.js';
 
-const MIN_YEAR = 1950; // wie die frühere min-Attribut-Schranke im Parser
+const MIN_YEAR = 1980; // Auswahl-Untergrenze des Jahres-Dropdowns (Tippen bleibt toleranter)
 
 const MONTH_NAMES = [
   'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
@@ -111,8 +111,9 @@ export function attachDatePicker(doc: Document, input: HTMLInputElement): void {
 
   const today = todayYmd(CONFIG.zeitzone);
 
-  // Dropdown-Datenquellen: Tage 1–31, Monate benannt, Jahre absteigend
-  // (aktuelle Kaufjahre zuerst). Das aktuelle Jahr aus der Zeitzone.
+  // Dropdown-Datenquellen: Tage 1–31, Monate benannt, Jahre absteigend ab
+  // 1980 (Auswahl-Untergrenze; Tippen toleriert weiterhin alles ab 1950).
+  // Oberes Ende: das aktuelle Jahr aus der Zeitzone.
   const dayEntries = Array.from({ length: 31 }, (_, i) => ({
     value: String(i + 1),
     label: String(i + 1),
