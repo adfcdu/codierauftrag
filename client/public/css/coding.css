@@ -803,9 +803,10 @@ input[type='number'] {
 }
 /* Popup-Karte fürs Kaufdatum (datepicker.ts): drei Teilfelder Tag.Monat.Jahr,
    jeweils mit Combobox-Dropdown. Schwebende Karte wie die Combo-Liste.
-   Absichtlich OHNE max-width:100% — die Karte muss breiter als die schmale
-   Formularspalte sein dürfen, sonst überragt das (fixe) Jahr-Teilfeld die
-   Karte. Breite nach Inhalt (die Teilfelder setzen ihre eigene Breite). */
+   Horizontal auf der Feldmitte zentriert: auf schmalen Screens ragt die
+   Karte seitlich über die schmale Spalte hinaus, statt abgeschnitten zu
+   werden; max-width hält sie im Screen (die Teilfelder schrumpfen dabei
+   gleichmäßig mit). */
 .combo-arrow.datepick-toggle[aria-expanded="true"] svg {
     /* Combo-Pfeil dreht sich bei geöffneter Liste — das Kalender-Symbol nicht */
     transform: none;
@@ -813,8 +814,10 @@ input[type='number'] {
 .datepick-pop {
     position: absolute;
     top: calc(100% + 4px);
-    left: 0;
-    width: max-content;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 21.5rem;
+    max-width: calc(100vw - 16px);
     padding: 0.625em;
     background-color: #fff;
     border: 1px solid var(--color-light);
@@ -832,19 +835,12 @@ input[type='number'] {
     gap: 0.375em;
 }
 .datepick-part {
-    flex: 0 0 auto;
+    /* alle drei Teilfelder gleich breit */
+    flex: 1 1 0;
+    min-width: 0;
 }
 .datepick-part input {
     text-align: center;
-}
-.datepick-part:nth-child(1) {
-    width: 5.5rem; /* Tag: TT + Pfeil, mittig zentriert */
-}
-.datepick-part:nth-child(3) {
-    width: 7.5rem; /* Monat: Pfeil; Dropdown-Zeilen sind benannt und dürfen umbrechen */
-}
-.datepick-part:nth-child(5) {
-    width: 6.5rem; /* Jahr: JJJJ + Pfeil */
 }
 .datepick-dot {
     flex: 0 0 auto;
