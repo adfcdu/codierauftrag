@@ -6,6 +6,7 @@
 
 import type { AppConfig } from '../configTypes.js';
 import { attachCombobox, syncComboArrows } from './combobox.js';
+import { attachDatePicker } from './datepicker.js';
 
 export const TYP_LIST = [
   'Citybike',
@@ -125,6 +126,13 @@ function textField(
     combo.append(input);
     wrap.append(combo);
     attachCombobox(doc, input);
+  } else if (opts.date) {
+    // Eigene Kalenderkarte (datepicker.ts) — gleiche Bauweise wie die
+    // Combobox: Symbol im Feld, Popup-Karte darunter
+    const combo = el(doc, 'div', 'combo');
+    combo.append(input);
+    wrap.append(combo);
+    attachDatePicker(doc, input);
   } else {
     wrap.append(input);
   }

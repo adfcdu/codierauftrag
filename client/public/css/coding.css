@@ -647,7 +647,7 @@ form .required-note {
    weiterhin der Nutzer-Einstellung. Bei Werkseinstellung 16px ist max()
    wirkungslos. */
 .input-text > input,
-.input-date > input,
+.input-date .combo input,
 .input-text .combo input {
     font-family: inherit;
     font-size: max(var(--text-base), 16px);
@@ -657,14 +657,13 @@ form .required-note {
     background-color: #fff;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.input-text > input,
-.input-date > input {
+.input-text > input {
     width: 100%;
     height: 40px;
     padding: 0 12px;
 }
 .input-text > input:hover,
-.input-date > input:hover,
+.input-date .combo input:hover,
 .input-text .combo input:hover {
     /* Hover: blauer Rand plus dezenter Ring (2px, 0.1) — der blaue Rand
        trägt den Hover-Effekt, der Ring hellt nur leicht auf; box-shadow
@@ -673,7 +672,7 @@ form .required-note {
     box-shadow: 0 0 2px 2px rgba(0, 75, 124, 0.1);
 }
 .input-text > input:focus,
-.input-date > input:focus,
+.input-date .combo input:focus,
 .input-text .combo input:focus {
     outline: none;
     border-color: var(--adfc-blue);
@@ -685,10 +684,12 @@ form .required-note {
    Chromium/Safari ihren eigenen nativen Pfeil und das nicht stylebare
    native Popup. Eine einzige gestylte Liste (ul.combo-listbox) deckt beide
    Wege ab: Tippen filtert, Pfeil-Klick zeigt alles. */
-.input-text .combo {
+.input-text .combo,
+.input-date .combo {
     position: relative;
 }
-.input-text .combo input {
+.input-text .combo input,
+.input-date .combo input {
     width: 100%;
     height: 40px;
     /* rechter Platz für den Pfeil IM Feld (absolut rechts innen) */
@@ -799,6 +800,101 @@ input[type='number'] {
 .combo-listbox li.active,
 .combo-listbox li:hover {
     background-color: var(--color-light40);
+}
+/* Kalenderkarte fürs Kaufdatum (datepicker.ts): dieselbe Baumaterial-Bauweise
+   wie die Combobox — Symbol (combo-arrow-Teiloptik) im Feld, schwebende
+   Karte darunter. Zentriert über dem Feld und breiter als dieses: die
+   7-Spalten-Rasterwoche braucht ~15rem, auch in schmalen Formularspalten. */
+.combo-arrow.datepick-toggle[aria-expanded="true"] svg {
+    /* Combo-Pfeil dreht sich bei geöffneter Liste — das Kalender-Symbol nicht */
+    transform: none;
+}
+.datepick-pop {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 15.5rem;
+    padding: 0.5em;
+    background-color: #fff;
+    border: 1px solid var(--color-light);
+    border-radius: 6px;
+    box-shadow: 0 6px 16px 2px rgba(5, 5, 5, 0.15);
+    z-index: 30;
+}
+/* Wie beim Pfeil: [hidden] darf von keiner Autor-Eigenschaft verloren gehen */
+.datepick-pop[hidden] {
+    display: none;
+}
+.datepick-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 0.3em;
+}
+.datepick-month {
+    flex: 1;
+    text-align: center;
+    font-size: var(--text-base);
+    font-weight: 500;
+}
+.datepick-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 6px;
+    background-color: transparent;
+    cursor: pointer;
+}
+.datepick-nav:hover:not([disabled]) {
+    background-color: var(--color-light40);
+}
+.datepick-nav[disabled] {
+    opacity: 0.35;
+    cursor: default;
+}
+.datepick-nav svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+}
+.datepick-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+.datepick-dow {
+    text-align: center;
+    padding: 2px 0;
+    font-size: var(--text-xs);
+    color: var(--color-medium);
+}
+.datepick-day {
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background-color: transparent;
+    font-family: inherit;
+    font-size: var(--text-base);
+    cursor: pointer;
+}
+.datepick-day:hover:not([disabled]) {
+    background-color: var(--color-light40);
+}
+.datepick-day[disabled] {
+    color: var(--color-light);
+    cursor: default;
+}
+.datepick-day.selected {
+    background-color: var(--adfc-blue);
+    color: #fff;
 }
 /* Toggle-Schalter statt native Checkbox: das input bleibt
    Zustandsquelle (values.ts liest .checked) — nur die Optik ist ersetzt.
