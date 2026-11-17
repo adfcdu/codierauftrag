@@ -538,7 +538,12 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   // kleine Versionszeile im grauen Footer-Band (wie die Hauptwebsite) —
   // dieselbe Quelle wie die PDF-Fußzeile: __APP_VERSION__
   // (dev = package.json, Release = Git-Tag)
-  const versionLine = el(doc, 'div', 'page-version', `codierauftrag V${__APP_VERSION__}`);
+  const versionLine = el(doc, 'div', 'page-version');
+  const versionLink = el(doc, 'a', undefined, `codierauftrag V${__APP_VERSION__}`) as HTMLAnchorElement;
+  versionLink.href = 'https://github.com/adfcdu/codierauftrag';
+  versionLink.target = '_blank';
+  versionLink.rel = 'noopener';
+  versionLine.append(versionLink);
   footer.append(versionLine);
 
   return { form, genPdf, price, einBox, einCells, datalistOrt, datalistStrasse };
