@@ -13,7 +13,7 @@
  */
 
 import { CONFIG } from '../configTypes.js';
-import { attachCombobox } from './combobox.js';
+import { attachCombobox, openComboAll } from './combobox.js';
 import { kaufDatumDisplayYmd, parseKaufDatum, todayYmd } from '../values.js';
 
 const MIN_YEAR = 1980; // Auswahl-Untergrenze des Jahres-Dropdowns (Tippen bleibt toleranter)
@@ -162,7 +162,9 @@ export function attachDatePicker(doc: Document, input: HTMLInputElement): void {
     pop.hidden = false;
     input.setAttribute('aria-expanded', 'true');
     toggle.setAttribute('aria-expanded', 'true');
-    dayPart.input.focus();
+    // Tag-Feld fokussieren — und die KOMPLETTE Tagesliste zeigen, nicht nur
+    // den (gefilterten) Vorschlag, der dem bereits stehenden Datum entspricht
+    openComboAll(dayPart.input);
   }
 
   function sync(): void {

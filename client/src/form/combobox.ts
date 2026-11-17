@@ -34,7 +34,10 @@ interface OptionEntry {
 /** Registry aller angehängten Comboboxen — syncComboArrows schließt die
  *  offene Liste, wenn ihr Datalist leer wird, und öffnet sie wieder von
  *  selbst, wenn ein fokussiertes Feld frisch befüllt wurde. */
-const controllers = new WeakMap<HTMLInputElement, { close: () => void; autoOpen: () => void }>();
+const controllers = new WeakMap<
+  HTMLInputElement,
+  { close: () => void; autoOpen: () => void; openAll: () => void }
+>();
 
 function datalistEntries(doc: Document, listId: string): OptionEntry[] {
   const dl = doc.getElementById(listId);
@@ -197,6 +200,16 @@ export function attachCombobox(doc: Document, input: HTMLInputElement): void {
     open(false);
   }
 
+  /** Liste komplett (ungefiltert) öffnen und das Feld fokussieren —
+   *  programmatischer Ersatz für den Pfeil-Klick. Der Fokus-Trigger öffnet
+   *  sonst gefiltert nach dem Feldinhalt; hier unterdrückt wie in select(). */
+  function openAll(): void {
+    suppressFocusOpen = true;
+    open(true);
+    input.focus();
+    suppressFocusOpen = false;
+  }
+
   function select(index: number): void {
     const entry = entries[index];
     if (!entry) return;
@@ -318,6 +331,14 @@ export function attachCombobox(doc: Document, input: HTMLInputElement): void {
   doc.addEventListener('pointerdown', onOutside, true);
   combo.addEventListener('focusout', onFocusOut);
 
-  controllers.set(input, { close, autoOpen });
+  controllers.set(input, { close, autoOpen, openAll });
   combo.append(button, listbox);
+}
+
+/** Combobox-Liste eines Felds ungefiltert öffnen (alle Vorschläge) und das
+ *  Feld fokussieren — wie ein Pfeil-Klick, aber programmatisch aufrufbar
+ *  (das Datums-Popup öffnet das Tag-Feld mit der vollen Tagesliste statt
+ *  nur dem Vorschlag des vorhandenen Werts). */
+export function openComboAll(input: HTMLInputElement): void {
+  controllers.get(input)?.openAll();
 }
