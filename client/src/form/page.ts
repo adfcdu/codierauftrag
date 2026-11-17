@@ -95,7 +95,16 @@ function textField(
   // data-list statt list: das Datalist bleibt reine Datenquelle für die
   // eigene Combobox (combobox.ts) — ohne list-Attribut rendert kein Browser
   // seine native Datalist-UI (Chromium-Pfeil/Popup, Safari)
-  if (opts.list) input.dataset.list = opts.list;
+  if (opts.list) {
+    input.dataset.list = opts.list;
+    // Kein eigenes Vorschlags-UI des Browsers über unserem LAN-Verlauf
+    // (Formular-History-Popup von Firefox/Chromium): es überlagert die
+    // eigene Liste mit System-Optik und System-Schriftgröße und sah für
+    // Nutzer wie ein "kaputtes" Dropdown aus. Neueingaben in ort/strasse
+    // sind ohnehin sinnlos vorzuhalten (Validierung verlangt den
+    // kanonischen Namen aus der Liste).
+    input.autocomplete = 'off';
+  }
   if (opts.date) {
     input.type = 'date';
     input.min = '1950-01-01';

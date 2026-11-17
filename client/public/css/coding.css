@@ -785,9 +785,15 @@ input[type='number'] {
        zugehörigen Eingabefeld */
     padding: 0.5em 0.625em;
     font-size: var(--text-base);
-    white-space: nowrap;
+    /* Umbruch statt Auslassungspunkte: der PLZ-Anhang steht am ENDE des
+       Labels und würde bei stark vergrößerter Schrift (hoher Zoom,
+       große Browser-Schrift, schmale Screens) abgeschnitten — die
+       PLZ-Info ist aber genau der Mehrwert der Zeile. Zeilen dürfen in
+       die zweite Zeile rutschen; notfalls bricht auch die PLZ-Folge
+       (overflow-wrap anywhere) statt horizontal zu überlaufen. Im
+       Normalfall (Label passt) sieht die Zeile unverändert aus. */
+    overflow-wrap: anywhere;
     overflow: hidden;
-    text-overflow: ellipsis;
     cursor: pointer;
 }
 .combo-listbox li.active,
