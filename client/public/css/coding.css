@@ -184,6 +184,41 @@ body.impressum a:visited {
     color: var(--adfc-blue);
 }
 
+/* Oranger Struktur-Streifen oben (wie structure-strip der Hauptwebsite);
+   dieselben Kontakt-Elemente wie im Footer. Rechts bündig am Kartenrand
+   (kleiner fester Abstand statt der 960px-Inhalteinrückung), damit die
+   Elemente weit rechts sitzen. */
+.structure-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    column-gap: 2em;
+    row-gap: 4px;
+    /* Höhe ~30px wie auf nlarchiv.adfc-duisburg.de — nicht fixiert,
+       sondern aus dem Inhalt gerechnet: 16px-Schrift × 1.5 Zeilenhöhe
+       (= 24px) + 0.2rem Padding oben/unten. min-height als Untergrenze,
+       damit auf schmalen Screens (Texte ausgeblendet) und bei hinein-
+       gezoomten Browsern der Balken nicht auf das Padding schrumpft. */
+    line-height: 1.5;
+    min-height: 30px;
+    box-sizing: border-box;
+    color: var(--color-lighter);
+    font-size: var(--text-base);
+    padding: 0.2rem 24px;
+    background-color: var(--adfc-orange);
+}
+/* Kein Underline im Ruhezustand (Browser-Default), erst beim Hover/Fokus */
+.structure-strip a,
+.structure-strip a:visited {
+    color: var(--color-lighter);
+    text-decoration: none;
+}
+.structure-strip a:hover,
+.structure-strip a:focus-visible {
+    text-decoration: underline;
+}
+
 .header,
 .instructions {
     display: grid;
@@ -202,8 +237,21 @@ body.impressum a:visited {
        Einspalten-Media-Query gestapelt. */
     grid-template-columns: 1fr 2.0fr;
     column-gap: 48px;
-    align-items: start;
-    padding: 24px max(20px, calc((100% - 960px) / 2)) 16px;
+    align-items: center;
+    padding: 12px max(20px, calc((100% - 960px) / 2)) 12px;
+    /* Oranger Abschlussstrich wie im Newsletter-Archiv (border-bottom 5px) */
+    background-color: var(--color-lighter);
+    border-bottom: 5px solid var(--adfc-orange);
+}
+
+/* Seitentitel im Header — schwarze Überschrift neben dem Logo statt
+   des früheren blauen Banners (Stil wie die h1 des Newsletter-Archivs) */
+.header-title {
+    color: #000;
+    font-size: var(--text-xl);
+    font-weight: 400;
+    line-height: 1.4;
+    margin: 0 0 0.5rem;
 }
 
 /* Graues Band statt Trennstrich: die Sektion zwischen Header-Bannern und
@@ -217,23 +265,43 @@ body.impressum a:visited {
     row-gap: 24px;
 }
 
-/* Hinweis-Banner (BANNER_1_TEXT / BANNER_2_TEXT) zwischen Header und
-   instructions — auffälliger Kasten in den ADFC-Farben */
-.page-banners {
-    /* Oben nur 8px: zum Header-Abstand kommen dessen 16px padding-bottom,
-       zusammen also 24px — ebenso viel wie unten vor dem grauen Band. */
-    padding: 8px max(20px, calc((100% - 960px) / 2)) 24px;
+/* Zeile direkt unter dem Header: Intro (links) und Hinweis-Banner
+   (rechts) nebeneinander. Dieselbe 960px-Inhaltsbreite wie Header,
+   instructions und Formular-Karte über das horizontale Padding.
+   Basis einspaltig (schmale Screens: gestapelt, Intro zuerst);
+   zweispaltig erst ab 701px UND nur wenn Banner vorhanden sind
+   (:has) — ohne Banner füllt der Intro-Kasten die volle Breite. */
+.page-top {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    /* Rhythmus: header → Zeile = 12px (Header-Padding) + 16px = 28px;
+       Zeile → instructions = 24px bis zum grauen Band (dessen eigene
+       24px Paddings liegen innerhalb). */
+    padding: 16px max(20px, calc((100% - 960px) / 2)) 24px;
 }
 
+@media (min-width: 701px) {
+    .page-top:has(.page-banners) {
+        /* 50/50-Verteilung wie in der grauen Box (instructions: 1fr 1fr,
+           Spaltenabstand 2vw); minmax(0, …) hält lange Banner-Texte
+           in ihrer Spalte */
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: 2vw;
+        align-items: start;
+    }
+}
+
+/* Hinweis-Banner (BANNER_1_TEXT / BANNER_2_TEXT / BANNER_3_TEXT) —
+   rechte Spalte der .page-top-Zeile, dort gestapelt; kein eigenes
+   Padding mehr, der Abstand kommt aus dem Grid der Zeile. */
+
 .page-banner {
-    position: relative;
-    margin-bottom: 12px;
-    padding: 10px 20px 10px 32px;
-    background-color: var(--color-light40);
-    border: 1px solid var(--color-light);
-    border-left: none;
+    margin-bottom: 16px;
+    padding: 10px 20px;
+    background-color: var(--adfc-blue);
     border-radius: 0;
-    color: #000;
+    color: var(--color-lighter);
     font-size: var(--text-md);
     font-weight: 600;
     line-height: 1.4;
@@ -241,16 +309,6 @@ body.impressum a:visited {
 
 .page-banner:last-child {
     margin-bottom: 0;
-}
-
-.page-banner::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: -1px;
-    bottom: -1px;
-    width: 12px;
-    background-color: var(--adfc-orange);
 }
 
 /* Banner mit Link (BANNER_1_URL / BANNER_2_URL) — der Text ist der Ankertext */
@@ -262,7 +320,8 @@ body.impressum a:visited {
 
 .page-banner a.page-banner-link:hover,
 .page-banner a.page-banner-link:focus-visible {
-    color: var(--adfc-blue);
+    color: var(--color-lighter);
+    text-decoration: none;
 }
 
 /* CTA-Kasten im Stil der Hauptwebsite: blaues Banner nur mit der
@@ -281,44 +340,24 @@ body.impressum a:visited {
     line-height: 1.25;
 }
 
-.header-info {
+/* Intro-Kasten in der linken Spalte der .page-top-Zeile — dieselbe
+   Optik wie der Körper der Formular-Karte „Codierauftrag ausfüllen“:
+   hellgrauer Kasten (var(--color-light40)) mit dem Innenabstand des
+   Formulars (form: 16px 24px). Fließtext, danach der orangene CTA. */
+.page-intro {
     background-color: var(--color-light40);
-    padding: 20px 24px 22px;
+    padding: 16px 24px;
 }
-/* Beide Absätze im Kasten teilen denselben Textstil; nur den Links
-   braucht eigenes Styling. Klassenlos — uBlock/EasyList-Filter konnten
-   klassierte Varianten ausblenden. */
-.header-info > p {
-    /* Abstand zwischen den Absätzen; der erste Absatz setzt unten an —
-       das Kasten-Padding liefert den Rand nach oben (sonst stapeln sich
-       20px Padding + 14px Margin zu viel grauem Leerraum). */
-    margin: 0 0 14px;
-    font-weight: 300;
+.page-intro > p {
+    margin: 16px 0 0;
     line-height: 1.5;
 }
-.header-info > p:last-child {
-    margin-bottom: 0;
+.page-intro > p:first-child {
+    margin-top: 0;
 }
 
-.header-text a,
-.header-text a:visited {
-    color: var(--adfc-blue);
-    /* fix in px: bewusst großer Zier-Link — soll mit der Basis
-       (15→16px) nicht mitwachsen */
-    font-size: 30px;
-    text-decoration: none;
-}
-/* Bei Hover nur den Linktext (span) unterstreichen, nicht den Pfeil (::after) */
-.header-text a:hover > span {
-    text-decoration: underline;
-}
-.header-text a.codierung-info-link::after {
-    content: "\00a0\2192"; /* Pfeil wie auf der Hauptwebsite */
-}
-/* "Informationen zur Codierung" als ORANGE CTA — Rezept button1 der
-   Hauptwebsite: var(--adfc-orange), weiße Schrift, kursiv, eckig */
-.header-text a.codierung-info-link,
-.header-text a.codierung-info-link:visited {
+.page-intro a.codierung-info-link,
+.page-intro a.codierung-info-link:visited {
     display: inline-block;
     background-color: var(--adfc-orange);
     color: #fff;
@@ -329,15 +368,15 @@ body.impressum a:visited {
     line-height: 1.2;
     text-decoration: none;
 }
+/* Pfeil wie bei den Buttons der Hauptwebsite (auch „Zur Buchung“); vom
+   Linktext getrennt per ::after, damit Hover nur den Text unterstreicht */
+.page-intro a.codierung-info-link::after {
+    content: "\00a0\2192"; /* geschütztes Leerzeichen + → */
+}
 /* Bei Hover nur den Linktext (span) unterstreichen — wie oben; der Pfeil
    (a::after) bleibt frei */
-.header-text a.codierung-info-link:hover > span {
+.page-intro a.codierung-info-link:hover > span {
     text-decoration: underline;
-}
-
-.header-info > p a {
-    color: var(--adfc-blue);
-    font-size: inherit;
 }
 
 @media (max-width: 700px) {
@@ -346,18 +385,28 @@ body.impressum a:visited {
         grid-template-columns: 1fr;
     }
 
+    /* Auf kleinen Screens bleiben der oranger Balken (Struktur-Streifen)
+       und darin die weißen Text-Elemente ausgeblendet — die Kontaktdaten
+       stehen weiterhin im Footer. */
+    .structure-strip a,
+    .structure-strip span {
+        display: none;
+    }
+
     .header {
-        /* Gestapelt: mehr Luft unter dem Logo-Block (Desktop trennt über
-           den Spaltenabstand, hier braucht es einen Zeilenabstand). Der
-           obere Padding gleicht das aus: unter dem Logo-Block wirken
-           row-gap (24px) + margin-bottom von #logo-text (12px) zusammen,
-           oben steht sonst nur die Basis-Padding von 24px. */
+        /* Gestapelt: mehr Luft oben und zwischen Logo-Block und Titel
+           (Desktop trennt über den Spaltenabstand, hier braucht es einen
+           Zeilenabstand). */
         padding-top: 28px;
         row-gap: 16px;
     }
 
-    .header-text a.codierung-info-link,
-    .header-text a.codierung-info-link:visited {
+    .header-title {
+        font-size: var(--text-lg);
+    }
+
+    .page-intro a.codierung-info-link,
+    .page-intro a.codierung-info-link:visited {
         font-size: clamp(var(--text-base), 4.5vw, var(--text-lg));
         padding: 8px 12px;
     }
@@ -372,9 +421,10 @@ body.impressum a:visited {
     /* Definite Breite (max-width deckelt auf die kompakte Größe), damit die
        Prozent-Margins von #logo-text (42 % / -14 %) auf die Logo-Breite
        skalieren. container-type macht #logo zum Container für die
-       cqw-Schriftgröße von #logo-text. */
+       cqw-Schriftgröße von #logo-text. 200px (wie das 12.5rem-Logo des
+       Newsletter-Archivs): kompakter Header, KV-Text skaliert via cqw mit. */
     width: 100%;
-    max-width: 280px;
+    max-width: 200px;
     margin: 0;
     container-type: inline-size;
 }
@@ -394,7 +444,9 @@ body.impressum a:visited {
     overflow-wrap: break-word;
     margin-left: 41%;
     margin-top: -14%;
-    margin-bottom: 12px;
+    /* Kein unterer Abstand: nach Entfernen des Info-Kastens war das nur
+       toter Leerraum innerhalb der (vertikal zentrierten) Kopfzeile. */
+    margin-bottom: 0;
     line-height: 1;
 }
 
@@ -442,6 +494,9 @@ h3 {
     line-height: 1.2;
     color: #fff;
     text-decoration: none;
+    /* „Codierauftrag herunterladen“ einzeilig — Release im Media-Query
+       für schmale Screens. */
+    white-space: nowrap;
 }
 
 .step p a.btn {
@@ -591,6 +646,13 @@ form h2.section-divider {
 }
 form button {
     justify-self: start;
+    /* Über die volle Rasterbreite — sonst zwingen nowrap (siehe unten) und
+       min-content der 1fr-Spalte einander auseinander und drücken die
+       Spaltenbreite des Formulars auseinander (vgl. min-width: 0 unten). */
+    grid-column: 1 / -1;
+    /* Label einzeilig — vgl. .step p .btn unten und den Release im
+       Media-Query für schmale Screens. */
+    white-space: nowrap;
 }
 
 .input-text,
@@ -632,6 +694,19 @@ form .form-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+/* Datenschutz-Hinweis ("Ihre Daten bleiben in Ihrem Browser …") als
+   erste eigene volle Rasterzeile, über der Überschrift "Eigentümer*in" */
+form .formhinweis {
+    grid-column: 1 / -1;
+    margin: 0;
+    line-height: 1.5;
+}
+
+form .formhinweis a {
+    color: var(--adfc-blue);
+    font-size: inherit;
 }
 form .required-note {
     margin-right: 0.5vw;
@@ -1159,6 +1234,13 @@ table.ein-data td {
         grid-template-columns: 1fr;
     }
 
+    /* Auf schmalen Screens darf „Codierauftrag herunterladen“ wieder
+       umbrechen — einzeilig würde sonst horizontal überlaufen. */
+    form button,
+    .step p .btn {
+        white-space: normal;
+    }
+
     /* Checkliste: mehr Luft zwischen den Eintraegen als auf Desktop.
        Steht bewusst NACH der Basisregel ul.checklist li — im frueheren
        Media-Query oben im File würde die spaetere Basisregel (gleiche
@@ -1251,7 +1333,7 @@ p.price {
     }
 }
 
-/* Busy-Indikator am "PDF erzeugen"-Button, während der Lazy-Chunk
+/* Busy-Indikator am "Codierauftrag herunterladen"-Button, während der Lazy-Chunk
    (jsPDF + bwip-js) lädt und das PDF erzeugt — auf Mobilgeräten kann
    das einige Sekunden dauern. */
 form button.busy::after {

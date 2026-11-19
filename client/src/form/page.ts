@@ -172,7 +172,48 @@ export interface BuiltPage {
   datalistStrasse: HTMLDataListElement;
 }
 
+/** Kontakt-Elemente (E-Mail, Telefon, Info-Links) — identisch im orangen
+ *  Struktur-Streifen oben und im Footer unten verwendet. */
+function appendContactItems(container: HTMLElement, config: AppConfig): void {
+  if (config.zeigeEmail && config.emailAdresse !== '') {
+    const mail = el(container.ownerDocument, 'span') as HTMLSpanElement;
+    mail.append('E-Mail: ');
+    const a = el(container.ownerDocument, 'a', undefined, config.emailAdresse) as HTMLAnchorElement;
+    a.href = `mailto:${config.emailAdresse}`;
+    mail.append(a);
+    container.append(mail);
+  }
+  if (config.zeigeTelefon && config.telefonNummer !== '') {
+    const tel = el(container.ownerDocument, 'span') as HTMLSpanElement;
+    tel.append('Telefon: ');
+    const a = el(container.ownerDocument, 'a', undefined, config.telefonNummer) as HTMLAnchorElement;
+    // tel:-URI ohne Leerzeichen; Anzeige bleibt mit, wie konfiguriert
+    a.href = `tel:${config.telefonNummer.replace(/\s+/g, '')}`;
+    tel.append(a);
+    container.append(tel);
+  }
+  if (config.zeigeCodierungInfo) {
+    const a = el(container.ownerDocument, 'a', undefined, 'Informationen zur Codierung') as HTMLAnchorElement;
+    a.href = config.codierungInfoUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    container.append(a);
+  }
+  const datenschutz = el(container.ownerDocument, 'a', undefined, 'Impressum und Datenschutz') as HTMLAnchorElement;
+  datenschutz.href = config.datenschutzUrl;
+  datenschutz.target = '_blank';
+  datenschutz.rel = 'noopener';
+  container.append(datenschutz);
+}
+
 export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement): BuiltPage {
+  // ── oranger Struktur-Streifen über dem Header (wie die Hauptwebsite) ──
+  // ── oranger Struktur-Streifen über dem Header: dieselben Kontakt-
+  //    Elemente wie im Footer (E-Mail, Telefon, Info-/Recht-Links) ──
+  const structureStrip = el(doc, 'div', 'structure-strip');
+  appendContactItems(structureStrip, config);
+  mount.append(structureStrip);
+
   // ── header ──
   const header = el(doc, 'div', 'header');
   const logo = el(doc, 'div');
@@ -186,63 +227,59 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   logoText.textContent = config.logoText;
   logo.append(logoPicture, logoText);
   const headerText = el(doc, 'div', 'header-text');
-  // Banner im Stil der Hauptwebsite: blaues Band mit Titel + Intro.
-  // Intro bleibt klassenlos (EasyList-Absicherung), Note via
-  // `.header-text > p:first-of-type` strukturell — intakte Reihenfolge:
-  // Banner (h2+intro) zuerst, danach der Datenschutz-Hinweis.
-  // Banner im Stil der Hauptwebsite: blaues Band enthält NUR die Überschrift.
-  // Intro, CTA und Datenschutz-Hinweis liegen darunter in einem hellgrauen
-  // Kasten (div.header-info) — wie der Kontaktkasten auf der Hauptwebsite.
-  const banner = el(doc, 'div', 'header-banner');
-  banner.append(el(doc, 'h2', undefined, 'Fahrrad-/Anhänger-Codierauftrag'));
-  headerText.append(banner);
-  const infoBox = el(doc, 'div', 'header-info');
+  // Kopfzeile im Stil des Newsletter-Archivs: Logo + KV-Name links,
+  // daneben die schwarze Seitentitel-Überschrift (h1) auf weißem Grund;
+  // der oranger Abschlussstrich kommt aus dem CSS. Überschrift und Intro
+  // liegen getrennt: Der Header enthält nur Logo und Titel, Intro/CTA
+  // folgen darunter (div.page-intro).
+  const title = el(doc, 'h1', 'header-title', 'Fahrrad-/Anhänger-Codierauftrag');
+  headerText.append(title);
+  header.append(logo, headerText);
+  mount.append(header);
+
+  // ── Zeile direkt unter dem Header: Intro links, Hinweis-Banner rechts ──
+  // .page-top ist das Grid (CSS): ab 701px zwei Spalten — Intro in
+  // Spalte 1, Banner gestapelt in Spalte 2; ohne Banner (alle Texte
+  // leer) nimmt der Intro-Kasten die volle Inhaltsbreite ein.
+  const topRow = el(doc, 'div', 'page-top');
+
+  // ── Intro: normaler Fließtext + orangener CTA ──
+  // Kasten im Stil der Formular-Karte „Codierauftrag ausfüllen“
+  // (CSS: .page-intro als hellgrauer Körper wie das form-Element).
+  const introSection = el(doc, 'div', 'page-intro');
   const intro = el(doc, 'p');
   intro.append(
     doc.createTextNode(
-      'Auf dieser Webseite können Sie Ihre Daten für die Codierung Ihres Fahrrades oder Fahrradanhängers erfassen und ausdrucken. Das spart Zeit beim Codierungstermin.',
+      'Auf dieser Webseite können Sie Ihre Daten für die Codierung Ihres Fahrrades oder Fahrradanhängers erfassen und ausdrucken.',
     ),
+    el(doc, 'br'),
+    doc.createTextNode('Das spart Zeit beim Codierungstermin.'),
   );
-  infoBox.append(intro);
-  const privacyNote = el(doc, 'p');
-  privacyNote.append(
-    doc.createTextNode(
-      'Ihre Daten bleiben in Ihrem Browser. Nur Ort und Straße gehen für die Code-Suche an den ADFC. Details: ',
-    ),
-  );
-  const datenschutzLink = el(doc, 'a') as HTMLAnchorElement;
-  // Text in einem span: Hover unterstreicht nur den span (CSS), nicht den
-  // Pfeil aus a::after.
-  datenschutzLink.append(el(doc, 'span', undefined, 'Impressum und Datenschutz'));
-  datenschutzLink.href = config.datenschutzUrl;
-  datenschutzLink.target = '_blank';
-  datenschutzLink.rel = 'noopener';
-  privacyNote.append(datenschutzLink);
-  // Datenschutz-Hinweis über dem CTA — der Button schließt den Kasten ab
-  infoBox.append(privacyNote);
+  introSection.append(intro);
+  // Orangener CTA-Button direkt nach dem Intro-Absatz (schließt den
+  // Absatzblock ab); der Datenschutz-Hinweis liegt im Formularblock
+  // (form .formhinweis).
   if (config.zeigeCodierungInfo) {
     const p = el(doc, 'p');
     const a = el(doc, 'a') as HTMLAnchorElement;
-    // Text in einem span: Hover unterstreicht nur den span (CSS), nicht den
-    // Pfeil aus a::after.
+    // Text in einem span: Hover unterstreicht nur den span (CSS).
     a.append(el(doc, 'span', undefined, 'Informationen zur Codierung'));
     a.href = config.codierungInfoUrl;
     a.target = '_blank';
     a.rel = 'noopener';
     a.classList.add('codierung-info-link');
     p.append(a);
-    infoBox.append(p);
+    introSection.append(p);
   }
-  headerText.append(infoBox);
-  header.append(logo, headerText);
-  mount.append(header);
+  topRow.append(introSection);
 
-  // ── Hinweis-Banner (BANNER_1_TEXT / BANNER_2_TEXT, optional BANNER_1_URL / BANNER_2_URL) ──
-  // Zwischen Header und erstem Trennstrich; leerer Text = ausgeblendet.
+  // ── Hinweis-Banner (BANNER_1_TEXT / BANNER_2_TEXT / BANNER_3_TEXT, optional BANNER_*_URL) ──
+  // Rechte Spalte neben dem Intro, gestapelt; leerer Text = ausgeblendet.
   // Text als textContent — kein innerHTML mit Konfigurationsdaten.
   const nonEmptyBanners = [
     { text: config.banner1Text, url: config.banner1Url },
     { text: config.banner2Text, url: config.banner2Url },
+    { text: config.banner3Text, url: config.banner3Url },
   ].filter((b) => b.text !== '');
   if (nonEmptyBanners.length > 0) {
     const banners = el(doc, 'div', 'page-banners');
@@ -259,8 +296,9 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
       }
       banners.append(box);
     }
-    mount.append(banners);
+    topRow.append(banners);
   }
+  mount.append(topRow);
 
   // ── instructions ──
   const instructions = el(doc, 'div', 'instructions');
@@ -309,7 +347,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   );
   const pdfStepP = el(doc, 'p', 'withButton');
   pdfStepP.append(doc.createTextNode('Auf '));
-  pdfStepP.append(el(doc, 'span', 'btn', 'PDF erzeugen'));
+  pdfStepP.append(el(doc, 'span', 'btn', 'Codierauftrag herunterladen'));
   pdfStepP.append(doc.createTextNode(' unten auf dem Formular klicken'));
   steps.append(step(stepIcon('icon-mouse-leftclick', 'Mausklick'), pdfStepP));
   steps.append(
@@ -355,6 +393,20 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   // Spalten. Der row-gap im CSS hält den Zeilenabstand gleichmäßig.
   const form = el(doc, 'form') as HTMLFormElement;
   form.id = 'form'; // purely structural — no action, no method: the form never submits
+  // Datenschutz-Hinweis: erste eigene volle Rasterzeile über der
+  // Überschrift "Eigentümer*in" (CSS: form .formhinweis). Text als
+  // textContent — kein innerHTML mit Konfigurationsdaten.
+  const privacyNote = el(doc, 'p', 'formhinweis');
+  privacyNote.append(
+    doc.createTextNode('Ihre Daten bleiben in Ihrem Browser. Nur Ort und Straße gehen für die Code-Suche an den ADFC.'),
+    el(doc, 'br'),
+    doc.createTextNode('Details: '),
+  );
+  const datenschutzLink = el(doc, 'a', undefined, 'Impressum und Datenschutz');
+  datenschutzLink.href = config.datenschutzUrl;
+  datenschutzLink.target = '_blank';
+  datenschutzLink.rel = 'noopener';
+  privacyNote.append(datenschutzLink);
   const anzGaenge = textField(doc, { id: 'anzGaenge', label: 'Anzahl Gänge' });
   const anzGaengeInput = anzGaenge.querySelector('input') as HTMLInputElement;
   anzGaengeInput.type = 'number';
@@ -365,7 +417,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   // in einer Zeile liegen (siehe .form-head im CSS)
   const formHead = el(doc, 'div', 'form-head');
   formHead.append(el(doc, 'h2', undefined, 'Eigentümer*in'), el(doc, 'span', 'required-note', '* = Pflichtfeld'));
-  form.append(formHead);
+  form.append(privacyNote, formHead);
   form.append(
     textField(doc, { id: 'vorname', label: 'Vorname(n)', required: true, maxlength: MAX_LENGTHS['vorname']! }),
     textField(doc, { id: 'nachname', label: 'Nachname', required: true, maxlength: MAX_LENGTHS['nachname']! }),
@@ -408,7 +460,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   genPdf.id = 'genPdf';
   genPdf.type = 'button';
   genPdf.disabled = true;
-  genPdf.textContent = 'PDF erzeugen';
+  genPdf.textContent = 'Codierauftrag herunterladen';
   form.append(genPdf);
   // Karte um das Formular — gleiche Optik wie die Header-Text-Karte:
   // blaues Banner (Klasse .header-banner, gemeinsames Styling) über dem
@@ -504,35 +556,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
 
   // ── footer ──
   const footer = el(doc, 'div', 'page-footer');
-  if (config.zeigeEmail && config.emailAdresse !== '') {
-    const mail = el(doc, 'span') as HTMLSpanElement;
-    mail.append('E-Mail: ');
-    const a = el(doc, 'a', undefined, config.emailAdresse) as HTMLAnchorElement;
-    a.href = `mailto:${config.emailAdresse}`;
-    mail.append(a);
-    footer.append(mail);
-  }
-  if (config.zeigeTelefon && config.telefonNummer !== '') {
-    const tel = el(doc, 'span') as HTMLSpanElement;
-    tel.append('Telefon: ');
-    const a = el(doc, 'a', undefined, config.telefonNummer) as HTMLAnchorElement;
-    // tel:-URI ohne Leerzeichen; Anzeige bleibt mit, wie konfiguriert
-    a.href = `tel:${config.telefonNummer.replace(/\s+/g, '')}`;
-    tel.append(a);
-    footer.append(tel);
-  }
-  if (config.zeigeCodierungInfo) {
-    const a = el(doc, 'a', undefined, 'Informationen zur Codierung') as HTMLAnchorElement;
-    a.href = config.codierungInfoUrl;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    footer.append(a);
-  }
-  const datenschutz = el(doc, 'a', undefined, 'Impressum und Datenschutz') as HTMLAnchorElement;
-  datenschutz.href = config.datenschutzUrl;
-  datenschutz.target = '_blank';
-  datenschutz.rel = 'noopener';
-  footer.append(datenschutz);
+  appendContactItems(footer, config);
   mount.append(footer);
 
   // kleine Versionszeile im grauen Footer-Band (wie die Hauptwebsite) —

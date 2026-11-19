@@ -37,8 +37,10 @@ export interface ParsedConfig {
   codierungInfoUrl: string;
   banner1Text: string; // '' = Banner ausgeblendet
   banner2Text: string; // '' = Banner ausgeblendet
+  banner3Text: string; // '' = Banner ausgeblendet
   banner1Url: string; // '' = Banner ist kein Link
   banner2Url: string; // '' = Banner ist kein Link
+  banner3Url: string; // '' = Banner ist kein Link
   barcodeTyp: 'code128' | 'code39' | 'code39ext';
   includeBarcodeCheck: boolean; // true iff C39E+
   umlauteImBarcode: boolean;
@@ -308,6 +310,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
   }
   const banner1Text = bannerText('BANNER_1_TEXT');
   const banner2Text = bannerText('BANNER_2_TEXT');
+  const banner3Text = bannerText('BANNER_3_TEXT');
 
   // Optionale Link-Ziele: nur https; ohne zugehörigen Text wirkungslos (Warnung).
   function bannerUrl(key: string, textKey: string, text: string): string {
@@ -333,6 +336,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
   }
   const banner1Url = bannerUrl('BANNER_1_URL', 'BANNER_1_TEXT', banner1Text);
   const banner2Url = bannerUrl('BANNER_2_URL', 'BANNER_2_TEXT', banner2Text);
+  const banner3Url = bannerUrl('BANNER_3_URL', 'BANNER_3_TEXT', banner3Text);
 
   // Barcode type → bwip-js bcid.
   let barcodeTyp: ParsedConfig['barcodeTyp'] = 'code128';
@@ -491,8 +495,10 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     codierungInfoUrl,
     banner1Text,
     banner2Text,
+    banner3Text,
     banner1Url,
     banner2Url,
+    banner3Url,
     barcodeTyp,
     includeBarcodeCheck,
     umlauteImBarcode,

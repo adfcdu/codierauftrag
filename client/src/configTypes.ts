@@ -34,8 +34,10 @@ export interface AppConfig {
   codierungInfoUrl: string;
   banner1Text: string;
   banner2Text: string;
+  banner3Text: string;
   banner1Url: string;
   banner2Url: string;
+  banner3Url: string;
   barcodeTyp: 'code128' | 'code39' | 'code39ext';
   includeBarcodeCheck: boolean;
   umlauteImBarcode: boolean;

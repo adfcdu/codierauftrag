@@ -87,7 +87,7 @@ export function updateGenPdfGate(page: BuiltPage, values: FormValues, state: Str
   page.genPdf.disabled = !genPdfEnabled(values, state) || page.genPdf.classList.contains('busy');
 }
 
-/** Busy state on "PDF erzeugen": spinner + disabled while the lazy chunk
+/** Busy state on "Codierauftrag herunterladen": spinner + disabled while the lazy chunk
  *  (jsPDF + bwip-js) loads and the PDF is generated. */
 export function setGenPdfBusy(page: BuiltPage, busy: boolean): void {
   page.genPdf.classList.toggle('busy', busy);

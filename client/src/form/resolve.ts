@@ -217,7 +217,7 @@ export function wireForm(
     input?.addEventListener('change', () => refreshDisplay());
   }
 
-  // PDF erzeugen: lazy chunk (jsPDF + bwip-js stay out of the initial bundle).
+  // Codierauftrag herunterladen: lazy chunk (jsPDF + bwip-js stay out of the initial bundle).
   // While the chunk loads and the PDF is generated the button shows a busy
   // spinner — on mobile that can take a while.
   // MIN_BUSY_MS: keep the lock for at least this long after the click, even

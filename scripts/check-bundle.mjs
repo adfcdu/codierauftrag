@@ -2,7 +2,7 @@
 /**
  * Bundle check (07 § PDF / 00 § performance budgets): the initial client bundle
  * must contain no jsPDF/bwip-js bytes — the whole PDF stack lives in the lazy
- * pdf/ chunk that is only imported on "PDF erzeugen". Run after `vite build`.
+ * pdf/ chunk that is only imported on "Codierauftrag herunterladen". Run after `vite build`.
  */
 
 import { readdirSync, readFileSync } from 'node:fs';

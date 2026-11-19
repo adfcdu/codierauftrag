@@ -68,7 +68,7 @@ Die EIN ist bewusst so aufgebaut, dass sie jede Person am Rad ablesen kann — e
 gibt **keine zentrale Registrierung**, die Codes Eigentümer*innen zuordnet. Weder
 diese Anwendung noch die ADFC-Code-Server speichern EINs.
 
-Ein Klick auf **„PDF erzeugen“** erzeugt den Auftrag: ein A4-Dokument in zwei
+Ein Klick auf **„Codierauftrag herunterladen“** erzeugt den Auftrag: ein A4-Dokument in zwei
 Ausfertigungen („Ausfertigung ADFC“ / „Ausfertigung Kundin/Kunde“, konfigurierbar
 als einzelnes Blatt) mit dem vollständigen Datensatz, der EIN mit 1-D-Barcode
 (Code128/Code39/Code39ext), einem QR-Code, der das Formular mit allen Werten erneut
@@ -112,7 +112,7 @@ sowie den Unterschriftenlinien. Das PDF wird im Browser erzeugt und heruntergela
 React, kein Vue) im Client; `node:sqlite` als Cache (in Node integriert — keine
 nativen npm-Module); cheerio für die Upstream-HTML; jsPDF + `@bwip-js/browser`
 für das PDF, lazy geladen per dynamischem `import()` beim ersten Klick auf
-„PDF erzeugen“. Die exakten Versionen stehen in `package.json` und werden über
+„Codierauftrag herunterladen“. Die exakten Versionen stehen in `package.json` und werden über
 die Lockfile/Dependabot gepflegt.
 
 ### Auflösungspfad (GET /api/streetcode)
@@ -236,7 +236,7 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
   unveränderter Wert löst nie eine neue Abfrage aus. Während einer 4–14 s
   laufenden Upstream-Suche zeigt das Feld einen Busy-Spinner und **keine voreilige
   Fehlermeldung** — die Person tippt unterdessen weiter.
-- **„PDF erzeugen“-Gating live berechnet** bei jedem Input — die Schaltfläche wird
+- **„Codierauftrag herunterladen“-Gating live berechnet** bei jedem Input — die Schaltfläche wird
   erst frei, wenn die EIN vollständig, Ort+Straße aufgelöst und keine
   Validierungsfehler vorhanden sind. Ein ungültiges PDF ist unmöglich zu erzeugen.
 - **QR-Neuladen mit Auto-Resolve**: Das Öffnen einer PDF-QR-URL füllt das gesamte
@@ -257,7 +257,7 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
   Kreisverband-Namen in bis zu 3 ausbalancierte Zeilen um, statt sie
   wegzuschrumpfen.
 - **Lazy-PDF-Chunk**: jsPDF + bwip-js werden erst beim ersten Klick auf
-  „PDF erzeugen“ geladen — das initiale Bundle enthält null PDF-Bytes (in CI
+  „Codierauftrag herunterladen“ geladen — das initiale Bundle enthält null PDF-Bytes (in CI
   geprüft durch `scripts/check-bundle.mjs`).
 
 ## Der PDF-Auftrag

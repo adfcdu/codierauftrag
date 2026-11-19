@@ -36,8 +36,10 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.zeigeCodierungBuchen).toBe(true);
     expect(c.banner1Text).toBe('Angebots-Hinweis 1');
     expect(c.banner2Text).toBe('Angebots-Hinweis 2');
+    expect(c.banner3Text).toBe('Angebots-Hinweis 3');
     expect(c.banner1Url).toBe('https://beispielstadt.example/hinweis-1');
     expect(c.banner2Url).toBe('');
+    expect(c.banner3Url).toBe('https://beispielstadt.example/hinweis-3');
     expect(c.barcodeTyp).toBe('code128');
     expect(c.includeBarcodeCheck).toBe(false);
     expect(c.umlauteImBarcode).toBe(false);
@@ -67,8 +69,10 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.barcodeTyp).toBe('code128');
     expect(c.banner1Text).toBe(''); // default: Banner ausgeblendet
     expect(c.banner2Text).toBe('');
+    expect(c.banner3Text).toBe('');
     expect(c.banner1Url).toBe('');
     expect(c.banner2Url).toBe('');
+    expect(c.banner3Url).toBe('');
     expect(c.serverBasisUrl).toBe('');
     expect(c.ortInitial).toBe('');
   });
@@ -313,6 +317,29 @@ describe('parseConfig — warnings (non-fatal)', () => {
     expect(formatConfigWarnings(result.warnings)).toContain(
       'Warnung: BANNER_1_URL ohne BANNER_1_TEXT — das Banner wird nicht angezeigt — der Link ist wirkungslos',
     );
+  });
+
+  it('BANNER_3_URL without BANNER_3_TEXT: warning, process starts', () => {
+    const base = envFixture('kv-beispielstadt.env');
+    const result = parseConfig({ ...base, BANNER_3_TEXT: '', BANNER_3_URL: 'https://beispielstadt.example/leer' });
+    expect('errors' in result).toBe(false);
+    if ('errors' in result) return;
+    expect(result.config.banner3Url).toBe('https://beispielstadt.example/leer');
+    expect(formatConfigWarnings(result.warnings)).toContain(
+      'Warnung: BANNER_3_URL ohne BANNER_3_TEXT — das Banner wird nicht angezeigt — der Link ist wirkungslos',
+    );
+  });
+
+  it('BANNER_3_URL with an invalid URL: error (https only)', () => {
+    const base = envFixture('kv-beispielstadt.env');
+    for (const url of ['ftp://beispielstadt.example', 'http://beispielstadt.example', 'nicht-eine-url']) {
+      const result = parseConfig({ ...base, BANNER_3_URL: url });
+      expect('errors' in result).toBe(true);
+      if (!('errors' in result)) return;
+      const err = result.errors.find((e) => e.key === 'BANNER_3_URL');
+      expect(err).toBeDefined();
+      expect(err!.reason).toContain('muss eine gültige https-URL sein');
+    }
   });
 
   it('BANNER_1_URL with an invalid URL: error (https only)', () => {

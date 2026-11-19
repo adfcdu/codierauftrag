@@ -40,7 +40,7 @@ All checks above must pass before you consider work done. Note:
   code is exercised through those integration tests, not a client test dir.
 - The build verifies that the initial bundle contains no PDF bytes
   (jsPDF/bwip-js must stay in the lazy chunk loaded only on
-  "PDF erzeugen" click).
+  "Codierauftrag herunterladen" click).
 - `client/dist` is not tracked in git; the Docker build produces it.
 
 ## Editing and safety
@@ -104,7 +104,7 @@ codierauftrag/
 │  ├─ qr.ts                    # QR URLs — form data in the URL fragment (#v=…)
 │  ├─ configTypes.ts           # AppConfig — the typed /api/config client view
 │  ├─ form/                    # DOM wiring: combobox, page, resolve (streetcode calls)
-│  └─ pdf/                     # LAZY CHUNK (loaded on "PDF erzeugen" click only)
+│  └─ pdf/                     # LAZY CHUNK (loaded on "Codierauftrag herunterladen" click only)
 │     ├─ pdf.ts                # the A4 form layout in exact mm coordinates
 │     └─ barcodes.ts           # 1D barcode + QR rendering via bwip-js
 ├─ client/public/              # static assets served as-is

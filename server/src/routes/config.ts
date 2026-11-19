@@ -36,8 +36,10 @@ export interface PublicConfig {
   codierungInfoUrl: string;
   banner1Text: string;
   banner2Text: string;
+  banner3Text: string;
   banner1Url: string;
   banner2Url: string;
+  banner3Url: string;
   barcodeTyp: 'code128' | 'code39' | 'code39ext';
   includeBarcodeCheck: boolean;
   umlauteImBarcode: boolean;
@@ -78,8 +80,10 @@ export function buildPublicConfig(config: ParsedConfig, version: string): Public
     codierungInfoUrl: config.codierungInfoUrl,
     banner1Text: config.banner1Text,
     banner2Text: config.banner2Text,
+    banner3Text: config.banner3Text,
     banner1Url: config.banner1Url,
     banner2Url: config.banner2Url,
+    banner3Url: config.banner3Url,
     barcodeTyp: config.barcodeTyp,
     includeBarcodeCheck: config.includeBarcodeCheck,
     umlauteImBarcode: config.umlauteImBarcode,
