@@ -54,6 +54,19 @@
     --color-light: #dedede;
     --color-lighter: #fff;
     --color-light40: #f2f2f2;
+    /* Inhaltsbreite: die gemeinsame zentrierte Spalte aller Sektionen
+       (Struktur-Streifen, Header, page-top, Instructions, Formular-Karte,
+       Preisband, Footer). Relativ wie die Hauptwebsite (.sectioncontainer):
+       width 80% — skaliert mit dem Fenster; ab ~1550px Fensterbreite
+       greift die Obergrenze, so dass der Inhalt auf breiten Screens bei
+       1240px bleibt (~1240px auf einem 1687px-Fenster, auf sehr breiten
+       Fenstern ebenfalls 1240px). Die %-Angabe wird am Verwendungsort
+       (padding/max-width/width) gegen die jeweilige Breite des
+       umschließenden Blocks aufgelöst. min() statt fester px-Zahl, damit
+       andere Bildschirmgrößen korrekt mitskalieren. Die Gartner-Paddings
+       rechnen mit calc() gegen diese Variable; die Formular-Karte und
+       die Impressum-Seite nutzen sie per min()/max-width. */
+    --content-width: min(80%, 1240px);
     --font-body: Roboto, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
     /* Schriftgrößen-Skala: 7 Stufen, alle Angaben im File greifen auf
        diese Tokens zu — eine Änderung hier wirkt zentral.
@@ -86,7 +99,7 @@ body {
    (Instructions, Footer) die volle Kartenbreite erreichen. */
 /* Volle Breite — die Sektionsbänder (grau/weiß wie die Hauptwebsite)
    laufen bis an den Rand; der Inhalt bleibt zentriert über das
-   horizontale Padding max(20px, (100% − 960px)/2) jeder Sektion. */
+   horizontale Padding max(20px, (100% − var(--content-width))/2) jeder Sektion. */
 body > div#app {
     background-color: var(--color-lighter);
 }
@@ -135,7 +148,7 @@ body {
 
 body.impressum {
     margin: 8px;
-    max-width: 960px;
+    max-width: var(--content-width);
     /* Static page without #app card: white surface on the grey canvas */
     background-color: var(--color-lighter);
     /* gleiche Typografie wie die Hauptseite — die @font-face-Roboto
@@ -185,9 +198,8 @@ body.impressum a:visited {
 }
 
 /* Oranger Struktur-Streifen oben (wie structure-strip der Hauptwebsite);
-   dieselben Kontakt-Elemente wie im Footer. Rechts bündig am Kartenrand
-   (kleiner fester Abstand statt der 960px-Inhalteinrückung), damit die
-   Elemente weit rechts sitzen. */
+   dieselben Kontakt-Elemente wie im Footer. Rechtsbündig innerhalb der
+   gemeinsamen Inhaltsbreite (var(--content-width)) wie der Header. */
 .structure-strip {
     display: flex;
     flex-wrap: wrap;
@@ -195,17 +207,26 @@ body.impressum a:visited {
     justify-content: flex-end;
     column-gap: 2em;
     row-gap: 4px;
-    /* Höhe ~30px wie auf nlarchiv.adfc-duisburg.de — nicht fixiert,
-       sondern aus dem Inhalt gerechnet: 16px-Schrift × 1.5 Zeilenhöhe
-       (= 24px) + 0.2rem Padding oben/unten. min-height als Untergrenze,
-       damit auf schmalen Screens (Texte ausgeblendet) und bei hinein-
-       gezoomten Browsern der Balken nicht auf das Padding schrumpft. */
-    line-height: 1.5;
+    /* Höhe wie auf www.adfc.de: dort liefert ein h4 (Schrift effektiv
+       80 % = 12.8px, line-height 1.15 aus dem Normalize, padding .3rem)
+       in einem Container mit padding .2rem die Höhe 30.72px. Hier in
+       einem Element nachgebaut: 12.8px × 1.15 (= 14.72px Zeile) +
+       2 × 0.5rem Padding (= 8px oben/unten, .3rem + .2rem des Originals
+       zusammengefasst) = 30.72px. min-height als Untergrenze, damit auf
+       schmalen Screens (Texte ausgeblendet) und bei hineingezoomten
+       Browsern der Balken nicht auf das Padding schrumpft. */
+    line-height: 1.15;
     min-height: 30px;
     box-sizing: border-box;
     color: var(--color-lighter);
-    font-size: var(--text-base);
-    padding: 0.2rem 24px;
+    /* 80 % wie im Original (adfc.de) — relativ zur rem-basierten
+       Body-Schrift, skaliert also genauso mit der Nutzereinstellung
+       (80 % von 16px = 12.8px). */
+    font-size: 80%;
+    /* gleiche Inhaltsbreite wie Header/Formular (var(--content-width)
+       + Gutter): der Balkeninhalt sitzt rechtsbündig innerhalb der
+       Inhaltsspalte */
+    padding: 0.5rem max(20px, calc((100% - var(--content-width)) / 2));
     background-color: var(--adfc-orange);
 }
 /* Kein Underline im Ruhezustand (Browser-Default), erst beim Hover/Fokus */
@@ -238,7 +259,7 @@ body.impressum a:visited {
     grid-template-columns: 1fr 2.0fr;
     column-gap: 48px;
     align-items: center;
-    padding: 12px max(20px, calc((100% - 960px) / 2)) 12px;
+    padding: 12px max(20px, calc((100% - var(--content-width)) / 2)) 12px;
     /* Oranger Abschlussstrich wie im Newsletter-Archiv (border-bottom 5px) */
     background-color: var(--color-lighter);
     border-bottom: 5px solid var(--adfc-orange);
@@ -258,7 +279,7 @@ body.impressum a:visited {
    Formular setzt sich über die Hintergrundfläche ab */
 .instructions {
     background-color: var(--color-light40);
-    padding: 24px max(20px, calc((100% - 960px) / 2));
+    padding: 24px max(20px, calc((100% - var(--content-width)) / 2));
     /* Zeilenabstand für die Stapel-Ansicht (Mobile) — entspricht dem
        Padding, damit der Blockabstand dem Randabstand gleicht. Desktop
        hat nur eine Zeile, dort wirkungslos. */
@@ -266,7 +287,7 @@ body.impressum a:visited {
 }
 
 /* Zeile direkt unter dem Header: Intro (links) und Hinweis-Banner
-   (rechts) nebeneinander. Dieselbe 960px-Inhaltsbreite wie Header,
+   (rechts) nebeneinander. Dieselbe Inhaltsbreite (var(--content-width))
    instructions und Formular-Karte über das horizontale Padding.
    Basis einspaltig (schmale Screens: gestapelt, Intro zuerst);
    zweispaltig erst ab 701px UND nur wenn Banner vorhanden sind
@@ -278,7 +299,7 @@ body.impressum a:visited {
     /* Rhythmus: header → Zeile = 12px (Header-Padding) + 16px = 28px;
        Zeile → instructions = 24px bis zum grauen Band (dessen eigene
        24px Paddings liegen innerhalb). */
-    padding: 16px max(20px, calc((100% - 960px) / 2)) 24px;
+    padding: 16px max(20px, calc((100% - var(--content-width)) / 2)) 24px;
 }
 
 @media (min-width: 701px) {
@@ -587,11 +608,11 @@ ul.checklist li::before {
 
 /* Formular-Karte — gleiche Optik wie die Header-Text-Karte: blaues Banner
    (div.header-banner, wiederverwendet) über dem form als hellgrauem
-   Körper. Die Karte läuft in der 960px-Inhaltsbreite, zentriert wie die
+   Körper. Die Karte läuft in der Inhaltsbreite (var(--content-width)), zentriert wie die
    anderen Sektionen (Gutter über width statt Padding, damit der graue
    Hintergrund als Kasten lesbar bleibt und nicht bandartig wirkt). */
 .form-card {
-    width: min(960px, calc(100% - 40px));
+    width: min(var(--content-width), calc(100% - 40px));
     margin: 24px auto 24px;
 }
 
@@ -1039,7 +1060,7 @@ form button:not([disabled]):hover {
 .price-bar {
     background-color: var(--adfc-blue);
     color: var(--color-lighter);
-    padding: 22px max(20px, calc((100% - 960px) / 2));
+    padding: 22px max(20px, calc((100% - var(--content-width)) / 2));
     /* schmales Zwischenband zum Footer (var(--color-medium)) */
     border-bottom: 20px solid var(--color-medium);
 }
@@ -1067,7 +1088,7 @@ form button:not([disabled]):hover {
        genug vertikalen Abstand fuer Touch-Ziele */
     row-gap: 12px;
     font-size: var(--text-sm);
-    padding: 36px max(20px, calc((100% - 960px) / 2)) 24px;
+    padding: 36px max(20px, calc((100% - var(--content-width)) / 2)) 24px;
     color: var(--color-lighter);
 }
 
