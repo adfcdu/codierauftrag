@@ -301,9 +301,22 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   mount.append(topRow);
 
   // ── instructions ──
+  // Wie die Formular-Karte „Codierauftrag ausfüllen“: begrüßtes blaues
+  // Banner (div.header-banner wiederverwendet) als Kastenkopf mit der
+  // Überschrift, darunter ein weißer Körper (div.instruction-body) mit
+  // dem Inhalt — beide Kästen nebeneinander auf dem grauen Band.
   const instructions = el(doc, 'div', 'instructions');
-  const steps = el(doc, 'div');
-  steps.append(el(doc, 'h3', undefined, 'Bitte gehen Sie wie folgt vor:'));
+  const instructionCard = (title: string): { card: HTMLDivElement; body: HTMLDivElement } => {
+    const card = el(doc, 'div', 'instruction-card');
+    const banner = el(doc, 'div', 'header-banner');
+    banner.append(el(doc, 'h2', undefined, title));
+    card.append(banner);
+    const body = el(doc, 'div', 'instruction-body');
+    card.append(body);
+    return { card, body };
+  };
+  const stepsCard = instructionCard('Bitte gehen Sie wie folgt vor:');
+  const steps = stepsCard.body;
   const stepIcon = (symbol: string, title: string): SVGSVGElement => {
     const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'icon');
@@ -360,8 +373,8 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   }
   steps.append(step(stepIcon('icon-print', 'Ausdrucken'), printP));
 
-  const checklistWrap = el(doc, 'div');
-  checklistWrap.append(el(doc, 'h3', undefined, 'Zum Codierungstermin bringen Sie folgendes mit:'));
+  const checklistCard = instructionCard('Zum Codierungstermin bringen Sie folgendes mit:');
+  const checklistWrap = checklistCard.body;
   const ul = el(doc, 'ul', 'checklist');
   for (const item of [
     'Das zu codierende Fahrrad oder Anhänger',
@@ -381,7 +394,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   lastLi.append(doc.createTextNode(', ausgedruckt oder digital'));
   ul.append(lastLi);
   checklistWrap.append(ul);
-  instructions.append(steps, checklistWrap);
+  instructions.append(stepsCard.card, checklistCard.card);
   mount.append(instructions);
 
   // ── form ──
