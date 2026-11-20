@@ -56,17 +56,18 @@
     --color-light40: #f2f2f2;
     /* Inhaltsbreite: die gemeinsame zentrierte Spalte aller Sektionen
        (Struktur-Streifen, Header, page-top, Instructions, Formular-Karte,
-       Preisband, Footer). Relativ wie die Hauptwebsite (.sectioncontainer):
-       width 80% — skaliert mit dem Fenster; ab ~1550px Fensterbreite
+       Preisband, Footer). Deckungsgleich mit der Hauptwebsite
+       (.sectioncontainer: width 80%, max-width 1440px, margin 0 auto):
+       width 80% — skaliert mit dem Fenster; ab 1800px Fensterbreite
        greift die Obergrenze, so dass der Inhalt auf breiten Screens bei
-       1240px bleibt (~1240px auf einem 1687px-Fenster, auf sehr breiten
-       Fenstern ebenfalls 1240px). Die %-Angabe wird am Verwendungsort
-       (padding/max-width/width) gegen die jeweilige Breite des
-       umschließenden Blocks aufgelöst. min() statt fester px-Zahl, damit
-       andere Bildschirmgrößen korrekt mitskalieren. Die Gartner-Paddings
-       rechnen mit calc() gegen diese Variable; die Formular-Karte und
-       die Impressum-Seite nutzen sie per min()/max-width. */
-    --content-width: min(80%, 1240px);
+       1440px bleibt (1687px-Fenster: 1349.6px, 1920px-Fenster: 1440px).
+       Die %-Angabe wird am Verwendungsort (padding/max-width/width)
+       gegen die jeweilige Breite des umschließenden Blocks aufgelöst.
+       min() statt fester px-Zahl, damit andere Bildschirmgrößen korrekt
+       mitskalieren. Die Sektions-Paddings rechnen mit calc() gegen diese
+       Variable; die Formular-Karte und die Impressum-Seite nutzen sie
+       per min()/max-width. */
+    --content-width: min(80%, 1440px);
     --font-body: Roboto, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
     /* Schriftgrößen-Skala: 7 Stufen, alle Angaben im File greifen auf
        diese Tokens zu — eine Änderung hier wirkt zentral.
@@ -446,8 +447,9 @@ body.impressum a:visited {
      Halber Rand: 90% statt 80% — der Gutter halbiert sich von 10%
      auf 5% der Breite (mindestens die 20px-Floor der Sektionen). */
     :root {
-        --content-width: min(90%, 1240px);
+        --content-width: min(90%, 1440px);
     }
+
     .header,
     .instructions {
         grid-template-columns: 1fr;
