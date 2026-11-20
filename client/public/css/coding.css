@@ -74,17 +74,16 @@
        auf die vom Nutzer gewählte Standard-Schriftgröße des Browsers auf
        (Chrome „Schriftgröße“, Firefox Standard-Schrift) — Nutzer mit
        größer eingestellter Schrift bekommen die gesamte Seite inkl. der
-       Dropdown-Listen proportional größer. Bei Werkseinstellung
-       (1rem = 16px) ist das Rendering pixelidentisch zur früheren
-       px-Skala; nur die iOS-16px-Untergrenze für Inputs ist separat
-       abgesichert (s. unten). */
-    --text-2xs: 0.6875rem;  /* 11px — Versionszeile */
-    --text-xs: 0.75rem;     /* 12px — Hinweistexte (Pflichtfeld, Validierung) */
-    --text-sm: 0.875rem;    /* 14px — Footer */
-    --text-base: 1rem;      /* 16px — Fließtext, Steuerelemente */
-    --text-md: 1.0625rem;   /* 17px — betonte UI-Schrift (Labels, Buttons, Preis) */
-    --text-lg: 1.3125rem;   /* 21px — Untergliederung (Impressum h2, Mobile-CTA-Max) */
-    --text-xl: 1.75rem;     /* 28px — Banner-/Seiten-Titel */
+       Dropdown-Listen proportional größer. Die px-Angaben in den
+       Kommentaren gelten bei Werkseinstellung (1rem = 16px); nur die
+       iOS-16px-Untergrenze für Inputs ist separat abgesichert (s. unten). */
+    --text-2xs: 0.75rem;    /* 12px — Versionszeile */
+    --text-xs: 0.8125rem;   /* 13px — Hinweistexte (Pflichtfeld, Validierung) */
+    --text-sm: 0.9375rem;   /* 15px — Footer */
+    --text-base: 1.0625rem; /* 17px — Fließtext, Steuerelemente */
+    --text-md: 1.125rem;    /* 18px — betonte UI-Schrift (Labels, Buttons, Preis) */
+    --text-lg: 1.375rem;    /* 22px — Untergliederung (Impressum h2, Mobile-CTA-Max) */
+    --text-xl: 1.875rem;    /* 30px — Banner-/Seiten-Titel */
 }
 
 body {
@@ -208,25 +207,31 @@ body.impressum a:visited {
     column-gap: 2em;
     row-gap: 4px;
     /* Höhe wie auf www.adfc.de: dort liefert ein h4 (Schrift effektiv
-       80 % = 12.8px, line-height 1.15 aus dem Normalize, padding .3rem)
-       in einem Container mit padding .2rem die Höhe 30.72px. Hier in
-       einem Element nachgebaut: 12.8px × 1.15 (= 14.72px Zeile) +
-       2 × 0.5rem Padding (= 8px oben/unten, .3rem + .2rem des Originals
-       zusammengefasst) = 30.72px. min-height als Untergrenze, damit auf
-       schmalen Screens (Texte ausgeblendet) und bei hineingezoomten
-       Browsern der Balken nicht auf das Padding schrumpft. */
+       80 %, line-height 1.15 aus dem Normalize, padding .3rem) in einem
+       Container mit padding .2rem die Höhe 30.72px. Hier über min-height
+       gesetzt statt über vertikales Padding: die Zeile ist mit der
+       größeren Schrift 13.6px × 1.15 = 15.64px hoch, den Rest bis
+       30.72px trägt der Balken selbst — align-items: center hält den
+       Text darin mittig. Vertikales Padding würde den Balken über die
+       Originalhöhe hinaus wachsen lassen. min-height (nicht height):
+       bricht der Inhalt auf zwei Zeilen um, wächst der Balken mit,
+       statt den Text abzuschneiden. */
     line-height: 1.15;
-    min-height: 30px;
+    min-height: 30.72px;
     box-sizing: border-box;
     color: var(--color-lighter);
     /* 80 % wie im Original (adfc.de) — relativ zur rem-basierten
        Body-Schrift, skaliert also genauso mit der Nutzereinstellung
-       (80 % von 16px = 12.8px). */
+       (80 % von 17px = 13.6px). */
     font-size: 80%;
+    /* Eine Stufe kräftiger als der Fließtext (Body ist 300), aber nicht
+       fett: der Balken trägt nur wenige Wörter und soll auf dem orangen
+       Grund klar lesbar sein. */
+    font-weight: 400;
     /* gleiche Inhaltsbreite wie Header/Formular (var(--content-width)
        + Gutter): der Balkeninhalt sitzt rechtsbündig innerhalb der
        Inhaltsspalte */
-    padding: 0.5rem max(20px, calc((100% - var(--content-width)) / 2));
+    padding: 0 max(20px, calc((100% - var(--content-width)) / 2));
     background-color: var(--adfc-orange);
 }
 /* Kein Underline im Ruhezustand (Browser-Default), erst beim Hover/Fokus */
@@ -238,6 +243,22 @@ body.impressum a:visited {
 .structure-strip a:hover,
 .structure-strip a:focus-visible {
     text-decoration: underline;
+}
+/* Symbole im Streifen statt der langen Beschriftungen (E-Mail, Telefon,
+   Info, Impressum) — der Streifen bleibt dadurch schmal. Die SVGs sind
+   schwarz gefüllt; brightness(0) + invert(1) färbt sie weiß wie den Text. */
+.structure-strip img.strip-icon {
+    /* größer als die Schrift (1.4em ≈ 19px): die Symbole sollen auf dem
+       orangen Grund sofort erkennbar sein — die Zeile bleibt mit 19px
+       deutlich unter der Balkenhöhe */
+    width: 1.4em;
+    height: 1.4em;
+    /* Mitte des Symbols auf die Mitte der Textzeile, nicht auf die
+       Grundlinie */
+    vertical-align: middle;
+    /* Jedem Symbol folgt Text (Adresse, Nummer, „Info“, „Impressum“) */
+    margin-right: 0.35em;
+    filter: brightness(0) invert(1);
 }
 
 .header,
@@ -520,7 +541,7 @@ h3 {
     flex-direction: column;
 }
 /* Kompaktere Banner-Überschrift als die der Formular-Karte: gleiche
-   Optik, eine Stufe kleiner (21px statt 28px) — die Anleitungs-Kästen
+   Optik, eine Stufe kleiner (22px statt 30px) — die Anleitungs-Kästen
    sind flacher als die Formular-Karte. */
 .instruction-card .header-banner h2 {
     font-size: var(--text-lg);
@@ -621,7 +642,8 @@ ul.checklist li {
     /* Abstand zwischen den Checklisteneinträgen — gleicher Wert wie der
        .step-Abstand der linken Spalte */
     padding-bottom: 16px;
-    padding-left: 20px;
+    /* Platz für das Kästchen-Marker (1em breit) plus Luft zum Text */
+    padding-left: 1.5em;
     position: relative;
     /* Blocksatz + Silbentrennung: ohne sie endet der Flattersatz bis zu
        ein Wortbreite vor der rechten Inhaltskante, während die linke
@@ -634,15 +656,25 @@ ul.checklist li {
 
 ul.checklist li::before {
     content: "";
-    /* gefüllter ADFC-Orange-Punkt wie auf duisburg.adfc.de */
-    width: 0.45em;
-    height: 0.45em;
+    /* Angehaktes Kästchen wie die Aufzählungszeichen auf duisburg.adfc.de
+       (dort Icon-Font „themify“, Glyphe \e64d = ti-check-box). Hier als
+       SVG-Maske statt Webfont: die Form kommt aus img/check-box.svg, die
+       Farbe aus dem Token — ein Icon-Font wäre ein zusätzlicher Download
+       für ein einziges Zeichen. */
+    width: 1em;
+    height: 1em;
     background-color: var(--adfc-orange);
-    border-radius: 50%;
+    -webkit-mask-image: url("../img/check-box.svg");
+    mask-image: url("../img/check-box.svg");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
     position: absolute;
     left: 0;
-    /* leicht unter die Versalhöhe gerückt — sitzt optisch mittig zur Zeile */
-    top: 0.35em;
+    /* Der Haken läuft oben rechts über das Kästchen hinaus — etwas höher
+       gesetzt, damit die Form optisch mittig zur ersten Zeile sitzt. */
+    top: 0.1em;
 }
 
 /* Formular-Karte — gleiche Optik wie die Header-Text-Karte: blaues Banner
@@ -775,12 +807,12 @@ form .required-note {
 }
 /* Eingabefelder: weißer Grund, 2-px-Rand in gedecktem Grau-Blau (deutlich
    sichtbar, aber unaufdringlich), 8-px-Radius, 40 px hoch (Touch-Ziel),
-   16 px Schrift (verhindert zudem den iOS-Zoom beim Fokus).
+   17 px Schrift (verhindert zudem den iOS-Zoom beim Fokus).
    border-box: width: 100% statt calc(100% - 6px).
    max(…, 16px): bei kleiner gewählter Browser-Standard-Schrift bleibt die
    iOS-Zoom-Untergrenze erhalten — Schriftgrößen ≥ 16px (die Regel) folgen
-   weiterhin der Nutzer-Einstellung. Bei Werkseinstellung 16px ist max()
-   wirkungslos. */
+   weiterhin der Nutzer-Einstellung. Bei Werkseinstellung (17px) greift
+   die Untergrenze nicht. */
 .input-text > input,
 .input-date .combo input,
 .input-text .combo input {
@@ -1118,13 +1150,9 @@ form button:not([disabled]):hover {
     /* dunkles Footer-Band wie auf der Hauptwebsite
        (section.section-footer → background var(--color-dark), weißer Text) */
     background-color: var(--color-dark);
-    /* 14 px statt 15 px da andere Schriftarten breiter rendern als Arial
-       die zentrierte Leiste lief damit bei 900 px Kartenbreite über
-       und brach in eine zweite Zeile. */
     column-gap: 2em;
-    /* row-gap greift nur beim Umbrechen in eine zweite Zeile
-       (ca. 700-910 px bzw. laengere Eintraege) und schafft dort
-       genug vertikalen Abstand fuer Touch-Ziele */
+    /* row-gap greift nur beim Umbrechen in eine zweite Zeile und schafft
+       dort genug vertikalen Abstand fuer Touch-Ziele */
     row-gap: 12px;
     font-size: var(--text-sm);
     padding: 36px max(20px, calc((100% - var(--content-width)) / 2)) 24px;

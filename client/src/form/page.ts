@@ -173,33 +173,68 @@ export interface BuiltPage {
 }
 
 /** Kontakt-Elemente (E-Mail, Telefon, Info-Links) — identisch im orangen
- *  Struktur-Streifen oben und im Footer unten verwendet. */
-function appendContactItems(container: HTMLElement, config: AppConfig): void {
+ *  Struktur-Streifen oben und im Footer unten verwendet. withIcons: im
+ *  Streifen ersetzen Symbole die Beschriftungen („E-Mail:“, „Telefon:“)
+ *  und die Linktexte, damit der Streifen schmal bleibt. Die Symbole sind
+ *  dekorativ (alt=""), die zugänglichen Namen liefern dann aria-label. */
+function appendContactItems(container: HTMLElement, config: AppConfig, withIcons = false): void {
+  const doc = container.ownerDocument;
+  const icon = (file: string): HTMLImageElement => {
+    const img = doc.createElement('img');
+    img.className = 'strip-icon';
+    img.src = `img/${file}`;
+    img.alt = '';
+    return img;
+  };
   if (config.zeigeEmail && config.emailAdresse !== '') {
-    const mail = el(container.ownerDocument, 'span') as HTMLSpanElement;
-    mail.append('E-Mail: ');
-    const a = el(container.ownerDocument, 'a', undefined, config.emailAdresse) as HTMLAnchorElement;
+    const mail = el(doc, 'span') as HTMLSpanElement;
+    if (withIcons) {
+      mail.append(icon('envelope-solid-full.svg'));
+    } else {
+      mail.append('E-Mail: ');
+    }
+    const a = el(doc, 'a', undefined, config.emailAdresse) as HTMLAnchorElement;
     a.href = `mailto:${config.emailAdresse}`;
+    if (withIcons) a.setAttribute('aria-label', `E-Mail: ${config.emailAdresse}`);
     mail.append(a);
     container.append(mail);
   }
   if (config.zeigeTelefon && config.telefonNummer !== '') {
-    const tel = el(container.ownerDocument, 'span') as HTMLSpanElement;
-    tel.append('Telefon: ');
-    const a = el(container.ownerDocument, 'a', undefined, config.telefonNummer) as HTMLAnchorElement;
+    const tel = el(doc, 'span') as HTMLSpanElement;
+    if (withIcons) {
+      tel.append(icon('phone-solid-full.svg'));
+    } else {
+      tel.append('Telefon: ');
+    }
+    const a = el(doc, 'a', undefined, config.telefonNummer) as HTMLAnchorElement;
     // tel:-URI ohne Leerzeichen; Anzeige bleibt mit, wie konfiguriert
     a.href = `tel:${config.telefonNummer.replace(/\s+/g, '')}`;
+    if (withIcons) a.setAttribute('aria-label', `Telefon: ${config.telefonNummer}`);
     tel.append(a);
     container.append(tel);
   }
   if (config.zeigeCodierungInfo) {
-    const a = el(container.ownerDocument, 'a', undefined, 'Informationen zur Codierung') as HTMLAnchorElement;
+    const a = el(doc, 'a') as HTMLAnchorElement;
+    if (withIcons) {
+      // Kurztext neben dem Symbol; der volle Text bleibt der zugängliche
+      // Name (enthält „Info“ als Wortanfang, Label-in-Name bleibt erfüllt)
+      a.append(icon('circle-info-solid-full.svg'), 'Info');
+      a.setAttribute('aria-label', 'Informationen zur Codierung');
+    } else {
+      a.textContent = 'Informationen zur Codierung';
+    }
     a.href = config.codierungInfoUrl;
     a.target = '_blank';
     a.rel = 'noopener';
     container.append(a);
   }
-  const datenschutz = el(container.ownerDocument, 'a', undefined, 'Impressum und Datenschutz') as HTMLAnchorElement;
+  const datenschutz = el(doc, 'a') as HTMLAnchorElement;
+  if (withIcons) {
+    datenschutz.append(icon('section-solid-full.svg'), 'Impressum');
+    datenschutz.setAttribute('aria-label', 'Impressum und Datenschutz');
+  } else {
+    datenschutz.textContent = 'Impressum und Datenschutz';
+  }
   datenschutz.href = config.datenschutzUrl;
   datenschutz.target = '_blank';
   datenschutz.rel = 'noopener';
@@ -207,11 +242,11 @@ function appendContactItems(container: HTMLElement, config: AppConfig): void {
 }
 
 export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement): BuiltPage {
-  // ── oranger Struktur-Streifen über dem Header (wie die Hauptwebsite) ──
   // ── oranger Struktur-Streifen über dem Header: dieselben Kontakt-
-  //    Elemente wie im Footer (E-Mail, Telefon, Info-/Recht-Links) ──
+  //    Elemente wie im Footer (E-Mail, Telefon, Info-/Recht-Links), hier
+  //    aber mit Symbolen statt Beschriftungen — der Streifen bleibt schmal ──
   const structureStrip = el(doc, 'div', 'structure-strip');
-  appendContactItems(structureStrip, config);
+  appendContactItems(structureStrip, config, true);
   mount.append(structureStrip);
 
   // ── header ──
