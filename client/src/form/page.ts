@@ -36,6 +36,10 @@ export const SCHALTUNG_LIST = [
   'ohne',
 ];
 
+/** Gangzahlen für das Dropdown „Anzahl Gänge“ — 0–36 wie die früheren
+ *  min/max-Grenzen des Zahlenfelds. */
+export const GAENGE_LIST = Array.from({ length: 37 }, (_, i) => String(i));
+
 /** Positions of the frame number (drop-down list). */
 export const NR_POS_LIST = [
   'Pletscherplatte',
@@ -506,11 +510,9 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   datenschutzLink.target = '_blank';
   datenschutzLink.rel = 'noopener';
   privacyNote.append(datenschutzLink);
-  const anzGaenge = textField(doc, { id: 'anzGaenge', label: 'Anzahl Gänge' });
-  const anzGaengeInput = anzGaenge.querySelector('input') as HTMLInputElement;
-  anzGaengeInput.type = 'number';
-  anzGaengeInput.min = '0';
-  anzGaengeInput.max = '36';
+  // Anzahl Gänge: Dropdown mit den Gangzahlen (eigene Combobox wie Radtyp und
+  // Schaltung — der Pfeil zeigt die volle Liste, Tippen filtert sie)
+  const anzGaenge = textField(doc, { id: 'anzGaenge', label: 'Anzahl Gänge', list: 'dl-gaenge' });
   // Kopfzeile: Überschrift links, Pflichtfeld-Legende rechts — als eigene
   // volle Rasterzeile, damit Legende und Überschrift garantiert gemeinsam
   // in einer Zeile liegen (siehe .form-head im CSS)
@@ -591,6 +593,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     staticList('dl-typ', TYP_LIST),
     staticList('dl-art', ART_LIST),
     staticList('dl-schaltung', SCHALTUNG_LIST),
+    staticList('dl-gaenge', GAENGE_LIST),
     staticList('dl-nrpos', NR_POS_LIST),
   );
   syncComboArrows(doc);
