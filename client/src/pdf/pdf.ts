@@ -45,6 +45,8 @@ function lineMetrics(fontSizePt: number): { lh: number; cap: number; desc: numbe
 const BARCODE_BAR_H = 15.5;
 /** 1D barcode label size (pt) — jsPDF helvetica, drawn by this module. */
 const BARCODE_LABEL_SIZE = 8;
+/** Copy label of the customer sheet — the only page without the ADFC check boxes. */
+const CUSTOMER_COPY_LABEL = 'Ausfertigung Kundin/Kunde';
 
 export interface PdfInputs {
   values: FormValues;
@@ -580,42 +582,50 @@ export async function buildPdf(
     doc.setLineWidth(0.2);
     doc.rect(122, 180, RIGHT_X - 122, frameHeight);
 
-    // payment box (prices AND (bar OR card)) — 205 unless the fee frame grew
-    const paymentTop = Math.max(205, 180 + frameHeight + 2);
-    let idCheckPos: number;
-    if (config.zeigePreise && (config.zeigeBarzahlung || config.zeigeKartenzahlung)) {
-      const both = config.zeigeBarzahlung && config.zeigeKartenzahlung;
-      const paymentHeight = both ? 18 : 12;
-      doc.rect(122, paymentTop, RIGHT_X - 122, paymentHeight);
-      setFont(12, 'normal');
-      doc.text('Betrag erhalten durch', 122 + PAD, lineBaseline(paymentTop + 0.5, 12), {
+    // ADFC check boxes (payment received, ID + proof-of-ownership checked) —
+    // only the ADFC copy carries them; the customer sheet stays blank there
+    if (copyText !== CUSTOMER_COPY_LABEL) {
+      // payment box (prices AND (bar OR card)) — 205 unless the fee frame grew
+      const paymentTop = Math.max(205, 180 + frameHeight + 2);
+      let idCheckPos = paymentTop;
+      if (config.zeigePreise && (config.zeigeBarzahlung || config.zeigeKartenzahlung)) {
+        const both = config.zeigeBarzahlung && config.zeigeKartenzahlung;
+        const paymentHeight = both ? 18 : 12;
+        doc.rect(122, paymentTop, RIGHT_X - 122, paymentHeight);
+        setFont(12, 'normal');
+        doc.text('Betrag erhalten durch', 122 + PAD, lineBaseline(paymentTop + 0.5, 12), {
+          baseline: 'alphabetic',
+        });
+        let zahlartY = paymentTop + 8.8;
+        if (config.zeigeBarzahlung) {
+          doc.circle(126, zahlartY, 2);
+          doc.text('Barzahlung', 129 + PAD, lineBaseline(zahlartY - 2.8, 12), {
+            baseline: 'alphabetic',
+          });
+          zahlartY = paymentTop + 13.8;
+        }
+        if (config.zeigeKartenzahlung) {
+          doc.circle(126, zahlartY, 2);
+          doc.text('Kartenzahlung', 129 + PAD, lineBaseline(zahlartY - 2.8, 12), {
+            baseline: 'alphabetic',
+          });
+        }
+        idCheckPos = paymentTop + paymentHeight + 3;
+      }
+      // ID check + proof-of-ownership check share one 16 mm frame — the rows sit
+      // where the two separate 8 mm boxes were, without the dividing line
+      const idCheckHeight = config.zeigeEigentumsnachweis ? 16 : 8;
+      doc.rect(122, idCheckPos, RIGHT_X - 122, idCheckHeight);
+      doc.text('Ausweis überprüft', 129 + PAD, lineBaseline(idCheckPos + 1, 12), {
         baseline: 'alphabetic',
       });
-      let zahlartY = paymentTop + 8.8;
-      if (config.zeigeBarzahlung) {
-        doc.circle(126, zahlartY, 2);
-        doc.text('Barzahlung', 129 + PAD, lineBaseline(zahlartY - 2.8, 12), { baseline: 'alphabetic' });
-        zahlartY = paymentTop + 13.8;
+      doc.circle(126, idCheckPos + 3.8, 2);
+      if (config.zeigeEigentumsnachweis) {
+        doc.text('Eigentumsnachweis überprüft', 129 + PAD, lineBaseline(idCheckPos + 9, 12), {
+          baseline: 'alphabetic',
+        });
+        doc.circle(126, idCheckPos + 11.8, 2);
       }
-      if (config.zeigeKartenzahlung) {
-        doc.circle(126, zahlartY, 2);
-        doc.text('Kartenzahlung', 129 + PAD, lineBaseline(zahlartY - 2.8, 12), { baseline: 'alphabetic' });
-      }
-      idCheckPos = paymentTop + paymentHeight + 3;
-    } else {
-      idCheckPos = paymentTop;
-    }
-    // ID check + proof-of-ownership check share one 16 mm frame — the rows sit
-    // where the two separate 8 mm boxes were, without the dividing line
-    const idCheckHeight = config.zeigeEigentumsnachweis ? 16 : 8;
-    doc.rect(122, idCheckPos, RIGHT_X - 122, idCheckHeight);
-    doc.text('Ausweis überprüft', 129 + PAD, lineBaseline(idCheckPos + 1, 12), { baseline: 'alphabetic' });
-    doc.circle(126, idCheckPos + 3.8, 2);
-    if (config.zeigeEigentumsnachweis) {
-      doc.text('Eigentumsnachweis überprüft', 129 + PAD, lineBaseline(idCheckPos + 9, 12), {
-        baseline: 'alphabetic',
-      });
-      doc.circle(126, idCheckPos + 11.8, 2);
     }
 
     // footer (bordered 5 mm cells, centered)
@@ -642,7 +652,7 @@ export async function buildPdf(
     page('', optimalLogoFontSize);
   } else {
     page('Ausfertigung ADFC', optimalLogoFontSize);
-    page('Ausfertigung Kundin/Kunde', optimalLogoFontSize);
+    page(CUSTOMER_COPY_LABEL, optimalLogoFontSize);
   }
 
   return { doc, qrOmitted };
