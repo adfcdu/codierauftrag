@@ -8,7 +8,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { setConfig } from '../../client/src/configTypes.js';
-import { computePrice, extraEtikettNoteText, extraEtikettPriceText, priceLineText } from '../../client/src/values.js';
+import type { AppConfig } from '../../client/src/configTypes.js';
+import {
+  extraEtikettNoteText,
+  extraEtikettPriceText,
+  pdfFeeLines,
+  priceLineText,
+} from '../../client/src/values.js';
 import type { FormValues } from '../../client/src/values.js';
 import { parseConfig } from '../src/config/parseConfig.js';
 import { buildPublicConfig } from '../src/routes/config.js';
@@ -16,10 +22,12 @@ import { envFixture } from './helpers/fixtures.js';
 
 const fixture = envFixture('kv-beispielstadt.env');
 
-function useConfig(overrides: Record<string, string | undefined> = {}): void {
+function useConfig(overrides: Record<string, string | undefined> = {}): AppConfig {
   const parsed = parseConfig({ ...fixture, ...overrides });
   if ('errors' in parsed) throw new Error('fixture invalid: ' + JSON.stringify(parsed.errors));
-  setConfig(buildPublicConfig(parsed.config, '1.0.0-test'));
+  const config = buildPublicConfig(parsed.config, '1.0.0-test');
+  setConfig(config);
+  return config;
 }
 
 function values(overrides: Partial<FormValues> = {}): FormValues {
@@ -101,12 +109,52 @@ describe('priceLineText — the coding method named in the price bar', () => {
       'Codiergebühr: Fahrrad (3 Sicherheitsetiketten): 2,50 € (Mitglied)',
     );
   });
+});
 
-  it('keeps the PDF fee description short (no method text)', () => {
-    useConfig();
-    expect(computePrice(values({ carbonRahmen: true, akku: true })).descr).toBe(
-      'Fahrrad (Carbon) + Akku',
-    );
+describe('pdfFeeLines — the PDF fee block mirrors the price bar', () => {
+  it('names the fee with the member status and the coding method', () => {
+    const config = useConfig();
+    expect(pdfFeeLines(config, values())).toEqual([
+      'Gebühr: 20,00 € (Nichtmitglied)',
+      'für Codierung von Fahrrad (Nadelmarkierung)',
+    ]);
+    expect(pdfFeeLines(config, values({ mitglied: true }))).toEqual([
+      'Gebühr: 5,00 € (Mitglied)',
+      'für Codierung von Fahrrad (Nadelmarkierung)',
+    ]);
+  });
+
+  it('names the Sicherheitsetiketten for a carbon frame', () => {
+    const config = useConfig();
+    expect(pdfFeeLines(config, values({ carbonRahmen: true, akku: true }))).toEqual([
+      'Gebühr: 10,00 € (Nichtmitglied)',
+      'für Codierung von Fahrrad (2 Sicherheitsetiketten) + Akku (2 Sicherheitsetiketten)',
+    ]);
+  });
+
+  it('keeps the frame method for the Akku and follows the member status', () => {
+    const config = useConfig();
+    expect(pdfFeeLines(config, values({ mitglied: true, akku: true }))).toEqual([
+      'Gebühr: 7,50 € (Mitglied)',
+      'für Codierung von Fahrrad (Nadelmarkierung) + Akku (2 Sicherheitsetiketten)',
+    ]);
+  });
+
+  it('appends the VAT lines when ZEIGE_UMSATZSTEUER=true', () => {
+    const config = useConfig({ ZEIGE_UMSATZSTEUER: 'true', UMSATZSTEUER_PROZENT: '7' });
+    expect(pdfFeeLines(config, values({ mitglied: true }))).toEqual([
+      'Gebühr: 5,00 € (Mitglied)',
+      'für Codierung von Fahrrad (Nadelmarkierung)',
+      'MwSt: 7,0%, Steuerbetrag: 0,33 €',
+      'Nettobetrag: 4,67 €',
+    ]);
+  });
+
+  it('drops the fee amount but keeps the coding method when PREISE_ANZEIGEN=false', () => {
+    const config = useConfig({ PREISE_ANZEIGEN: 'false' });
+    expect(pdfFeeLines(config, values({ carbonRahmen: true }))).toEqual([
+      'Codierung von Fahrrad (2 Sicherheitsetiketten)',
+    ]);
   });
 });
 

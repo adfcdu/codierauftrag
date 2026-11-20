@@ -251,7 +251,9 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
   Sicherheitsetikett („Jedes weitere Sicherheitsetikett: …“ — die Hälfte des
   Etikettengrundpreises, für den aktuellen Mitgliedsstatus); die Zeile
   erscheint nur, wenn tatsächlich Sicherheitsetiketten verwendet werden, also
-  bei Carbon-Rahmen oder Akku.
+  bei Carbon-Rahmen oder Akku. Der Gebührenblock im PDF zeigt Betrag mit
+  Mitgliedsstatus und Codierverfahren je Position (`pdfFeeLines` in
+  `client/src/values.ts`); die Etikett-Zusatzinfo bleibt der Seite vorbehalten.
 - **Fehlerbericht per E-Mail**: Der Link „Fehler per E-Mail melden“ neben der
   Versionszeile entwirft eine E-Mail mit den Formulareingaben (Textfelder und
   Toggles, **ohne** Vor-/Nachname und Hausnummer), der Version und der Seiten-URL
@@ -279,9 +281,11 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
 Ausfertigungs-Labels, die rote Umlaut-Warnung („Umlaute und/oder Akzente im Code!“),
 wenn die angezeigte EIN vom transliterierten Barcode-Label abweicht, EIN-Wertezeile
 mit 1-D-Barcode und jsPDF-gezeichnetem Label, QR-Code mit Ruhezone und Rahmen,
-Datenboxen, Eigentumserklärung, Aufbewahrungs-Einwilligung, Gebührenblock (inkl.
-optionaler MwSt-Zeilen), Zahlungs-/Ausweis-Kästchen, Unterschriftenlinien und ein
-Version-/Footer-Band.
+Datenboxen, Eigentumserklärung, Aufbewahrungs-Einwilligung, Gebührenblock
+(Betrag mit Mitgliedsstatus, Codierverfahren je Position, optionale
+MwSt-Zeilen), Zahlungs-/Ausweis-Kästchen, Unterschriftenlinien und ein
+Version-/Footer-Band. Der Gebührenrahmen wächst mit den umbrochenen Zeilen; die
+Kästchen darunter rücken mit, damit nichts überlappt.
 
 Barcode-Details:
 

@@ -4,6 +4,7 @@
  */
 
 import { CONFIG } from './configTypes.js';
+import type { AppConfig } from './configTypes.js';
 import { translit } from './ein.js';
 
 export interface FormValues {
@@ -335,9 +336,7 @@ export function extraEtikettNoteText(values: FormValues): string {
 }
 
 export interface PriceInfo {
-  /** PDF fee line: „Fahrrad (Carbon) + Akku“ */
-  descr: string;
-  /** Price-bar description naming the coding method per item */
+  /** Price-bar and PDF fee description naming the coding method per item */
   methodDescr: string;
   price: number;
   member: boolean;
@@ -366,13 +365,12 @@ export function computePrice(values: FormValues): PriceInfo {
         : CONFIG.preisNichtMitglied;
   const aufpreis = etikettPreis(member);
   const price = base + (values.akku ? aufpreis : 0);
-  let full = carbon ? `${descr} (Carbon)` : descr;
-  if (values.akku) full += ' + Akku';
-  // The price bar names the method: Aluminium/steel frames are needle-marked,
-  // carbon frames and Akkus only ever get Sicherheitsetiketten.
+  // The price bar and the PDF fee block name the method: Aluminium/steel
+  // frames are needle-marked, carbon frames and Akkus only ever get
+  // Sicherheitsetiketten.
   let methodDescr = `${descr} (${carbon ? etikettenText() : 'Nadelmarkierung'})`;
   if (values.akku) methodDescr += ` + Akku (${etikettenText()})`;
-  return { descr: full, methodDescr, price, member, usesEtiketten: carbon || values.akku };
+  return { methodDescr, price, member, usesEtiketten: carbon || values.akku };
 }
 
 export function priceLineText(values: FormValues): string {
@@ -384,4 +382,29 @@ export function priceLineText(values: FormValues): string {
 export function vatAmounts(gross: number, percent: number): { steuer: number; netto: number } {
   const netto = gross / (1 + percent / 100);
   return { steuer: gross - netto, netto };
+}
+
+/** VAT info lines for the fee block (empty when VAT off). */
+export function vatLines(config: AppConfig, gross: number): string[] {
+  if (!config.zeigeUmsatzsteuer) return [];
+  const { steuer, netto } = vatAmounts(gross, config.umsatzsteuerProzent);
+  return [
+    `MwSt: ${formatVatPercent(config.umsatzsteuerProzent)}%, Steuerbetrag: ${formatPrice(steuer)} €`,
+    `Nettobetrag: ${formatPrice(netto)} €`,
+  ];
+}
+
+/**
+ * Fee block lines for the PDF — the same fee information as the page price
+ * bar: the fee with the member status, the coding method per item, and the
+ * VAT lines. The extra-label price note stays on the page only.
+ */
+export function pdfFeeLines(config: AppConfig, values: FormValues): string[] {
+  const { price, methodDescr, member } = computePrice(values);
+  if (!config.zeigePreise) return [`Codierung von ${methodDescr}`];
+  return [
+    `Gebühr: ${formatPrice(price)} € (${member ? 'Mitglied' : 'Nichtmitglied'})`,
+    `für Codierung von ${methodDescr}`,
+    ...vatLines(config, price),
+  ];
 }

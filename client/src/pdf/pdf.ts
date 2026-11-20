@@ -12,7 +12,7 @@ import {
   einParts,
   einText,
 } from '../ein.js';
-import { computePrice, formatPrice, formatVatPercent, isTrailer, kaufDatumDisplayYmd, vatAmounts } from '../values.js';
+import { isTrailer, kaufDatumDisplayYmd, pdfFeeLines } from '../values.js';
 import { encodeUrl } from '../qr.js';
 import { render1DBarcode, renderQrCode } from './barcodes.js';
 import type { BarcodeDeps } from './barcodes.js';
@@ -556,14 +556,14 @@ export async function buildPdf(
     doc.text('Unterschrift Kundin/Kunde', 45 + PAD, lineBaseline(264, 8), { baseline: 'alphabetic' });
     doc.text('Unterschrift/Stempel ADFC', 120 + PAD, lineBaseline(264, 8), { baseline: 'alphabetic' });
 
-    // fee block at (122,181), frame drawn separately at (122,180)
-    const { price, descr } = computePrice(values);
-    const feeLines: string[] = config.zeigePreise
-      ? [`Gebühr: ${formatPrice(price)} €`, `für Codierung von ${descr}`, ...vatLines(config, price)]
-      : [`Codierung von ${descr}`];
+    // fee block at (122,181), frame drawn separately at (122,180) — the lines
+    // mirror the page price bar: fee + member status, coding method per item,
+    // extra-label price, VAT
+    const feeLines = pdfFeeLines(config, values);
     setFont(12, 'normal');
-    // long descr lines (e.g. Fahrrad (Carbon) + Akku) wrap at the frame width
-    // — the frame height below grows with the wrapped line count
+    // long method lines (e.g. Fahrrad (2 Sicherheitsetiketten) + Akku (…))
+    // wrap at the frame width — the frame height below grows with the wrapped
+    // line count, and the boxes underneath follow it
     const feeWidth = RIGHT_X - 122 - 2 * PAD;
     const drawnLines = feeLines.flatMap((line) => doc.splitTextToSize(line, feeWidth));
     const feeHeight = drawnLines.length * lineHeightMm(12);
@@ -580,26 +580,30 @@ export async function buildPdf(
     doc.setLineWidth(0.2);
     doc.rect(122, 180, RIGHT_X - 122, frameHeight);
 
-    // payment box (prices AND (bar OR card))
+    // payment box (prices AND (bar OR card)) — 205 unless the fee frame grew
+    const paymentTop = Math.max(205, 180 + frameHeight + 2);
     let idCheckPos: number;
     if (config.zeigePreise && (config.zeigeBarzahlung || config.zeigeKartenzahlung)) {
       const both = config.zeigeBarzahlung && config.zeigeKartenzahlung;
-      doc.rect(122, 205, RIGHT_X - 122, both ? 18 : 12);
+      const paymentHeight = both ? 18 : 12;
+      doc.rect(122, paymentTop, RIGHT_X - 122, paymentHeight);
       setFont(12, 'normal');
-      doc.text('Betrag erhalten durch', 122 + PAD, lineBaseline(205.5, 12), { baseline: 'alphabetic' });
-      let zahlartY = 213.8;
+      doc.text('Betrag erhalten durch', 122 + PAD, lineBaseline(paymentTop + 0.5, 12), {
+        baseline: 'alphabetic',
+      });
+      let zahlartY = paymentTop + 8.8;
       if (config.zeigeBarzahlung) {
         doc.circle(126, zahlartY, 2);
         doc.text('Barzahlung', 129 + PAD, lineBaseline(zahlartY - 2.8, 12), { baseline: 'alphabetic' });
-        zahlartY = 218.8;
+        zahlartY = paymentTop + 13.8;
       }
       if (config.zeigeKartenzahlung) {
         doc.circle(126, zahlartY, 2);
         doc.text('Kartenzahlung', 129 + PAD, lineBaseline(zahlartY - 2.8, 12), { baseline: 'alphabetic' });
       }
-      idCheckPos = both ? 226 : 220;
+      idCheckPos = paymentTop + paymentHeight + 3;
     } else {
-      idCheckPos = 205;
+      idCheckPos = paymentTop;
     }
     // ID check + proof-of-ownership check share one 16 mm frame — the rows sit
     // where the two separate 8 mm boxes were, without the dividing line
@@ -642,16 +646,6 @@ export async function buildPdf(
   }
 
   return { doc, qrOmitted };
-}
-
-/** VAT info lines for the fee block (empty when VAT off). */
-function vatLines(config: AppConfig, gross: number): string[] {
-  if (!config.zeigeUmsatzsteuer) return [];
-  const { steuer, netto } = vatAmounts(gross, config.umsatzsteuerProzent);
-  return [
-    `MwSt: ${formatVatPercent(config.umsatzsteuerProzent)}%, Steuerbetrag: ${formatPrice(steuer)} €`,
-    `Nettobetrag: ${formatPrice(netto)} €`,
-  ];
 }
 
 /** Fit a text into targetWidth via a helvetica-metrics binary search. */
