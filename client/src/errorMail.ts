@@ -56,6 +56,7 @@ export function buildErrorMailBody(values: FormValues, ctx: ErrorMailContext): s
     '',
     '',
     '--- Eingaben im Formular (ohne Vor-/Nachname und Hausnummer) ---',
+    '--- Löschen Sie gerne nicht relevante Zeilen ---',
   ];
   for (const [key, label] of TEXT_ROWS) {
     const raw = values[key];
