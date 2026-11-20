@@ -345,7 +345,9 @@ export function wireForm(
       const res = await doFetch(`/api/streetcode?${qs.toString()}`);
       // stale response? inputs moved on → drop
       if (isStale(req)) return;
-      if (res.status === 502) {
+      if (res.status === 502 || res.status === 429) {
+        // 429 = rate limited or daily upstream budget spent — same visitor-facing
+        // message as an unreachable upstream: try again later
         applyError(req, 'http');
       } else if (res.status === 404) {
         const body = (await res.json()) as StreetcodeResponse;

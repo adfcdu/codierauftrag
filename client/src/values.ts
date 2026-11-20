@@ -60,9 +60,9 @@ export interface StreetcodeState {
   street?: { name: string; code: string };
   cityCandidates?: { name: string; plz: string; kz: string; ags: string }[];
   streetCandidates?: string[];
-  /** settled error for the Ort resolution: 'not_found' | 'http' (502) */
+  /** settled error for the Ort resolution: 'not_found' | 'http' (502/429) */
   cityError?: 'not_found' | 'http';
-  /** settled error for the Straße resolution (502 → quirk: street shows the no-codes text) */
+  /** settled error for the Straße resolution (502/429 → quirk: street shows the no-codes text) */
   streetError?: 'not_found' | 'http';
   inFlight: boolean;
   /** raw user inputs at settle time — the ort/strasse fields are set to the

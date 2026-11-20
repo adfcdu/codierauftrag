@@ -17,6 +17,7 @@ import type {
 import { splitOrtPlz } from '../services/upstream.js';
 import type { UpstreamClient, UpstreamResult } from '../services/upstream.js';
 import type { RateLimiter } from '../services/rateLimit.js';
+import type { DailyBudget } from '../services/budget.js';
 import { logInfo } from '../services/logger.js';
 
 // ── Ordering contract: cmp0 on the full display string, strcasecmp on street names ──
@@ -57,6 +58,7 @@ export interface ResolverDeps {
   config: ParsedConfig;
   cache: StreetcodeCache;
   upstream: UpstreamClient;
+  budget: DailyBudget;
 }
 
 interface Resolved {
@@ -64,15 +66,18 @@ interface Resolved {
   urlIndex: number;
 }
 
+/** A flight either resolves, fails, or is refused by the daily upstream budget. */
+type FlightOutcome = Resolved | { failed: true } | { budget: true };
+
 export function createResolver(deps: ResolverDeps) {
   // single-flight: all upstream calls go through this map;
   // the entry is deleted when the promise settles.
-  const flights = new Map<string, Promise<Resolved | { failed: true }>>();
+  const flights = new Map<string, Promise<FlightOutcome>>();
 
   function singleFlight(
     key: string,
-    run: () => Promise<Resolved>,
-  ): Promise<Resolved | { failed: true }> {
+    run: () => Promise<FlightOutcome>,
+  ): Promise<FlightOutcome> {
     const existing = flights.get(key);
     if (existing) return existing;
     const p = run()
@@ -82,6 +87,14 @@ export function createResolver(deps: ResolverDeps) {
       });
     flights.set(key, p);
     return p;
+  }
+
+  /** Budget exhausted: serve the stale chain if it has anything, else 429. */
+  function budgetExhausted(fallback: ResolveOutcome): ResolveOutcome {
+    if (fallback.status === 502) {
+      return { status: 429, body: { state: 'budget_exhausted' }, upstream: -1 };
+    }
+    return fallback;
   }
 
   // cache writes (only reached on the upstream-success path)
@@ -316,12 +329,15 @@ export function createResolver(deps: ResolverDeps) {
           upstream: -1,
         };
       }
-      const flight = singleFlight(`get:${ags}\u0000${fold(rawStreet ?? '')}`, () =>
-        deps.upstream.get(ags, rawStreet ?? ''),
-      );
+      const flight = singleFlight(`get:${ags}\u0000${fold(rawStreet ?? '')}`, async () => {
+        if (deps.upstream.isOpen()) return { failed: true }; // no call goes out → no budget spent
+        if (!deps.budget.tryConsume()) return { budget: true };
+        return deps.upstream.get(ags, rawStreet ?? '');
+      });
       const resolved = await flight;
-      if ('failed' in resolved) {
-        return staleChainAgs(ags, rawCity, rawStreet ?? '', undefined);
+      if ('failed' in resolved || 'budget' in resolved) {
+        const fallback = staleChainAgs(ags, rawCity, rawStreet ?? '', undefined);
+        return 'budget' in resolved ? budgetExhausted(fallback) : fallback;
       }
       writeStreetResult(rawStreet ?? '', resolved.result);
       if (rawCity) writeCityResult(rawCity, resolved.result);
@@ -363,12 +379,15 @@ export function createResolver(deps: ResolverDeps) {
         };
       }
       // fresh city, but street not cached → GET follow-up (never re-POST a resolved city)
-      const flight = singleFlight(`get:${cp.ags}\u0000${fold(rawStreet)}`, () =>
-        deps.upstream.get(cp.ags, rawStreet),
-      );
+      const flight = singleFlight(`get:${cp.ags}\u0000${fold(rawStreet)}`, async () => {
+        if (deps.upstream.isOpen()) return { failed: true }; // no call goes out → no budget spent
+        if (!deps.budget.tryConsume()) return { budget: true };
+        return deps.upstream.get(cp.ags, rawStreet);
+      });
       const resolved = await flight;
-      if ('failed' in resolved) {
-        return staleChainAgs(cp.ags, rawCity, rawStreet, cp);
+      if ('failed' in resolved || 'budget' in resolved) {
+        const fallback = staleChainAgs(cp.ags, rawCity, rawStreet, cp);
+        return 'budget' in resolved ? budgetExhausted(fallback) : fallback;
       }
       writeStreetResult(rawStreet, resolved.result);
       writeCityResult(rawCity, resolved.result);
@@ -376,12 +395,15 @@ export function createResolver(deps: ResolverDeps) {
     }
 
     // cold lookup: ONE POST carrying city + street together
-    const flight = singleFlight(`post:${fold(rawCity)}\u0000${fold(rawStreet ?? '')}`, () =>
-      deps.upstream.post(rawCity, rawStreet ?? ''),
-    );
+    const flight = singleFlight(`post:${fold(rawCity)}\u0000${fold(rawStreet ?? '')}`, async () => {
+      if (deps.upstream.isOpen()) return { failed: true }; // no call goes out → no budget spent
+      if (!deps.budget.tryConsume()) return { budget: true };
+      return deps.upstream.post(rawCity, rawStreet ?? '');
+    });
     const resolved = await flight;
-    if ('failed' in resolved) {
-      return staleChainNoAgs(rawCity, rawStreet);
+    if ('failed' in resolved || 'budget' in resolved) {
+      const fallback = staleChainNoAgs(rawCity, rawStreet);
+      return 'budget' in resolved ? budgetExhausted(fallback) : fallback;
     }
     writeCityResult(rawCity, resolved.result);
     writeStreetResult(rawStreet ?? '', resolved.result);

@@ -298,6 +298,24 @@ describe('upstream client transport', () => {
     expect(tried).toEqual(['https://stub/a', 'https://stub/b']);
   });
 
+  it('isOpen() reflects the breaker state and closes again after the cooldown', async () => {
+    let t = 1_700_000_000_000;
+    const fetchFn: typeof fetch = async () => new Response('gone', { status: 500 });
+    const client = createUpstreamClient({
+      urls: ['https://stub/a'],
+      version: '1',
+      fetchFn,
+      now: () => t,
+      breakerFailureThreshold: 1,
+      breakerCooldownMs: 60_000,
+    });
+    expect(client.isOpen()).toBe(false);
+    await expect(client.post('Xyzhausen', '')).rejects.toBeInstanceOf(UpstreamUnavailableError);
+    expect(client.isOpen()).toBe(true);
+    t += 60_000;
+    expect(client.isOpen()).toBe(false);
+  });
+
   it('aborts on a body over the ~1 MB cap and tries the next URL', async () => {
     const big = Buffer.alloc(1_200_000, 0x61);
     let calls = 0;

@@ -164,12 +164,14 @@ ausschließlich im Browser der Besucher*in verarbeitet:
 (je max. 100 Zeichen; bei Follow-ups zusätzlich der öffentliche AGS-Schlüssel) und
 — nur im RAM — die Besucher-IP für das Minuten-Fenster des Rate-Limits.
 
-**Was der Server speichert** — eine SQLite-Datei mit zwei Tabellen
-(`city_lookup`, `street_lookup`): gefaltete Ort-/Straße-Schlüssel und die
-aufgelösten Codes. Keine Namen, keine Hausnummern, keine IPs, keine EINs.
-Aufbewahrung zeitlich begrenzt über die Purge-Regler der `.env`
-(`CACHE_TYPO_DAYS` für Varianten-Zeilen, `CACHE_PURGE_MAX_AGE_DAYS` für kanonische
-und Listen-Zeilen), erzwungen durch Purge beim Start + Intervall-Timer.
+**Was der Server speichert** — eine SQLite-Datei mit drei Tabellen
+(`city_lookup`, `street_lookup`, `upstream_budget`): gefaltete Ort-/Straße-Schlüssel
+und die aufgelösten Codes, plus ein Tageszähler für echte Upstream-Aufrufe
+(`day`, `count` — ein Aggregat, kein Bezug zu einer Person). Keine Namen, keine
+Hausnummern, keine IPs, keine EINs. Aufbewahrung zeitlich begrenzt über die
+Purge-Regler der `.env` (`CACHE_TYPO_DAYS` für Varianten-Zeilen,
+`CACHE_PURGE_MAX_AGE_DAYS` für kanonische und Listen-Zeilen; der Tageszähler hält
+7 Tage), erzwungen durch Purge beim Start + Intervall-Timer.
 
 **Was der Server protokolliert** — nur JSON-Zeilen mit festen Feldern
 (`{ts, lvl, msg, state, status, durMs, upstream}`); das Upstream-Feld ist ein URL-
@@ -203,9 +205,11 @@ Offline-Prozess des örtlichen Kreisverbands.
   Fail-Fast-Startup-Guard für `.env` (siehe unten); realistische `maxlength`-Grenzen
   auf jedem Feld; überall sichere DOM-APIs — **kein `innerHTML` mit Nutzerdaten** im
   Client.
-- **Rate-Limiting** (In-Memory-Fixed-Window pro IP, `RATE_LIMIT_PER_MINUTE`; `0` =
-  aus) und ein **Circuit Breaker** schützen den 4–14 s langsamen Upstream vor
-  Missbrauch.
+- **Rate-Limiting** (In-Memory-Fixed-Window pro IP über zwei Fenster,
+  `RATE_LIMIT_PER_MINUTE` und `RATE_LIMIT_PER_HOUR`; `0` = aus), ein
+  **persistiertes Tagesbudget** für echte Upstream-Aufrufe
+  (`UPSTREAM_BUDGET_PER_DAY` — überlebt Neustarts, Cache-Treffer zählen nicht) und
+  ein **Circuit Breaker** schützen den 4–14 s langsamen Upstream vor Missbrauch.
 - **Kleine Angriffsfläche per Konstruktion**: keine Konten, keine Sessions, keine
   Cookies, kein serverseitiges Formular-Handling, kein Datei-Upload. Die
   PDF-Erzeugung läuft im Browser der Besucher*in — ein feindseliger Input kann
@@ -447,7 +451,8 @@ codierauftrag/
 ├─ server/src/
 │  ├─ config/parseConfig.ts     # .env-Startup-Guard (fail-fast, deutsche Fehler)
 │  ├─ services/                 # Upstream (Parsen+Transport+Breaker), Cache (SQLite),
-│  │                            # fold (Schlüssel-Normalisierung), rateLimit, logger
+│  │                            # budget (persistiertes Tagesbudget), fold
+│  │                            # (Schlüssel-Normalisierung), rateLimit, logger
 │  ├─ routes/                   # /api/streetcode, /api/config
 │  ├─ errorPage.ts              # beim Start gerenderte deutsche HTML-Fehlerseite
 │  └─ app.ts                    # Fastify-Bootstrap: Guard → Cache → Routen → listen

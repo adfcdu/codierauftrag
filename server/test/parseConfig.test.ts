@@ -54,6 +54,8 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.cachePurgeMaxAgeDays).toBe(365);
     expect(c.cachePurgeIntervalHours).toBe(720);
     expect(c.rateLimitPerMinute).toBe(20);
+    expect(c.rateLimitPerHour).toBe(200);
+    expect(c.upstreamBudgetPerDay).toBe(200);
   });
 
   it('applies defaults on a minimal valid env', () => {
@@ -79,6 +81,9 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.banner3Url).toBe('');
     expect(c.serverBasisUrl).toBe('');
     expect(c.ortInitial).toBe('');
+    expect(c.rateLimitPerMinute).toBe(10);
+    expect(c.rateLimitPerHour).toBe(100);
+    expect(c.upstreamBudgetPerDay).toBe(200);
   });
 
   it('sets process.env.TZ on success before returning', () => {
@@ -329,6 +334,40 @@ describe('parseConfig — error classes (German messages, aggregated, sorted by 
     expect(bad.errors).toContainEqual({ key: 'BREAKER_COOLDOWN_MS', reason: 'muss 1 oder größer sein' });
   });
 
+  it('rate-limit knobs: defaults 20 / 200 / 200, custom values accepted, 0 = off', () => {
+    const base = envFixture('minimal-valid.env');
+    const custom = parseConfig({
+      ...base,
+      RATE_LIMIT_PER_MINUTE: '5',
+      RATE_LIMIT_PER_HOUR: '50',
+      UPSTREAM_BUDGET_PER_DAY: '100',
+    });
+    expect('errors' in custom).toBe(false);
+    if ('errors' in custom) return;
+    expect(custom.config.rateLimitPerMinute).toBe(5);
+    expect(custom.config.rateLimitPerHour).toBe(50);
+    expect(custom.config.upstreamBudgetPerDay).toBe(100);
+    expect(custom.warnings).toEqual([]);
+
+    const off = parseConfig({
+      ...base,
+      RATE_LIMIT_PER_MINUTE: '0',
+      RATE_LIMIT_PER_HOUR: '0',
+      UPSTREAM_BUDGET_PER_DAY: '0',
+    });
+    expect('errors' in off).toBe(false);
+    if ('errors' in off) return;
+    expect(off.config.rateLimitPerMinute).toBe(0);
+    expect(off.config.rateLimitPerHour).toBe(0);
+    expect(off.config.upstreamBudgetPerDay).toBe(0);
+
+    const bad = parseConfig({ ...base, RATE_LIMIT_PER_HOUR: '-1', UPSTREAM_BUDGET_PER_DAY: 'viele' });
+    expect('errors' in bad).toBe(true);
+    if (!('errors' in bad)) return;
+    expect(bad.errors).toContainEqual({ key: 'RATE_LIMIT_PER_HOUR', reason: 'muss eine ganze Zahl sein' });
+    expect(bad.errors).toContainEqual({ key: 'UPSTREAM_BUDGET_PER_DAY', reason: 'muss eine ganze Zahl sein' });
+  });
+
   it('C128B and C39E+ are accepted', () => {
     const c128b = parseConfig(envFixture('valid-barcode-c128b.env'));
     expect('errors' in c128b).toBe(false);
@@ -375,6 +414,19 @@ describe('parseConfig — warnings (non-fatal)', () => {
     expect(result.config.umsatzsteuerProzent).toBe(0);
     expect(formatConfigWarnings(result.warnings)).toContain(
       'Warnung: ZEIGE_UMSATZSTEUER=true ohne PREISE_ANZEIGEN=true — Umsatzsteuer wird nicht angezeigt',
+    );
+  });
+
+  it('RATE_LIMIT_PER_HOUR below RATE_LIMIT_PER_MINUTE: warning, process starts', () => {
+    const result = parseConfig({
+      ...envFixture('minimal-valid.env'),
+      RATE_LIMIT_PER_MINUTE: '50',
+      RATE_LIMIT_PER_HOUR: '10',
+    });
+    expect('errors' in result).toBe(false);
+    if ('errors' in result) return;
+    expect(formatConfigWarnings(result.warnings)).toContain(
+      'Warnung: RATE_LIMIT_PER_HOUR — liegt unter RATE_LIMIT_PER_MINUTE, das Minutenfenster ist damit wirkungslos',
     );
   });
 

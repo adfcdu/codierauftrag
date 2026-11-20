@@ -61,6 +61,8 @@ export interface ParsedConfig {
   breakerFailureThreshold: number;
   breakerCooldownMs: number;
   rateLimitPerMinute: number; // 0 = off
+  rateLimitPerHour: number; // 0 = off
+  upstreamBudgetPerDay: number; // 0 = off; persisted, counts real upstream calls
 }
 
 export interface ConfigError {
@@ -489,7 +491,19 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
   }
 
   let rateLimitPerMinute = integer('RATE_LIMIT_PER_MINUTE');
-  if (rateLimitPerMinute === undefined) rateLimitPerMinute = 20;
+  if (rateLimitPerMinute === undefined) rateLimitPerMinute = 10;
+
+  let rateLimitPerHour = integer('RATE_LIMIT_PER_HOUR');
+  if (rateLimitPerHour === undefined) rateLimitPerHour = 100;
+  else if (rateLimitPerHour > 0 && rateLimitPerMinute > 0 && rateLimitPerHour < rateLimitPerMinute) {
+    warnings.push({
+      key: 'RATE_LIMIT_PER_HOUR',
+      reason: `liegt unter RATE_LIMIT_PER_MINUTE, das Minutenfenster ist damit wirkungslos`,
+    });
+  }
+
+  let upstreamBudgetPerDay = integer('UPSTREAM_BUDGET_PER_DAY');
+  if (upstreamBudgetPerDay === undefined) upstreamBudgetPerDay = 200;
 
   if (errors.length > 0) {
     errors.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
@@ -554,6 +568,8 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     breakerFailureThreshold,
     breakerCooldownMs,
     rateLimitPerMinute,
+    rateLimitPerHour,
+    upstreamBudgetPerDay,
   };
 
   return { config, warnings };

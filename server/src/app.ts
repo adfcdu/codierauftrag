@@ -17,6 +17,8 @@ import fastifyStatic from '@fastify/static';
 import { parseConfig, formatConfigErrors, formatConfigWarnings } from './config/parseConfig.js';
 import type { ConfigError, ConfigWarning, ParsedConfig } from './config/parseConfig.js';
 import { StreetcodeCache } from './services/cache.js';
+import { createDailyBudget } from './services/budget.js';
+import type { DailyBudget } from './services/budget.js';
 import { createUpstreamClient } from './services/upstream.js';
 import type { UpstreamClient } from './services/upstream.js';
 import { createRateLimiter } from './services/rateLimit.js';
@@ -42,6 +44,7 @@ export interface AppHandle {
   resolver: Resolver;
   upstream: UpstreamClient;
   cache: StreetcodeCache;
+  budget: DailyBudget;
   close(): Promise<void>;
 }
 
@@ -93,6 +96,17 @@ export async function createApp(opts: AppOptions = {}): Promise<CreateAppResult>
     logInfo('cache-purge', { city: purgeResult.city, street: purgeResult.street });
   }
 
+  // persisted daily budget for real upstream calls — survives restarts, unlike
+  // the per-IP limiter below
+  const budget = createDailyBudget({
+    dbPath: config.cacheDbPath,
+    limitPerDay: config.upstreamBudgetPerDay,
+    zeitzone: config.zeitzone,
+    now: opts.now,
+    onError: () => logError('budget', { state: 'write_failed', status: 0, durMs: 0, upstream: -1 }),
+  });
+  budget.purge();
+
   const upstream = createUpstreamClient({
     urls: config.upstreamUrls,
     version,
@@ -101,8 +115,14 @@ export async function createApp(opts: AppOptions = {}): Promise<CreateAppResult>
     breakerFailureThreshold: config.breakerFailureThreshold,
     breakerCooldownMs: config.breakerCooldownMs,
   });
-  const limiter = createRateLimiter(config.rateLimitPerMinute, opts.now);
-  const resolver = createResolver({ config, cache, upstream });
+  const limiter = createRateLimiter(
+    [
+      { windowMs: 60_000, limit: config.rateLimitPerMinute },
+      { windowMs: 3_600_000, limit: config.rateLimitPerHour },
+    ],
+    opts.now,
+  );
+  const resolver = createResolver({ config, cache, upstream, budget });
 
   // 5. register Fastify: routes, error handlers, static serving, rate limiter hook
   // trustProxy: the container sits behind the reverse proxy — request.ip
@@ -217,6 +237,7 @@ export async function createApp(opts: AppOptions = {}): Promise<CreateAppResult>
     if (result.city > 0 || result.street > 0) {
       logInfo('cache-purge', { city: result.city, street: result.street });
     }
+    budget.purge();
   }
   function schedulePurge(remainingMs: number): void {
     if (purgeStopped) return;
@@ -241,10 +262,12 @@ export async function createApp(opts: AppOptions = {}): Promise<CreateAppResult>
     resolver,
     upstream,
     cache,
+    budget,
     async close() {
       purgeStopped = true;
       await app.close();
       cache.close();
+      budget.close();
     },
   };
 }

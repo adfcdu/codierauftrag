@@ -374,6 +374,143 @@ describe('GET /api/streetcode — single-flight, limits, validation', () => {
   });
 });
 
+describe('GET /api/streetcode — rate windows and daily budget', () => {
+  it('hour window: 429 once the hourly limit is spent, even far below the minute limit', async () => {
+    const stub = makeStub();
+    const app = await makeApp(
+      { UPSTREAM_URLS: 'https://stub/fein', RATE_LIMIT_PER_MINUTE: '100', RATE_LIMIT_PER_HOUR: '3' },
+      { fetchFn: stub.fetchFn },
+    );
+    const url = `/api/streetcode?${q({ city: 'Duisburg', street: ALTSTADT })}`;
+    for (let i = 0; i < 3; i++) {
+      expect((await app.app.inject({ method: 'GET', url })).statusCode).toBe(200);
+    }
+    const blocked = await app.app.inject({ method: 'GET', url });
+    expect(blocked.statusCode).toBe(429);
+    expect(blocked.json()).toEqual({ state: 'rate_limited' });
+  });
+
+  it('budget counts only real upstream calls — cache hits are free', async () => {
+    const stub = makeStub();
+    const app = await makeApp(
+      { UPSTREAM_URLS: 'https://stub/fein', UPSTREAM_BUDGET_PER_DAY: '1' },
+      { fetchFn: stub.fetchFn },
+    );
+    const url = `/api/streetcode?${q({ city: 'Duisburg', street: ALTSTADT })}`;
+    expect((await app.app.inject({ method: 'GET', url })).statusCode).toBe(200);
+    expect((await app.app.inject({ method: 'GET', url })).statusCode).toBe(200);
+    expect(stub.calls).toHaveLength(1);
+    expect(app.budget.used()).toBe(1);
+  });
+
+  it('budget exhausted → 429 budget_exhausted when no stale row exists', async () => {
+    const stub = makeStub();
+    const app = await makeApp(
+      { UPSTREAM_URLS: 'https://stub/fein', UPSTREAM_BUDGET_PER_DAY: '1' },
+      { fetchFn: stub.fetchFn },
+    );
+    const first = await app.app.inject({
+      method: 'GET',
+      url: `/api/streetcode?${q({ city: 'Duisburg', street: ALTSTADT })}`,
+    });
+    expect(first.statusCode).toBe(200);
+    const second = await app.app.inject({
+      method: 'GET',
+      url: `/api/streetcode?${q({ city: 'Friedberg', street: 'Unbekannte Straße' })}`,
+    });
+    expect(second.statusCode).toBe(429);
+    expect(second.json()).toEqual({ state: 'budget_exhausted' });
+    expect(stub.calls).toHaveLength(1);
+  });
+
+  it('budget exhausted but a stale row exists → stale answer, not 429', async () => {
+    const stub = makeStub();
+    let t = 1_700_000_000_000;
+    const app = await makeApp(
+      { UPSTREAM_URLS: 'https://stub/fein', UPSTREAM_BUDGET_PER_DAY: '1' },
+      { fetchFn: stub.fetchFn, now: () => t },
+    );
+    const cityPayload: CitySinglePayload = {
+      state: 'single',
+      city: 'Duisburg',
+      plateCode: 'DU',
+      subCode: '00',
+      ags: '05112000',
+    };
+    app.cache.writeCitySingle('duisburg', 'duisburg', cityPayload);
+    t += 91 * DAY; // the seeded row goes stale
+
+    // spend the budget on a different, uncached city
+    const spent = await app.app.inject({
+      method: 'GET',
+      url: `/api/streetcode?${q({ city: 'Friedberg', street: 'Unbekannte Straße' })}`,
+    });
+    expect(spent.statusCode).toBe(200);
+    expect(app.budget.used()).toBe(1);
+
+    const res = await app.app.inject({
+      method: 'GET',
+      url: `/api/streetcode?${q({ city: 'Duisburg', street: ALTSTADT })}`,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().stale).toBe(true);
+    expect(stub.calls).toHaveLength(1);
+  });
+
+  it('an open circuit breaker spends no budget — no call goes out', async () => {
+    const stub = makeStub();
+    stub.fail();
+    const app = await makeApp(
+      {
+        UPSTREAM_URLS: 'https://stub/fein',
+        UPSTREAM_BUDGET_PER_DAY: '5',
+        BREAKER_FAILURE_THRESHOLD: '1',
+      },
+      { fetchFn: stub.fetchFn },
+    );
+    const first = await app.app.inject({
+      method: 'GET',
+      url: `/api/streetcode?${q({ city: 'Duisburg', street: ALTSTADT })}`,
+    });
+    expect(first.statusCode).toBe(502);
+    expect(app.budget.used()).toBe(1); // the attempt did go out
+
+    const second = await app.app.inject({
+      method: 'GET',
+      url: `/api/streetcode?${q({ city: 'Friedberg', street: 'Unbekannte Straße' })}`,
+    });
+    expect(second.statusCode).toBe(502);
+    expect(app.budget.used()).toBe(1); // breaker open → nothing spent
+  });
+
+  it('the daily budget survives a restart', async () => {
+    const dbPath = tmpDb();
+    const stub = makeStub();
+    const env = {
+      UPSTREAM_URLS: 'https://stub/fein',
+      UPSTREAM_BUDGET_PER_DAY: '1',
+      CACHE_DB_PATH: dbPath,
+    };
+    const first = await makeApp(env, { fetchFn: stub.fetchFn });
+    const r1 = await first.app.inject({
+      method: 'GET',
+      url: `/api/streetcode?${q({ city: 'Duisburg', street: ALTSTADT })}`,
+    });
+    expect(r1.statusCode).toBe(200);
+    await first.close();
+    appToClose = null;
+
+    const second = await makeApp(env, { fetchFn: stub.fetchFn });
+    expect(second.budget.used()).toBe(1);
+    const r2 = await second.app.inject({
+      method: 'GET',
+      url: `/api/streetcode?${q({ city: 'Friedberg', street: 'Unbekannte Straße' })}`,
+    });
+    expect(r2.statusCode).toBe(429);
+    expect(r2.json()).toEqual({ state: 'budget_exhausted' });
+  });
+});
+
 describe('GET /api/streetcode — stale fallback', () => {
   const cityPayload: CitySinglePayload = {
     state: 'single',
@@ -493,7 +630,10 @@ describe('circuit breaker', () => {
         headers: { 'content-type': 'text/html; charset=iso-8859-1' },
       });
     }) as typeof fetch;
-    const app = await makeApp({ UPSTREAM_URLS: 'https://stub/fein' }, { fetchFn, now: () => t });
+    const app = await makeApp(
+      { UPSTREAM_URLS: 'https://stub/fein', RATE_LIMIT_PER_MINUTE: '100' },
+      { fetchFn, now: () => t },
+    );
 
     // 5 consecutive failing lookups → breaker opens
     for (let i = 0; i < 5; i++) {
@@ -584,7 +724,10 @@ describe('circuit breaker', () => {
         headers: { 'content-type': 'text/html; charset=iso-8859-1' },
       });
     }) as typeof fetch;
-    const app = await makeApp({ UPSTREAM_URLS: 'https://stub/fein' }, { fetchFn, now: () => t });
+    const app = await makeApp(
+      { UPSTREAM_URLS: 'https://stub/fein', RATE_LIMIT_PER_MINUTE: '100' },
+      { fetchFn, now: () => t },
+    );
 
     // 4 failures, then a success → counter reset
     for (let i = 0; i < 4; i++) {

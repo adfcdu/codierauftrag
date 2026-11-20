@@ -87,7 +87,8 @@ codierauftrag/
 │  │  ├─ upstream.ts           # ADFC code-server client (ISO-8859-1 protocol)
 │  │  ├─ cache.ts              # SQLite cache (node:sqlite), purge timers
 │  │  ├─ fold.ts               # key normalization (trim, casefold, ß→ss)
-│  │  ├─ rateLimit.ts          # in-memory fixed-window per IP
+│  │  ├─ rateLimit.ts          # in-memory fixed-window per IP (minute + hour)
+│  │  ├─ budget.ts             # persisted daily budget for real upstream calls
 │  │  └─ logger.ts             # JSON-lines logging (no personal data)
 │  ├─ indexPage.ts             # Open-Graph placeholder substitution for link previews
 │  ├─ errorPage.ts             # pre-rendered German HTML error pages

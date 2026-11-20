@@ -180,6 +180,8 @@ export interface UpstreamClient {
   post(city: string, street: string): Promise<{ result: UpstreamResult; urlIndex: number }>;
   /** GET follow-up within a resolved city (ags known). */
   get(ags: string, street: string): Promise<{ result: UpstreamResult; urlIndex: number }>;
+  /** true while the breaker is open — the next call fails without touching the network. */
+  isOpen(): boolean;
 }
 
 export interface UpstreamClientDeps {
@@ -297,6 +299,9 @@ export function createUpstreamClient(deps: UpstreamClientDeps): UpstreamClient {
         url: base + query,
         init: { method: 'GET', headers: { 'user-agent': userAgent } },
       }));
+    },
+    isOpen() {
+      return now() < openUntil;
     },
   };
 }
