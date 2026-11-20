@@ -16,6 +16,7 @@ export interface ParsedConfig {
   zeigeCarbonRahmen: boolean;
   zeigeEmail: boolean;
   emailAdresse: string;
+  fehlerEmailAdresse: string; // default: DEFAULT_FEHLER_EMAIL_ADRESSE
   zeigeTelefon: boolean;
   telefonNummer: string;
   zeigePreise: boolean;
@@ -74,6 +75,11 @@ export interface ConfigWarning {
 export type ParseConfigResult =
   | { config: ParsedConfig; warnings: ConfigWarning[] }
   | { errors: ConfigError[] };
+
+/** Fallback recipient of „Fehler per E-Mail melden“ when FEHLER_EMAIL_ADRESSE
+ *  is unset: the project's GitHub noreply address, so reports reach the
+ *  maintainer even on instances that configure no error address. */
+export const DEFAULT_FEHLER_EMAIL_ADRESSE = '175566747+adfcdu@users.noreply.github.com';
 
 export function parseConfig(env: Record<string, string | undefined>): ParseConfigResult {
   const errors: ConfigError[] = [];
@@ -217,17 +223,26 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
 
   // Optionales mailto:/tel:-Präfix wird akzeptiert und entfernt — gespeichert wird
   // der bloße Anzeigewert; die Links bauen Client und Fehlerseite selbst daraus.
-  let emailAdresse = '';
-  if (!isUnset('EMAIL_ADRESSE')) {
-    const v = raw('EMAIL_ADRESSE')!.trim().replace(/^mailto:/i, '');
+  function email(key: string): string | undefined {
+    if (isUnset(key)) return undefined;
+    const v = raw(key)!.trim().replace(/^mailto:/i, '');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
-      err('EMAIL_ADRESSE', `ist keine gültige E-Mail-Adresse`);
-    } else {
-      emailAdresse = v;
+      err(key, `ist keine gültige E-Mail-Adresse`);
+      return undefined;
     }
-  } else if (zeigeEmail) {
+    return v;
+  }
+
+  const emailAdresse = email('EMAIL_ADRESSE') ?? '';
+  if (isUnset('EMAIL_ADRESSE') && zeigeEmail) {
     err('EMAIL_ADRESSE', `darf nicht leer sein, wenn ZEIGE_EMAIL=true`);
   }
+
+  // Empfänger des Fehlerberichts („Fehler per E-Mail melden“) — bewusst
+  // getrennt von EMAIL_ADRESSE: der Bericht geht oft an eine andere Stelle als
+  // der allgemeine Kontakt. Ohne FEHLER_EMAIL_ADRESSE greift die Projektadresse,
+  // damit der Link nie ohne Empfänger dasteht.
+  const fehlerEmailAdresse = email('FEHLER_EMAIL_ADRESSE') ?? DEFAULT_FEHLER_EMAIL_ADRESSE;
 
   let telefonNummer = '';
   if (!isUnset('TELEFON_NUMMER')) {
@@ -484,6 +499,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     zeigeCarbonRahmen,
     zeigeEmail,
     emailAdresse,
+    fehlerEmailAdresse,
     zeigeTelefon,
     telefonNummer,
     zeigePreise,

@@ -257,8 +257,10 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
 - **Fehlerbericht per E-Mail**: Der Link „Fehler per E-Mail melden“ neben der
   Versionszeile entwirft eine E-Mail mit den Formulareingaben (Textfelder und
   Toggles, **ohne** Vor-/Nachname und Hausnummer), der Version und der Seiten-URL
-  — ein reiner `mailto:`-Link, abgeschickt wird erst im Mailprogramm. Er
-  erscheint nur bei `ZEIGE_EMAIL=true` mit gesetzter `EMAIL_ADRESSE`.
+  — ein reiner `mailto:`-Link, abgeschickt wird erst im Mailprogramm. Der
+  Empfänger steht in `FEHLER_EMAIL_ADRESSE` (unabhängig von `ZEIGE_EMAIL` und
+  `EMAIL_ADRESSE`); ohne den Schlüssel geht der Bericht an die Projektadresse
+  `175566747+adfcdu@users.noreply.github.com`.
 - **Datalists** (natives `<input list>`) für Ort, Straße, Typ, Radart, Schaltung
   und Position der Rahmennummer; die Auswahl eines Ort-Kandidaten übernimmt dessen
   AGS und löst die Straße neu auf; die Auswahl eines Straßen-Kandidaten fragt mit

@@ -88,7 +88,7 @@ export function buildErrorMailto(values: FormValues, ctx: ErrorMailContext): str
 export function errorMailHref(doc: Document, values: FormValues): string {
   const loc = doc.location;
   return buildErrorMailto(values, {
-    to: CONFIG.emailAdresse,
+    to: CONFIG.fehlerEmailAdresse,
     version: __APP_VERSION__,
     url: loc ? `${loc.origin}${loc.pathname}` : '',
   });

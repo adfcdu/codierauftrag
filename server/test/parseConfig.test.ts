@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DEFAULT_FEHLER_EMAIL_ADRESSE,
   formatConfigErrors,
   formatConfigWarnings,
   parseConfig,
@@ -21,6 +22,7 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.zeigeAkku).toBe(true);
     expect(c.zeigeEmail).toBe(true);
     expect(c.emailAdresse).toBe('codierung@beispielstadt.example'); // mailto:-Präfix entfernt
+    expect(c.fehlerEmailAdresse).toBe('webmaster@beispielstadt.example'); // eigener Empfänger, Präfix entfernt
     expect(c.zeigeTelefon).toBe(true);
     expect(c.telefonNummer).toBe('0123 456789'); // tel:-Präfix entfernt
     expect(c.zeigePreise).toBe(true);
@@ -89,12 +91,41 @@ describe('parseConfig — valid fixtures', () => {
     const result = parseConfig({
       ...base,
       EMAIL_ADRESSE: 'MAILTO:codierung@beispielstadt.example',
+      FEHLER_EMAIL_ADRESSE: 'MAILTO:webmaster@beispielstadt.example',
       TELEFON_NUMMER: 'TEL:0123 456789',
     });
     expect('errors' in result).toBe(false);
     if ('errors' in result) return;
     expect(result.config.emailAdresse).toBe('codierung@beispielstadt.example');
+    expect(result.config.fehlerEmailAdresse).toBe('webmaster@beispielstadt.example');
     expect(result.config.telefonNummer).toBe('0123 456789');
+  });
+
+  it('FEHLER_EMAIL_ADRESSE falls back to the project address and is independent of ZEIGE_EMAIL', () => {
+    const base = envFixture('minimal-valid.env');
+    const unset = parseConfig(base);
+    expect('errors' in unset).toBe(false);
+    if ('errors' in unset) return;
+    expect(unset.config.fehlerEmailAdresse).toBe(DEFAULT_FEHLER_EMAIL_ADRESSE);
+    expect(unset.config.fehlerEmailAdresse).toBe('175566747+adfcdu@users.noreply.github.com');
+
+    // Kontakt-E-Mail aus, Fehlerbericht an: kein Fehler, Adresse gesetzt
+    const onlyErrorMail = parseConfig({ ...base, FEHLER_EMAIL_ADRESSE: 'webmaster@beispielstadt.example' });
+    expect('errors' in onlyErrorMail).toBe(false);
+    if ('errors' in onlyErrorMail) return;
+    expect(onlyErrorMail.config.zeigeEmail).toBe(false);
+    expect(onlyErrorMail.config.fehlerEmailAdresse).toBe('webmaster@beispielstadt.example');
+  });
+
+  it('rejects an invalid FEHLER_EMAIL_ADRESSE', () => {
+    const base = envFixture('kv-beispielstadt.env');
+    const result = parseConfig({ ...base, FEHLER_EMAIL_ADRESSE: 'webmaster(at)beispielstadt.example' });
+    expect('errors' in result).toBe(true);
+    if (!('errors' in result)) return;
+    expect(result.errors).toContainEqual({
+      key: 'FEHLER_EMAIL_ADRESSE',
+      reason: 'ist keine gültige E-Mail-Adresse',
+    });
   });
 
   it('rejects a foreign scheme in EMAIL_ADRESSE (mailto:-Präfix erzwungen)', () => {
