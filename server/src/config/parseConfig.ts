@@ -196,7 +196,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     if (!parsed || (parsed.protocol !== 'http:' && parsed.protocol !== 'https:')) {
       err('SERVER_BASIS_URL', `muss eine gültige http(s)-URL sein`);
     } else if (parsed.pathname !== '/') {
-      err('SERVER_BASIS_URL', `erwartet z. B. https://example.org, ohne Pfad`);
+      err('SERVER_BASIS_URL', `erwartet z. B. https://example.invalid, ohne Pfad`);
     } else {
       serverBasisUrl = trimmed;
     }

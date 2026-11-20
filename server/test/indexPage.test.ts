@@ -30,13 +30,13 @@ const TEMPLATE = `<!DOCTYPE html>
 describe('indexPage renderer', () => {
   it('replaces every placeholder — result contains no {{', () => {
     const renderer = createIndexPageRenderer(partialConfig({}), TEMPLATE);
-    const html = renderer.render('https://codierformular.example');
+    const html = renderer.render('https://codierformular.invalid');
     expect(html).not.toContain('{{');
   });
 
   it('exact strings for KV Duisburg (ASCII hyphen in the title)', () => {
     const renderer = createIndexPageRenderer(partialConfig({ kreisVerband: 'KV Duisburg' }), TEMPLATE);
-    const html = renderer.render('https://codierformular.example');
+    const html = renderer.render('https://codierformular.invalid');
     expect(html).toContain('<title>Fahrradcodierung - ADFC KV Duisburg</title>');
     expect(html).toContain('content="Fahrradcodierung - ADFC KV Duisburg"'); // og:title + twitter:title
     expect(html).toContain('content="ADFC KV Duisburg"'); // og:site_name
@@ -49,7 +49,7 @@ describe('indexPage renderer', () => {
 
   it('og:title equals the <title> element', () => {
     const renderer = createIndexPageRenderer(partialConfig({}), TEMPLATE);
-    const html = renderer.render('https://codierformular.example');
+    const html = renderer.render('https://codierformular.invalid');
     const title = html.match(/<title>([^<]+)<\/title>/)?.[1];
     expect(title).toBe('Fahrradcodierung - ADFC KV Beispielstadt');
     expect(html).toContain(`og:title" content="${title}"`);
@@ -57,9 +57,9 @@ describe('indexPage renderer', () => {
 
   it('og:url gets the trailing slash, og:image none beyond the img path', () => {
     const renderer = createIndexPageRenderer(partialConfig({}), TEMPLATE);
-    const html = renderer.render('https://codierformular.example');
-    expect(html).toContain('og:url" content="https://codierformular.example/"');
-    expect(html).toContain('og:image" content="https://codierformular.example/img/og-preview.png"');
+    const html = renderer.render('https://codierformular.invalid');
+    expect(html).toContain('og:url" content="https://codierformular.invalid/"');
+    expect(html).toContain('og:image" content="https://codierformular.invalid/img/og-preview.png"');
   });
 
   it('escapes &, ", < and > in config values', () => {
@@ -67,25 +67,25 @@ describe('indexPage renderer', () => {
       partialConfig({ kreisVerband: 'KV A&B <X>"Y"' }),
       TEMPLATE,
     );
-    const html = renderer.render('https://codierformular.example');
+    const html = renderer.render('https://codierformular.invalid');
     expect(html).toContain('<title>Fahrradcodierung - ADFC KV A&amp;B &lt;X&gt;&quot;Y&quot;</title>');
     expect(html).not.toContain('KV A&B');
   });
 
   it('does not treat $ patterns in a derived base URL as replacement patterns', () => {
     const renderer = createIndexPageRenderer(partialConfig({}), TEMPLATE);
-    const html = renderer.render('https://example.org/x$&y');
-    expect(html).toContain('og:url" content="https://example.org/x$&amp;y/"');
+    const html = renderer.render('https://example.invalid/x$&y');
+    expect(html).toContain('og:url" content="https://example.invalid/x$&amp;y/"');
     expect(html).not.toContain('{{OG_URL}}');
   });
 
   it('repeat renders with the configured base URL are stable', () => {
     const renderer = createIndexPageRenderer(
-      partialConfig({ serverBasisUrl: 'https://codierformular.example' }),
+      partialConfig({ serverBasisUrl: 'https://codierformular.invalid' }),
       TEMPLATE,
     );
-    const first = renderer.render('https://codierformular.example');
-    const second = renderer.render('https://codierformular.example');
+    const first = renderer.render('https://codierformular.invalid');
+    const second = renderer.render('https://codierformular.invalid');
     // String identity is not observable in JS (toBe compares by value); the
     // memoization itself is enforced by the renderer's per-URL Map.
     expect(second).toBe(first);
@@ -93,11 +93,11 @@ describe('indexPage renderer', () => {
 
   it('renders fresh per call when SERVER_BASIS_URL is empty — each host gets its own URLs', () => {
     const renderer = createIndexPageRenderer(partialConfig({ serverBasisUrl: '' }), TEMPLATE);
-    const a = renderer.render('https://a.example');
-    const b = renderer.render('https://b.example');
-    expect(a).toContain('og:url" content="https://a.example/"');
-    expect(b).toContain('og:url" content="https://b.example/"');
-    expect(a).not.toContain('b.example');
-    expect(b).not.toContain('a.example');
+    const a = renderer.render('https://a.invalid');
+    const b = renderer.render('https://b.invalid');
+    expect(a).toContain('og:url" content="https://a.invalid/"');
+    expect(b).toContain('og:url" content="https://b.invalid/"');
+    expect(a).not.toContain('b.invalid');
+    expect(b).not.toContain('a.invalid');
   });
 });

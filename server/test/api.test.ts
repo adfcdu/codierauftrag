@@ -60,13 +60,13 @@ describe('GET /api/config', () => {
       logoText: 'Beispielstadt',
       kvWebUrl: 'https://beispielstadt.adfc.de',
       ortInitial: 'Beispielstadt',
-      datenschutzUrl: 'https://beispielstadt.example/datenschutz',
+      datenschutzUrl: 'https://beispielstadt.invalid/datenschutz',
       zeigeAkku: true,
       zeigeCarbonRahmen: true,
       zeigeEmail: true,
-      emailAdresse: 'codierung@beispielstadt.example',
+      emailAdresse: 'codierung@beispielstadt.invalid',
       zeigeFehlerEmail: true,
-      fehlerEmailAdresse: 'webmaster@beispielstadt.example',
+      fehlerEmailAdresse: 'webmaster@beispielstadt.invalid',
       zeigeTelefon: true,
       telefonNummer: '0123 456789',
       zeigePreise: true,
@@ -84,15 +84,15 @@ describe('GET /api/config', () => {
       zeigeEigentumsnachweis: true,
       pdfNurEineSeite: false,
       zeigeCodierungBuchen: true,
-      codierungBuchenUrl: 'https://beispielstadt.example/codiertermin',
+      codierungBuchenUrl: 'https://beispielstadt.invalid/codiertermin',
       zeigeCodierungInfo: true,
-      codierungInfoUrl: 'https://beispielstadt.example/codierung',
+      codierungInfoUrl: 'https://beispielstadt.invalid/codierung',
       banner1Text: 'Angebots-Hinweis 1',
       banner2Text: 'Angebots-Hinweis 2',
       banner3Text: 'Angebots-Hinweis 3',
-      banner1Url: 'https://beispielstadt.example/hinweis-1',
+      banner1Url: 'https://beispielstadt.invalid/hinweis-1',
       banner2Url: '',
-      banner3Url: 'https://beispielstadt.example/hinweis-3',
+      banner3Url: 'https://beispielstadt.invalid/hinweis-3',
       barcodeTyp: 'code128',
       includeBarcodeCheck: false,
       umlauteImBarcode: false,
@@ -166,7 +166,7 @@ describe('error surfaces', () => {
     expect(res.body).toContain('<title>Codierformular - Fehler</title>');
     expect(res.body).toContain('Es ist ein interner Fehler aufgetreten');
     expect(res.body).toContain('Bitte versuchen Sie es später erneut.');
-    expect(res.body).toContain('<a href="mailto:codierung@beispielstadt.example">E-Mail: codierung@beispielstadt.example</a>');
+    expect(res.body).toContain('<a href="mailto:codierung@beispielstadt.invalid">E-Mail: codierung@beispielstadt.invalid</a>');
     expect(res.body).toContain('<a href="tel:0123456789">Telefon: 0123 456789</a>');
     expect(res.body).toContain('href="impressum_datenschutz.html"');
     expect(res.body).toContain('Impressum und Datenschutz');
@@ -177,7 +177,7 @@ describe('error surfaces', () => {
     const withContacts = parseConfig(base);
     if ('errors' in withContacts) throw new Error('fixture invalid');
     const html = renderErrorPage(withContacts.config);
-    expect(html).toContain('<a href="mailto:codierung@beispielstadt.example">E-Mail: codierung@beispielstadt.example</a>');
+    expect(html).toContain('<a href="mailto:codierung@beispielstadt.invalid">E-Mail: codierung@beispielstadt.invalid</a>');
     expect(html).toContain('<a href="tel:0123456789">Telefon: 0123 456789</a>');
 
     const noContacts = parseConfig({
@@ -225,13 +225,13 @@ describe('buildPublicConfig — the generic example body', () => {
       logoText: 'Beispielstadt',
       kvWebUrl: 'https://beispielstadt.adfc.de',
       ortInitial: 'Beispielstadt',
-      datenschutzUrl: 'https://beispielstadt.example/datenschutz',
+      datenschutzUrl: 'https://beispielstadt.invalid/datenschutz',
       zeigeAkku: true,
       zeigeCarbonRahmen: true,
       zeigeEmail: true,
-      emailAdresse: 'codierung@beispielstadt.example',
+      emailAdresse: 'codierung@beispielstadt.invalid',
       zeigeFehlerEmail: true,
-      fehlerEmailAdresse: 'webmaster@beispielstadt.example',
+      fehlerEmailAdresse: 'webmaster@beispielstadt.invalid',
       zeigeTelefon: true,
       telefonNummer: '0123 456789',
       zeigePreise: true,
@@ -249,15 +249,15 @@ describe('buildPublicConfig — the generic example body', () => {
       zeigeEigentumsnachweis: true,
       pdfNurEineSeite: false,
       zeigeCodierungBuchen: true,
-      codierungBuchenUrl: 'https://beispielstadt.example/codiertermin',
+      codierungBuchenUrl: 'https://beispielstadt.invalid/codiertermin',
       zeigeCodierungInfo: true,
-      codierungInfoUrl: 'https://beispielstadt.example/codierung',
+      codierungInfoUrl: 'https://beispielstadt.invalid/codierung',
       banner1Text: 'Angebots-Hinweis 1',
       banner2Text: 'Angebots-Hinweis 2',
       banner3Text: 'Angebots-Hinweis 3',
-      banner1Url: 'https://beispielstadt.example/hinweis-1',
+      banner1Url: 'https://beispielstadt.invalid/hinweis-1',
       banner2Url: '',
-      banner3Url: 'https://beispielstadt.example/hinweis-3',
+      banner3Url: 'https://beispielstadt.invalid/hinweis-3',
       barcodeTyp: 'code128',
       includeBarcodeCheck: false,
       umlauteImBarcode: false,
@@ -325,11 +325,11 @@ describe('GET / — server-side OG rendering (link preview)', () => {
     const res = await app.app.inject({
       method: 'GET',
       url: '/',
-      headers: { host: 'example.org' },
+      headers: { host: 'example.invalid' },
     });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toContain('og:url" content="https://example.org/"');
-    expect(res.body).toContain('og:image" content="https://example.org/img/og-preview.png"');
+    expect(res.body).toContain('og:url" content="https://example.invalid/"');
+    expect(res.body).toContain('og:image" content="https://example.invalid/img/og-preview.png"');
   });
 
   it('configured SERVER_BASIS_URL wins over the request Host header', async () => {
@@ -337,14 +337,14 @@ describe('GET / — server-side OG rendering (link preview)', () => {
     const res = await app.app.inject({
       method: 'GET',
       url: '/',
-      headers: { host: 'other.example' },
+      headers: { host: 'other.invalid' },
     });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toContain('og:url" content="https://codierformular.beispielstadt.example/"');
+    expect(res.body).toContain('og:url" content="https://codierformular.beispielstadt.invalid/"');
     expect(res.body).toContain(
-      'og:image" content="https://codierformular.beispielstadt.example/img/og-preview.png"',
+      'og:image" content="https://codierformular.beispielstadt.invalid/img/og-preview.png"',
     );
-    expect(res.body).not.toContain('other.example');
+    expect(res.body).not.toContain('other.invalid');
   });
 
   it('clientRoot without index.html → app boots, GET / → 404 error page', async () => {

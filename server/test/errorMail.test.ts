@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { buildErrorMailBody, buildErrorMailto } from '../../client/src/errorMail.js';
 import type { FormValues } from '../../client/src/values.js';
 
-const CTX = { to: 'codierung@beispielstadt.example', version: '1.0.5', url: 'https://example.org/' };
+const CTX = { to: 'codierung@beispielstadt.invalid', version: '1.0.5', url: 'https://example.invalid/' };
 
 function values(overrides: Partial<FormValues> = {}): FormValues {
   return {
@@ -85,7 +85,7 @@ describe('buildErrorMailBody — content', () => {
   it('carries version and page URL', () => {
     const body = buildErrorMailBody(values(), CTX);
     expect(body).toContain('Version: 1.0.5');
-    expect(body).toContain('URL: https://example.org/');
+    expect(body).toContain('URL: https://example.invalid/');
   });
 
   it('uses CRLF line breaks', () => {
@@ -98,7 +98,7 @@ describe('buildErrorMailBody — content', () => {
 describe('buildErrorMailto — URI', () => {
   it('addresses the recipient and encodes subject and body', () => {
     const href = buildErrorMailto(values(), CTX);
-    expect(href.startsWith('mailto:codierung@beispielstadt.example?')).toBe(true);
+    expect(href.startsWith('mailto:codierung@beispielstadt.invalid?')).toBe(true);
     expect(href).toContain('subject=Fehlerbericht%20Codierauftrag%20V1.0.5');
     expect(href).toContain('body=');
     // no raw spaces or line breaks in the URI

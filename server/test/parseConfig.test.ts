@@ -21,8 +21,8 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.ortInitial).toBe('Beispielstadt');
     expect(c.zeigeAkku).toBe(true);
     expect(c.zeigeEmail).toBe(true);
-    expect(c.emailAdresse).toBe('codierung@beispielstadt.example'); // mailto:-Präfix entfernt
-    expect(c.fehlerEmailAdresse).toBe('webmaster@beispielstadt.example'); // eigener Empfänger, Präfix entfernt
+    expect(c.emailAdresse).toBe('codierung@beispielstadt.invalid'); // mailto:-Präfix entfernt
+    expect(c.fehlerEmailAdresse).toBe('webmaster@beispielstadt.invalid'); // eigener Empfänger, Präfix entfernt
     expect(c.zeigeFehlerEmail).toBe(true);
     expect(c.zeigeTelefon).toBe(true);
     expect(c.telefonNummer).toBe('0123 456789'); // tel:-Präfix entfernt
@@ -41,9 +41,9 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.banner1Text).toBe('Angebots-Hinweis 1');
     expect(c.banner2Text).toBe('Angebots-Hinweis 2');
     expect(c.banner3Text).toBe('Angebots-Hinweis 3');
-    expect(c.banner1Url).toBe('https://beispielstadt.example/hinweis-1');
+    expect(c.banner1Url).toBe('https://beispielstadt.invalid/hinweis-1');
     expect(c.banner2Url).toBe('');
-    expect(c.banner3Url).toBe('https://beispielstadt.example/hinweis-3');
+    expect(c.banner3Url).toBe('https://beispielstadt.invalid/hinweis-3');
     expect(c.barcodeTyp).toBe('code128');
     expect(c.includeBarcodeCheck).toBe(false);
     expect(c.umlauteImBarcode).toBe(false);
@@ -91,14 +91,14 @@ describe('parseConfig — valid fixtures', () => {
     const base = envFixture('kv-beispielstadt.env');
     const result = parseConfig({
       ...base,
-      EMAIL_ADRESSE: 'MAILTO:codierung@beispielstadt.example',
-      FEHLER_EMAIL_ADRESSE: 'MAILTO:webmaster@beispielstadt.example',
+      EMAIL_ADRESSE: 'MAILTO:codierung@beispielstadt.invalid',
+      FEHLER_EMAIL_ADRESSE: 'MAILTO:webmaster@beispielstadt.invalid',
       TELEFON_NUMMER: 'TEL:0123 456789',
     });
     expect('errors' in result).toBe(false);
     if ('errors' in result) return;
-    expect(result.config.emailAdresse).toBe('codierung@beispielstadt.example');
-    expect(result.config.fehlerEmailAdresse).toBe('webmaster@beispielstadt.example');
+    expect(result.config.emailAdresse).toBe('codierung@beispielstadt.invalid');
+    expect(result.config.fehlerEmailAdresse).toBe('webmaster@beispielstadt.invalid');
     expect(result.config.telefonNummer).toBe('0123 456789');
   });
 
@@ -111,11 +111,11 @@ describe('parseConfig — valid fixtures', () => {
     expect(unset.config.fehlerEmailAdresse).toBe('175566747+adfcdu@users.noreply.github.com');
 
     // Kontakt-E-Mail aus, Fehlerbericht an: kein Fehler, Adresse gesetzt
-    const onlyErrorMail = parseConfig({ ...base, FEHLER_EMAIL_ADRESSE: 'webmaster@beispielstadt.example' });
+    const onlyErrorMail = parseConfig({ ...base, FEHLER_EMAIL_ADRESSE: 'webmaster@beispielstadt.invalid' });
     expect('errors' in onlyErrorMail).toBe(false);
     if ('errors' in onlyErrorMail) return;
     expect(onlyErrorMail.config.zeigeEmail).toBe(false);
-    expect(onlyErrorMail.config.fehlerEmailAdresse).toBe('webmaster@beispielstadt.example');
+    expect(onlyErrorMail.config.fehlerEmailAdresse).toBe('webmaster@beispielstadt.invalid');
   });
 
   it('ZEIGE_FEHLER_EMAIL defaults to true and can be switched off', () => {
@@ -135,7 +135,7 @@ describe('parseConfig — valid fixtures', () => {
 
   it('rejects an invalid FEHLER_EMAIL_ADRESSE', () => {
     const base = envFixture('kv-beispielstadt.env');
-    const result = parseConfig({ ...base, FEHLER_EMAIL_ADRESSE: 'webmaster(at)beispielstadt.example' });
+    const result = parseConfig({ ...base, FEHLER_EMAIL_ADRESSE: 'webmaster(at)beispielstadt.invalid' });
     expect('errors' in result).toBe(true);
     if (!('errors' in result)) return;
     expect(result.errors).toContainEqual({
@@ -146,7 +146,7 @@ describe('parseConfig — valid fixtures', () => {
 
   it('rejects a foreign scheme in EMAIL_ADRESSE (mailto:-Präfix erzwungen)', () => {
     const base = envFixture('kv-beispielstadt.env');
-    const result = parseConfig({ ...base, EMAIL_ADRESSE: 'https://beispielstadt.example' });
+    const result = parseConfig({ ...base, EMAIL_ADRESSE: 'https://beispielstadt.invalid' });
     expect('errors' in result).toBe(true);
   });
 
@@ -166,7 +166,7 @@ describe('parseConfig — error classes (German messages, aggregated, sorted by 
     ['error-logo-text-chars.env', 'LOGO_TEXT', 'darf nur Buchstaben (inkl. Umlaute und ß), Leerzeichen, - und / enthalten'],
     ['error-kv-web-url-missing.env', 'KV_WEB_URL', 'darf nicht leer sein'],
     ['error-kv-web-url-invalid.env', 'KV_WEB_URL', 'muss eine gültige http(s)-URL sein'],
-    ['error-server-basis-url-path.env', 'SERVER_BASIS_URL', 'erwartet z. B. https://example.org, ohne Pfad'],
+    ['error-server-basis-url-path.env', 'SERVER_BASIS_URL', 'erwartet z. B. https://example.invalid, ohne Pfad'],
     ['error-email-required.env', 'EMAIL_ADRESSE', 'darf nicht leer sein, wenn ZEIGE_EMAIL=true'],
     ['error-email-invalid.env', 'EMAIL_ADRESSE', 'ist keine gültige E-Mail-Adresse'],
     ['error-telefon-required.env', 'TELEFON_NUMMER', 'darf nicht leer sein, wenn ZEIGE_TELEFON=true'],
@@ -207,10 +207,10 @@ describe('parseConfig — error classes (German messages, aggregated, sorted by 
 
   it('SERVER_BASIS_URL accepts an origin without path and trims trailing slash', () => {
     const base = envFixture('minimal-valid.env');
-    const result = parseConfig({ ...base, SERVER_BASIS_URL: 'https://example.org/' });
+    const result = parseConfig({ ...base, SERVER_BASIS_URL: 'https://example.invalid/' });
     expect('errors' in result).toBe(false);
     if ('errors' in result) return;
-    expect(result.config.serverBasisUrl).toBe('https://example.org');
+    expect(result.config.serverBasisUrl).toBe('https://example.invalid');
   });
 
   it('requires all six prices when PREISE_ANZEIGEN=true', () => {
@@ -378,10 +378,10 @@ describe('parseConfig — warnings (non-fatal)', () => {
 
   it('BANNER_1_URL without BANNER_1_TEXT: warning, process starts', () => {
     const base = envFixture('kv-beispielstadt.env');
-    const result = parseConfig({ ...base, BANNER_1_TEXT: '', BANNER_1_URL: 'https://beispielstadt.example/leer' });
+    const result = parseConfig({ ...base, BANNER_1_TEXT: '', BANNER_1_URL: 'https://beispielstadt.invalid/leer' });
     expect('errors' in result).toBe(false);
     if ('errors' in result) return;
-    expect(result.config.banner1Url).toBe('https://beispielstadt.example/leer');
+    expect(result.config.banner1Url).toBe('https://beispielstadt.invalid/leer');
     expect(formatConfigWarnings(result.warnings)).toContain(
       'Warnung: BANNER_1_URL ohne BANNER_1_TEXT — das Banner wird nicht angezeigt — der Link ist wirkungslos',
     );
@@ -389,10 +389,10 @@ describe('parseConfig — warnings (non-fatal)', () => {
 
   it('BANNER_3_URL without BANNER_3_TEXT: warning, process starts', () => {
     const base = envFixture('kv-beispielstadt.env');
-    const result = parseConfig({ ...base, BANNER_3_TEXT: '', BANNER_3_URL: 'https://beispielstadt.example/leer' });
+    const result = parseConfig({ ...base, BANNER_3_TEXT: '', BANNER_3_URL: 'https://beispielstadt.invalid/leer' });
     expect('errors' in result).toBe(false);
     if ('errors' in result) return;
-    expect(result.config.banner3Url).toBe('https://beispielstadt.example/leer');
+    expect(result.config.banner3Url).toBe('https://beispielstadt.invalid/leer');
     expect(formatConfigWarnings(result.warnings)).toContain(
       'Warnung: BANNER_3_URL ohne BANNER_3_TEXT — das Banner wird nicht angezeigt — der Link ist wirkungslos',
     );
@@ -400,7 +400,7 @@ describe('parseConfig — warnings (non-fatal)', () => {
 
   it('BANNER_3_URL with an invalid URL: error (https only)', () => {
     const base = envFixture('kv-beispielstadt.env');
-    for (const url of ['ftp://beispielstadt.example', 'http://beispielstadt.example', 'nicht-eine-url']) {
+    for (const url of ['ftp://beispielstadt.invalid', 'http://beispielstadt.invalid', 'nicht-eine-url']) {
       const result = parseConfig({ ...base, BANNER_3_URL: url });
       expect('errors' in result).toBe(true);
       if (!('errors' in result)) return;
@@ -412,7 +412,7 @@ describe('parseConfig — warnings (non-fatal)', () => {
 
   it('BANNER_1_URL with an invalid URL: error (https only)', () => {
     const base = envFixture('kv-beispielstadt.env');
-    for (const url of ['ftp://beispielstadt.example', 'http://beispielstadt.example', 'nicht-eine-url']) {
+    for (const url of ['ftp://beispielstadt.invalid', 'http://beispielstadt.invalid', 'nicht-eine-url']) {
       const result = parseConfig({ ...base, BANNER_1_URL: url });
       expect('errors' in result).toBe(true);
       if (!('errors' in result)) return;
