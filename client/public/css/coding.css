@@ -711,23 +711,9 @@ h3 {
     line-height: 1.5;
 }
 
-/* Orange-Kasten wie .step p a.btn — der span braucht display:inline-block,
-   damit Padding greift */
-.step p .btn {
-    display: inline-block;
-    background-color: var(--adfc-orange);
-    border-radius: 0;
-    padding: 6px 10px;
-    font-size: var(--text-base);
-    font-weight: 400;
-    line-height: 1.2;
-    color: #fff;
-    text-decoration: none;
-    /* „Codierauftrag herunterladen“ einzeilig — Release im Media-Query
-       für schmale Screens. */
-    white-space: nowrap;
-}
-
+/* Orange-Kasten für die Link-Buttons in den Schritten („Zur Buchung“,
+   „Codierauftrag herunterladen“ — letzterer ist ein Anker auf den echten
+   Button unter dem Formular) */
 .step p a.btn {
     display: inline-block;
     background-color: var(--adfc-orange);
@@ -738,6 +724,9 @@ h3 {
     line-height: 1.2;
     color: #fff;
     text-decoration: none;
+    /* „Codierauftrag herunterladen“ einzeilig — Release im Media-Query
+       für schmale Screens */
+    white-space: nowrap;
 }
 
 .step p a.btn:hover .btn-text {

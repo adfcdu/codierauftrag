@@ -437,10 +437,14 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
       el(doc, 'p', undefined, 'Dieses Formular möglichst vollständig ausfüllen'),
     ),
   );
+  // Der „Button“ im Schritt ist ein Anker auf den echten Button unter dem
+  // Formular (#genPdf): ein Klick springt dorthin, statt nur so auszusehen.
   const pdfStepP = el(doc, 'p', 'withButton');
-  pdfStepP.append(doc.createTextNode('Auf '));
-  pdfStepP.append(el(doc, 'span', 'btn', 'Codierauftrag herunterladen'));
-  pdfStepP.append(doc.createTextNode(' unten auf dem Formular klicken'));
+  const pdfJump = el(doc, 'a', 'btn');
+  pdfJump.href = '#genPdf';
+  pdfJump.append(el(doc, 'span', 'btn-text', 'Codierauftrag herunterladen'));
+  pdfStepP.append(pdfJump);
+  pdfStepP.append(doc.createTextNode(' unter dem Formular klicken.'));
   steps.append(step(stepIcon('icon-mouse-leftclick', 'Mausklick'), pdfStepP));
   steps.append(
     step(stepIcon('icon-download', 'Download'), el(doc, 'p', undefined, 'PDF-Datei herunterladen')),
