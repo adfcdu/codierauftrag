@@ -27,6 +27,7 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.preisMitglied).toBe(5);
     expect(c.preisNichtMitglied).toBe(20);
     expect(c.aufpreisAkkuMitglied).toBe(2.5); // '2,5' → 2.5 (German decimal)
+    expect(c.etikettenAnzahl).toBe(2); // Default, steht nicht im Fixture
     expect(c.zeigeUmsatzsteuer).toBe(false);
     expect(c.umsatzsteuerProzent).toBe(0);
     expect(c.zeigeBarzahlung).toBe(true);
@@ -206,6 +207,26 @@ describe('parseConfig — error classes (German messages, aggregated, sorted by 
     expect(result.config.preisNichtMitglied).toBe(12.5);
     expect(result.config.preisAnhaengerMitglied).toBe(2.5);
     expect(result.config.preisAnhaengerNichtMitglied).toBe(20.5);
+  });
+
+  it('ETIKETTEN_ANZAHL: default 2, custom value accepted, 0 and > 10 rejected', () => {
+    const base = envFixture('minimal-valid.env');
+    const defaults = parseConfig(base);
+    expect('errors' in defaults).toBe(false);
+    if ('errors' in defaults) return;
+    expect(defaults.config.etikettenAnzahl).toBe(2);
+
+    const custom = parseConfig({ ...base, ETIKETTEN_ANZAHL: '3' });
+    expect('errors' in custom).toBe(false);
+    if ('errors' in custom) return;
+    expect(custom.config.etikettenAnzahl).toBe(3);
+
+    for (const bad of ['0', '11', 'zwei']) {
+      const result = parseConfig({ ...base, ETIKETTEN_ANZAHL: bad });
+      expect('errors' in result).toBe(true);
+      if (!('errors' in result)) continue;
+      expect(result.errors.some((e) => e.key === 'ETIKETTEN_ANZAHL')).toBe(true);
+    }
   });
 
   it('requires UMSATZSTEUER_PROZENT iff VAT on (and prices on); range 0–100', () => {

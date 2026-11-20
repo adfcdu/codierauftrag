@@ -309,12 +309,48 @@ export function formatVatPercent(value: number): string {
   return vatPercentFormatter.format(value);
 }
 
-export function computePrice(values: FormValues): { descr: string; price: number; member: boolean } {
+/**
+ * Base price of a Sicherheitsetiketten coding. The ADFC lists it at the same
+ * amount as the Akku surcharge, so the config keeps one pair of keys for both.
+ */
+function etikettPreis(member: boolean): number {
+  return member ? CONFIG.aufpreisAkkuMitglied : CONFIG.aufpreisAkkuNichtMitglied;
+}
+
+/** „2 Sicherheitsetiketten“ — ETIKETTEN_ANZAHL, the count the base price covers. */
+export function etikettenText(): string {
+  return `${CONFIG.etikettenAnzahl} Sicherheitsetiketten`;
+}
+
+/** „Jedes weitere Sicherheitsetikett: 2,50 €“ — each extra label costs half
+ *  of the sticker base price, for the member status of the form. */
+export function extraEtikettPriceText(member: boolean): string {
+  return `Jedes weitere Sicherheitsetikett: ${formatPrice(etikettPreis(member) / 2)} €`;
+}
+
+/** The extra-label note, or '' when no Sicherheitsetikett is used at all
+ *  (plain aluminium/steel frame without Akku). */
+export function extraEtikettNoteText(values: FormValues): string {
+  return computePrice(values).usesEtiketten ? extraEtikettPriceText(values.mitglied) : '';
+}
+
+export interface PriceInfo {
+  /** PDF fee line: „Fahrrad (Carbon) + Akku“ */
+  descr: string;
+  /** Price-bar description naming the coding method per item */
+  methodDescr: string;
+  price: number;
+  member: boolean;
+  /** true iff a Sicherheitsetikett coding is part of this price */
+  usesEtiketten: boolean;
+}
+
+export function computePrice(values: FormValues): PriceInfo {
   const member = values.mitglied;
   const trailer = isTrailer(values.typ);
   const descr = trailer ? 'Anhänger' : 'Fahrrad';
   // Carbon frame coding = a label instead of the engraved frame: the label
-  // costs the AUFPREIS_AKKU_ amount as the bike base charge — not a surcharge
+  // costs the sticker base price as the bike base charge — not a surcharge
   // on top of the regular bike fee. The Akku surcharge still applies.
   // Suppressed entirely when the Carbon-Rahmen toggle is disabled (ZEIGE_CARBONRAHMEN=false) —
   // also covers QR-prefilled values, which bypass the hidden form field.
@@ -324,22 +360,24 @@ export function computePrice(values: FormValues): { descr: string; price: number
       ? CONFIG.preisAnhaengerMitglied
       : CONFIG.preisAnhaengerNichtMitglied
     : carbon
-      ? member
-        ? CONFIG.aufpreisAkkuMitglied
-        : CONFIG.aufpreisAkkuNichtMitglied
+      ? etikettPreis(member)
       : member
         ? CONFIG.preisMitglied
         : CONFIG.preisNichtMitglied;
-  const aufpreis = member ? CONFIG.aufpreisAkkuMitglied : CONFIG.aufpreisAkkuNichtMitglied;
+  const aufpreis = etikettPreis(member);
   const price = base + (values.akku ? aufpreis : 0);
   let full = carbon ? `${descr} (Carbon)` : descr;
   if (values.akku) full += ' + Akku';
-  return { descr: full, price, member };
+  // The price bar names the method: Aluminium/steel frames are needle-marked,
+  // carbon frames and Akkus only ever get Sicherheitsetiketten.
+  let methodDescr = `${descr} (${carbon ? etikettenText() : 'Nadelmarkierung'})`;
+  if (values.akku) methodDescr += ` + Akku (${etikettenText()})`;
+  return { descr: full, methodDescr, price, member, usesEtiketten: carbon || values.akku };
 }
 
 export function priceLineText(values: FormValues): string {
-  const { descr, price, member } = computePrice(values);
-  return `Codiergebühr: ${descr}: ${formatPrice(price)} € (${member ? 'Mitglied' : 'Nichtmitglied'})`;
+  const { methodDescr, price, member } = computePrice(values);
+  return `Codiergebühr: ${methodDescr}: ${formatPrice(price)} € (${member ? 'Mitglied' : 'Nichtmitglied'})`;
 }
 
 /** VAT math (used by the PDF fee box). */

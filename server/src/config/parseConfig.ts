@@ -25,6 +25,7 @@ export interface ParsedConfig {
   preisAnhaengerNichtMitglied: number;
   aufpreisAkkuMitglied: number;
   aufpreisAkkuNichtMitglied: number;
+  etikettenAnzahl: number; // Sicherheitsetiketten included in the sticker base price
   zeigeUmsatzsteuer: boolean;
   umsatzsteuerProzent: number; // 0 when off
   zeigeBarzahlung: boolean;
@@ -258,6 +259,15 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     prices[key] = value ?? 0;
   }
 
+  // Anzahl der Sicherheitsetiketten, die im Etikettengrundpreis enthalten sind
+  // (Standard 2). Reine Anzeige- und Rechengröße: der Grundpreis bleibt
+  // derselbe, jedes weitere Etikett kostet die Hälfte davon.
+  let etikettenAnzahl = integer('ETIKETTEN_ANZAHL');
+  if (etikettenAnzahl === undefined) etikettenAnzahl = 2;
+  else if (etikettenAnzahl < 1 || etikettenAnzahl > 10) {
+    err('ETIKETTEN_ANZAHL', `muss zwischen 1 und 10 liegen`);
+  }
+
   // VAT: 'true' without prices → silent degradation + boot warning.
   let zeigeUmsatzsteuer = false;
   let umsatzsteuerProzent = 0;
@@ -483,6 +493,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     preisAnhaengerNichtMitglied: prices['PREIS_ANHAENGER_NICHT_MITGLIED'],
     aufpreisAkkuMitglied: prices['AUFPREIS_AKKU_MITGLIED'],
     aufpreisAkkuNichtMitglied: prices['AUFPREIS_AKKU_NICHT_MITGLIED'],
+    etikettenAnzahl,
     zeigeUmsatzsteuer,
     umsatzsteuerProzent,
     zeigeBarzahlung,

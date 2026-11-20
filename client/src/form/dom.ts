@@ -4,7 +4,7 @@
  */
 
 import { einParts, isEinValid } from '../ein.js';
-import { anyValidationErrors, priceLineText } from '../values.js';
+import { anyValidationErrors, extraEtikettNoteText, priceLineText } from '../values.js';
 import type { FormValues, StreetcodeState } from '../values.js';
 import { syncComboArrows } from './combobox.js';
 import type { BuiltPage } from './page.js';
@@ -54,6 +54,9 @@ export function setBusy(doc: Document, fieldId: 'ort' | 'strasse', busy: boolean
 export function updatePriceLine(page: BuiltPage, values: FormValues): void {
   if (!page.price) return;
   page.price.textContent = priceLineText(values);
+  // Zusatzinfo nur, wenn tatsächlich Sicherheitsetiketten verwendet werden
+  // (Carbon-Rahmen oder Akku) — sonst bleibt sie leer (CSS blendet sie aus).
+  if (page.priceNote) page.priceNote.textContent = extraEtikettNoteText(values);
 }
 
 /** EIN box: visible iff isEinValid; values raw (umlauts untranslated). */

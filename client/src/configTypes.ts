@@ -22,6 +22,8 @@ export interface AppConfig {
   preisAnhaengerNichtMitglied: number;
   aufpreisAkkuMitglied: number;
   aufpreisAkkuNichtMitglied: number;
+  /** Sicherheitsetiketten included in the sticker base price (default 2). */
+  etikettenAnzahl: number;
   zeigeUmsatzsteuer: boolean;
   umsatzsteuerProzent: number;
   zeigeBarzahlung: boolean;

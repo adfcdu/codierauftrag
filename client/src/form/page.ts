@@ -168,6 +168,7 @@ export interface BuiltPage {
   form: HTMLFormElement;
   genPdf: HTMLButtonElement;
   price: HTMLSpanElement | null;
+  priceNote: HTMLSpanElement | null;
   einBox: HTMLDivElement;
   einCells: Record<'kz' | 'ags' | 'str' | 'hs' | 'ini' | 'jahr', HTMLTableCellElement>;
   datalistOrt: HTMLDataListElement;
@@ -641,6 +642,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   form.insertBefore(einBox, divider);
 
   let price: HTMLSpanElement | null = null;
+  let priceNote: HTMLSpanElement | null = null;
   if (config.zeigePreise) {
     // Preis in eigener blauer Leiste (Farbband wie das Header-Banner) —
     // hebt die Zeile auch im Initialzustand (ohne EIN-Tabelle) klar vom
@@ -648,7 +650,13 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
     const priceBar = el(doc, 'div', 'price-bar');
     price = el(doc, 'span') as HTMLSpanElement;
     price.id = 'price';
-    priceBar.append(price);
+    // Zusatzinfo unter der Preiszeile: der Preis je weiterem
+    // Sicherheitsetikett (halber Etikettengrundpreis) — steht so auch in
+    // der Preisliste des ADFC. Inhalt setzt updatePriceLine (dom.ts), weil
+    // die Zeile nur bei einer Etiketten-Codierung erscheint.
+    priceNote = el(doc, 'span') as HTMLSpanElement;
+    priceNote.id = 'price-note';
+    priceBar.append(price, priceNote);
     mount.append(priceBar);
   }
 
@@ -681,5 +689,5 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   }
   footer.append(versionLine);
 
-  return { form, genPdf, price, einBox, einCells, datalistOrt, datalistStrasse };
+  return { form, genPdf, price, priceNote, einBox, einCells, datalistOrt, datalistStrasse };
 }

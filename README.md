@@ -242,9 +242,16 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
 - **QR-Neuladen mit Auto-Resolve**: Das Öffnen einer PDF-QR-URL füllt das gesamte
   Formular beim Laden vor, validiert es, füllt die EIN-Box und aktiviert die
   Schaltfläche — ganz ohne Klicks.
-- **Live-Preiszeile** (``Codiergebühr: Fahrrad + Akku: 7,50 € (Mitglied)``),
+- **Live-Preiszeile** (``Codiergebühr: Fahrrad (Nadelmarkierung) + Akku (2 Sicherheitsetiketten): 7,50 € (Mitglied)``),
   deutsche Formatierung über `Intl.NumberFormat('de-DE')`, bei jeder relevanten
-  Änderung neu berechnet.
+  Änderung neu berechnet. Die Zeile nennt das Codierverfahren: Aluminium- und
+  Stahlrahmen werden per Nadelmarkierung codiert, Carbon-Rahmen und Akkus
+  erhalten ausschließlich Sicherheitsetiketten (Anzahl über `ETIKETTEN_ANZAHL`,
+  Standard 2). Darunter steht als Zusatzinfo der Preis je weiterem
+  Sicherheitsetikett („Jedes weitere Sicherheitsetikett: …“ — die Hälfte des
+  Etikettengrundpreises, für den aktuellen Mitgliedsstatus); die Zeile
+  erscheint nur, wenn tatsächlich Sicherheitsetiketten verwendet werden, also
+  bei Carbon-Rahmen oder Akku.
 - **Fehlerbericht per E-Mail**: Der Link „Fehler per E-Mail melden“ neben der
   Versionszeile entwirft eine E-Mail mit den Formulareingaben (Textfelder und
   Toggles, **ohne** Vor-/Nachname und Hausnummer), der Version und der Seiten-URL
@@ -309,7 +316,8 @@ Eine einzige `.env`-Datei ist die komplette Konfigurationsoberfläche (Docker
 `env_file`; Vorlage in [`.env.example`](.env.example) — jeder Schlüssel ist dort
 kommentiert). Sie umfasst das Erscheinungsbild der
 Instanz (Kreisverband, Logo-Text, URLs, Hinweis-Banner, Kontakt-Schalter), das Gebührensystem
-(Mitglieder-/Nichtmitglieder-Preise, Anhänger- und Akku-Zuschläge, Umsatzsteuer),
+(Mitglieder-/Nichtmitglieder-Preise, Anhänger- und Akku-Zuschläge, Anzahl der
+Sicherheitsetiketten im Grundpreis, Umsatzsteuer),
 PDF-Optionen (eine vs. zwei Ausfertigungen, Bar-/Kartenzahlung), Carbon-Rahmen
 (`ZEIGE_CARBONRAHMEN` — Feld, Preisberechnung und PDF-Zeile gemeinsam), Barcode-Typ und
 Jahr-in-der-EIN sowie die Infrastruktur: Port, `TZ` (IANA-Zeitzone — validiert; sie

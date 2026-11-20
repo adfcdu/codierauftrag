@@ -1273,6 +1273,18 @@ form button:not([disabled]):hover {
     margin-left: 0.5vw;
     display: block;
 }
+/* Zusatzinfo unter der Preiszeile (Preis je weiterem Sicherheitsetikett) —
+   kleiner und zurückhaltender als der Preis selbst; ohne Inhalt (keine
+   Etiketten-Codierung) verschwindet sie samt Abstand */
+#price-note {
+    font-size: var(--text-sm);
+    margin-left: 0.5vw;
+    display: block;
+    margin-top: 6px;
+}
+#price-note:empty {
+    display: none;
+}
 
 .page-footer {
     display: flex;

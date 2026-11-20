@@ -24,6 +24,7 @@ export interface PublicConfig {
   preisAnhaengerNichtMitglied: number;
   aufpreisAkkuMitglied: number;
   aufpreisAkkuNichtMitglied: number;
+  etikettenAnzahl: number;
   zeigeUmsatzsteuer: boolean;
   umsatzsteuerProzent: number;
   zeigeBarzahlung: boolean;
@@ -68,6 +69,7 @@ export function buildPublicConfig(config: ParsedConfig, version: string): Public
     preisAnhaengerNichtMitglied: config.preisAnhaengerNichtMitglied,
     aufpreisAkkuMitglied: config.aufpreisAkkuMitglied,
     aufpreisAkkuNichtMitglied: config.aufpreisAkkuNichtMitglied,
+    etikettenAnzahl: config.etikettenAnzahl,
     zeigeUmsatzsteuer: config.zeigeUmsatzsteuer,
     umsatzsteuerProzent: config.umsatzsteuerProzent,
     zeigeBarzahlung: config.zeigeBarzahlung,
