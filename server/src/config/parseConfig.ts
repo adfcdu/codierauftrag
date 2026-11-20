@@ -223,11 +223,16 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     }
   }
 
-  // Optionales mailto:/tel:-Präfix wird akzeptiert und entfernt — gespeichert wird
-  // der bloße Anzeigewert; die Links bauen Client und Fehlerseite selbst daraus.
+  // Gespeichert wird der bloße Anzeigewert; die mailto:-Links bauen Client und
+  // Fehlerseite selbst daraus. Ein mitkopiertes Präfix ist ein Konfigurations-
+  // fehler — sonst entstünde stillschweigend ein mailto:mailto:-Link.
   function email(key: string): string | undefined {
     if (isUnset(key)) return undefined;
-    const v = raw(key)!.trim().replace(/^mailto:/i, '');
+    const v = raw(key)!.trim();
+    if (/^mailto:/i.test(v)) {
+      err(key, `darf kein mailto:-Präfix enthalten (nur die Adresse)`);
+      return undefined;
+    }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
       err(key, `ist keine gültige E-Mail-Adresse`);
       return undefined;
@@ -246,10 +251,14 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
   // damit der Link nie ohne Empfänger dasteht.
   const fehlerEmailAdresse = email('FEHLER_EMAIL_ADRESSE') ?? DEFAULT_FEHLER_EMAIL_ADRESSE;
 
+  // Wie bei der E-Mail: nur die Nummer, den tel:-Link bauen Client und
+  // Fehlerseite selbst (ohne Leerzeichen im URI).
   let telefonNummer = '';
   if (!isUnset('TELEFON_NUMMER')) {
-    const v = raw('TELEFON_NUMMER')!.trim().replace(/^tel:/i, '');
-    if (!/^[\d\s+\/().-]+$/.test(v)) {
+    const v = raw('TELEFON_NUMMER')!.trim();
+    if (/^tel:/i.test(v)) {
+      err('TELEFON_NUMMER', `darf kein tel:-Präfix enthalten (nur die Nummer)`);
+    } else if (!/^[\d\s+\/().-]+$/.test(v)) {
       err('TELEFON_NUMMER', `darf nur Ziffern, Leerzeichen und + / ( ) . - enthalten`);
     } else {
       telefonNummer = v;

@@ -21,11 +21,11 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.ortInitial).toBe('Beispielstadt');
     expect(c.zeigeAkku).toBe(true);
     expect(c.zeigeEmail).toBe(true);
-    expect(c.emailAdresse).toBe('codierung@beispielstadt.invalid'); // mailto:-Präfix entfernt
-    expect(c.fehlerEmailAdresse).toBe('webmaster@beispielstadt.invalid'); // eigener Empfänger, Präfix entfernt
+    expect(c.emailAdresse).toBe('codierung@beispielstadt.invalid'); // bloße Adresse, ohne mailto:
+    expect(c.fehlerEmailAdresse).toBe('webmaster@beispielstadt.invalid'); // eigener Empfänger
     expect(c.zeigeFehlerEmail).toBe(true);
     expect(c.zeigeTelefon).toBe(true);
-    expect(c.telefonNummer).toBe('0123 456789'); // tel:-Präfix entfernt
+    expect(c.telefonNummer).toBe('0123 456789'); // bloße Nummer, ohne tel:
     expect(c.zeigePreise).toBe(true);
     expect(c.preisMitglied).toBe(5);
     expect(c.preisNichtMitglied).toBe(20);
@@ -87,19 +87,28 @@ describe('parseConfig — valid fixtures', () => {
     expect(process.env.TZ).toBe('Europe/Berlin');
   });
 
-  it('strips optional mailto:/tel: prefixes case-insensitively and stores the plain values', () => {
+  it('rejects a mailto:/tel: prefix in the contact values (the program builds the links)', () => {
     const base = envFixture('kv-beispielstadt.env');
     const result = parseConfig({
       ...base,
       EMAIL_ADRESSE: 'MAILTO:codierung@beispielstadt.invalid',
-      FEHLER_EMAIL_ADRESSE: 'MAILTO:webmaster@beispielstadt.invalid',
+      FEHLER_EMAIL_ADRESSE: 'mailto:webmaster@beispielstadt.invalid',
       TELEFON_NUMMER: 'TEL:0123 456789',
     });
-    expect('errors' in result).toBe(false);
-    if ('errors' in result) return;
-    expect(result.config.emailAdresse).toBe('codierung@beispielstadt.invalid');
-    expect(result.config.fehlerEmailAdresse).toBe('webmaster@beispielstadt.invalid');
-    expect(result.config.telefonNummer).toBe('0123 456789');
+    expect('errors' in result).toBe(true);
+    if (!('errors' in result)) return;
+    expect(result.errors).toContainEqual({
+      key: 'EMAIL_ADRESSE',
+      reason: 'darf kein mailto:-Präfix enthalten (nur die Adresse)',
+    });
+    expect(result.errors).toContainEqual({
+      key: 'FEHLER_EMAIL_ADRESSE',
+      reason: 'darf kein mailto:-Präfix enthalten (nur die Adresse)',
+    });
+    expect(result.errors).toContainEqual({
+      key: 'TELEFON_NUMMER',
+      reason: 'darf kein tel:-Präfix enthalten (nur die Nummer)',
+    });
   });
 
   it('FEHLER_EMAIL_ADRESSE falls back to the project address and is independent of ZEIGE_EMAIL', () => {
@@ -144,7 +153,7 @@ describe('parseConfig — valid fixtures', () => {
     });
   });
 
-  it('rejects a foreign scheme in EMAIL_ADRESSE (mailto:-Präfix erzwungen)', () => {
+  it('rejects a foreign scheme in EMAIL_ADRESSE (nur die Adresse, kein Link)', () => {
     const base = envFixture('kv-beispielstadt.env');
     const result = parseConfig({ ...base, EMAIL_ADRESSE: 'https://beispielstadt.invalid' });
     expect('errors' in result).toBe(true);
