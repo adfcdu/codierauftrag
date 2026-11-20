@@ -1301,11 +1301,18 @@ form button:not([disabled]):hover {
 }
 
 /* Kleine Versionszeile im Footer-Band (letzte Flex-Zeile) — dieselbe
-   Versionsnummer wie die PDF-Fußzeile. */
+   Versionsnummer wie die PDF-Fußzeile, daneben der Fehlerbericht-Link. */
 .page-version {
     width: 100%;
     margin: 20px 0 2px;
-    text-align: center;
+    /* Version und Fehler-Link nebeneinander, auf schmalen Screens
+       umbrechend statt abgeschnitten */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    column-gap: 0.6em;
+    row-gap: 4px;
     /* Weiß transparent abgestuft — Version klein, aber auf dem dunklen
        Band lesbar */
     color: rgba(255, 255, 255, 0.75);

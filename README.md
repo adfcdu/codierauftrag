@@ -245,6 +245,11 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
 - **Live-Preiszeile** (``Codiergebühr: Fahrrad + Akku: 7,50 € (Mitglied)``),
   deutsche Formatierung über `Intl.NumberFormat('de-DE')`, bei jeder relevanten
   Änderung neu berechnet.
+- **Fehlerbericht per E-Mail**: Der Link „Fehler per E-Mail melden“ neben der
+  Versionszeile entwirft eine E-Mail mit den Formulareingaben (Textfelder und
+  Toggles, **ohne** Vor-/Nachname und Hausnummer), der Version und der Seiten-URL
+  — ein reiner `mailto:`-Link, abgeschickt wird erst im Mailprogramm. Er
+  erscheint nur bei `ZEIGE_EMAIL=true` mit gesetzter `EMAIL_ADRESSE`.
 - **Datalists** (natives `<input list>`) für Ort, Straße, Typ, Radart, Schaltung
   und Position der Rahmennummer; die Auswahl eines Ort-Kandidaten übernimmt dessen
   AGS und löst die Straße neu auf; die Auswahl eines Straßen-Kandidaten fragt mit

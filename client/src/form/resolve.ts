@@ -12,6 +12,7 @@ import {
 } from '../values.js';
 import type { FormValues, StreetcodeState } from '../values.js';
 import { CONFIG } from '../configTypes.js';
+import { updateErrorMailLink } from '../errorMail.js';
 import {
   buildDatalist,
   genPdfEnabled,
@@ -107,6 +108,8 @@ export function wireForm(
     updatePriceLine(page, values);
     updateEinBox(page, values, state);
     updateGenPdfGate(page, values, state);
+    // Fehlerbericht-Link im Footer trägt immer den aktuellen Formularstand
+    updateErrorMailLink(doc, values);
   }
 
   function isFieldBusy(id: 'ort' | 'strasse'): boolean {

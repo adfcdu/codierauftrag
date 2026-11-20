@@ -5,6 +5,8 @@
  */
 
 import type { AppConfig } from '../configTypes.js';
+import { errorMailHref } from '../errorMail.js';
+import { readForm } from '../values.js';
 import { attachCombobox, syncComboArrows } from './combobox.js';
 import { attachDatePicker } from './datepicker.js';
 
@@ -664,6 +666,19 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   versionLink.target = '_blank';
   versionLink.rel = 'noopener';
   versionLine.append(versionLink);
+  // Fehlerbericht direkt neben der Version: mailto:-Link, der eine E-Mail mit
+  // den Formulareingaben (ohne Vor-/Nachname und Hausnummer), Version und
+  // Seiten-URL entwirft. Nur wenn eine Kontaktadresse konfiguriert und
+  // sichtbar ist — sonst gäbe es keinen Empfänger. Der href wird bei jeder
+  // Eingabe neu gesetzt (resolve.ts → refreshDisplay).
+  if (config.zeigeEmail && config.emailAdresse !== '') {
+    const separator = el(doc, 'span', 'page-version-sep', '\u00b7');
+    separator.setAttribute('aria-hidden', 'true');
+    const mailLink = el(doc, 'a', undefined, 'Fehler per E-Mail melden') as HTMLAnchorElement;
+    mailLink.id = 'fehlerMail';
+    mailLink.href = errorMailHref(doc, readForm(doc));
+    versionLine.append(separator, mailLink);
+  }
   footer.append(versionLine);
 
   return { form, genPdf, price, einBox, einCells, datalistOrt, datalistStrasse };
