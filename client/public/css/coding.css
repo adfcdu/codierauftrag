@@ -617,8 +617,27 @@ body.impressum a:visited {
        Newsletter-Archivs): kompakter Header, KV-Text skaliert via cqw mit. */
     width: 100%;
     max-width: 200px;
-    margin: 0;
     container-type: inline-size;
+    /* #logo ist ein Link (KV_WEB_URL): display:block, damit Breite und
+       container-type greifen (beides wirkt nicht auf Inline-Boxen) und
+       Bild + Text eine zusammenhängende Klickfläche bilden. */
+    display: block;
+    text-decoration: none;
+    /* Klickrechteck: 8px Polster um Bild und Text, damit das Ziel nicht
+       exakt an der Grafik klebt. Das Polster liegt außerhalb der
+       content-box (kein box-sizing: border-box in diesem Stylesheet),
+       die 200px für Bild, Prozent-Margins und cqw bleiben also
+       unverändert; der negative Außenabstand zieht den Kasten wieder auf
+       seine alte Größe zurück, sodass sich am Layout nichts verschiebt. */
+    padding: 8px;
+    margin: -8px;
+}
+/* Kein Hover-Effekt: das Logo bleibt wie auf adfc.de unverändert (kein
+   Unterstreichen, keine Farbänderung). Nur der Tastaturfokus wird
+   sichtbar gemacht. */
+#logo:focus-visible {
+    outline: 2px solid rgba(0, 75, 124, 0.55);
+    outline-offset: 2px;
 }
 #logo-picture {
     width: 100%

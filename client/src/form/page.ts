@@ -288,8 +288,15 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
 
   // ── header ──
   const header = el(doc, 'div', 'header');
-  const logo = el(doc, 'div');
+  // Logo-Bild und -Text sind ein gemeinsamer Link auf die KV-Webseite
+  // (KV_WEB_URL). Das <a> ist selbst #logo, damit die ganze Logo-Fläche
+  // als Klickziel dient und die cqw-Skalierung von #logo-text erhalten
+  // bleibt (container-type sitzt auf #logo).
+  const logo = el(doc, 'a');
   logo.id = 'logo';
+  logo.href = config.kvWebUrl;
+  logo.target = '_blank';
+  logo.rel = 'noopener';
   const logoPicture = el(doc, 'img') as HTMLImageElement;
   logoPicture.id = 'logo-picture';
   logoPicture.src = 'img/ADFC-logo-white.png';
