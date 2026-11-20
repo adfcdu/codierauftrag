@@ -494,7 +494,7 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   // textContent — kein innerHTML mit Konfigurationsdaten.
   const privacyNote = el(doc, 'p', 'formhinweis');
   privacyNote.append(
-    doc.createTextNode('Ihre Daten bleiben in Ihrem Browser. Nur Ort und Straße gehen für die Code-Suche an den ADFC.'),
+    doc.createTextNode('Ihre Daten bleiben in Ihrem Browser. Nur Ort und Straße gehen für die Straßen-Code-Suche an den ADFC.'),
     el(doc, 'br'),
     doc.createTextNode('Details: '),
   );
