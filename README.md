@@ -254,6 +254,9 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
   bei Carbon-Rahmen oder Akku. Der Gebührenblock im PDF zeigt Betrag mit
   Mitgliedsstatus und Codierverfahren je Position (`pdfFeeLines` in
   `client/src/values.ts`); die Etikett-Zusatzinfo bleibt der Seite vorbehalten.
+  Bei Carbon-Rahmen steht über dem Gebührenblock der Ausfertigung ADFC
+  zusätzlich in Rot „Achtung Carbon-Rahmen: Keine Nadelmarkierung anbringen“
+  (`carbonWarningText`) — die Kundenausfertigung bleibt ohne diesen Hinweis.
 - **Fehlerbericht per E-Mail**: Der Link „Fehler per E-Mail melden“ neben der
   Versionszeile entwirft eine E-Mail mit den Formulareingaben (Textfelder und
   Toggles, **ohne** Vor-/Nachname und Hausnummer), der Version und der Seiten-URL

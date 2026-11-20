@@ -12,7 +12,7 @@ import {
   einParts,
   einText,
 } from '../ein.js';
-import { isTrailer, kaufDatumDisplayYmd, pdfFeeLines } from '../values.js';
+import { carbonWarningText, isTrailer, kaufDatumDisplayYmd, pdfFeeLines } from '../values.js';
 import { encodeUrl } from '../qr.js';
 import { render1DBarcode, renderQrCode } from './barcodes.js';
 import type { BarcodeDeps } from './barcodes.js';
@@ -155,6 +155,7 @@ export async function buildPdf(
   const bikeOrTrailer = isTrailer(values.typ) ? 'Fahrradanhänger' : 'Fahrrad';
   const bikeOrTrailerGenitive = isTrailer(values.typ) ? 'Fahrradanhängers' : 'Fahrrades';
   const batteryOrEmpty = config.zeigeAkku ? ' (optional auch den Akku)' : '';
+  const carbonWarning = carbonWarningText(config, values);
 
   const baseUrl =
     overrides.footerUrl ??
@@ -581,6 +582,22 @@ export async function buildPdf(
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.2);
     doc.rect(122, 180, RIGHT_X - 122, frameHeight);
+
+    // carbon warning directly above the fee frame — ADFC copy only, like the
+    // ADFC check boxes below (the customer sheet stays free of it). Red is the
+    // page warning red (#b3261e); the block grows upwards from the frame top.
+    if (copyText !== CUSTOMER_COPY_LABEL && carbonWarning) {
+      setFont(10, 'bold');
+      const warningLines = wrapLines(doc, carbonWarning, feeWidth);
+      const warningLh = lineHeightMm(10);
+      let wy = 180 - 2 - warningLines.length * warningLh;
+      doc.setTextColor(179, 38, 30);
+      for (const line of warningLines) {
+        doc.text(line, 122 + PAD, lineBaseline(wy, 10), { baseline: 'alphabetic' });
+        wy += warningLh;
+      }
+      doc.setTextColor(0, 0, 0);
+    }
 
     // ADFC check boxes (payment received, ID + proof-of-ownership checked) —
     // only the ADFC copy carries them; the customer sheet stays blank there

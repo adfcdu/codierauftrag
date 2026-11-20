@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { setConfig } from '../../client/src/configTypes.js';
 import type { AppConfig } from '../../client/src/configTypes.js';
 import {
+  carbonWarningText,
   extraEtikettNoteText,
   extraEtikettPriceText,
   pdfFeeLines,
@@ -163,6 +164,27 @@ describe('pdfFeeLines — the PDF fee block mirrors the price bar', () => {
     expect(pdfFeeLines(config, values({ carbonRahmen: true }))).toEqual([
       'Codierung von Fahrrad (2 Sicherheitsetiketten)',
     ]);
+  });
+});
+
+describe('carbonWarningText — the warning above the PDF fee block', () => {
+  it('warns against the Nadelmarkierung for a carbon frame', () => {
+    const config = useConfig();
+    expect(carbonWarningText(config, values({ carbonRahmen: true }))).toBe(
+      'Achtung Carbon-Rahmen:\nKeine Nadelmarkierung anbringen',
+    );
+  });
+
+  it('stays empty for an aluminium/steel frame, the Akku and a trailer', () => {
+    const config = useConfig();
+    expect(carbonWarningText(config, values())).toBe('');
+    expect(carbonWarningText(config, values({ akku: true }))).toBe('');
+    expect(carbonWarningText(config, values({ typ: 'Anhänger', carbonRahmen: true }))).toBe('');
+  });
+
+  it('stays empty when ZEIGE_CARBONRAHMEN=false hides the carbon coding', () => {
+    const config = useConfig({ ZEIGE_CARBONRAHMEN: 'false' });
+    expect(carbonWarningText(config, values({ carbonRahmen: true }))).toBe('');
   });
 });
 

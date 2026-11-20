@@ -428,6 +428,24 @@ export function vatLines(config: AppConfig, gross: number): string[] {
 }
 
 /**
+ * Warning above the PDF fee block: a carbon frame must never be needle-marked.
+ * Two lines — the fee frame width (77 mm) cannot hold the sentence on one line
+ * at 10 pt bold.
+ */
+export const CARBON_WARNING_TEXT =
+  'Achtung Carbon-Rahmen:\nKeine Nadelmarkierung anbringen';
+
+/**
+ * The carbon warning for the PDF, or '' when no carbon frame is coded. Same
+ * condition as the price: suppressed when ZEIGE_CARBONRAHMEN=false and for a
+ * trailer (QR-prefilled values bypass the disabled form field).
+ */
+export function carbonWarningText(config: AppConfig, values: FormValues): string {
+  const carbon = config.zeigeCarbonRahmen && values.carbonRahmen && !isTrailer(values.typ);
+  return carbon ? CARBON_WARNING_TEXT : '';
+}
+
+/**
  * Fee block lines for the PDF — the same fee information as the page price
  * bar: the fee with the member status, the coding method per item, and the
  * VAT lines. The extra-label price note stays on the page only.
