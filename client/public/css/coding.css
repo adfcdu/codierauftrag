@@ -197,44 +197,121 @@ body.impressum a:visited {
     color: var(--adfc-blue);
 }
 
-/* Oranger Struktur-Streifen oben (wie structure-strip der Hauptwebsite);
-   dieselben Kontakt-Elemente wie im Footer. Rechtsbündig innerhalb der
-   gemeinsamen Inhaltsbreite (var(--content-width)) wie der Header. */
+/* Oranger Struktur-Streifen oben (wie structure-strip der Hauptwebsite):
+   links der KV-Name (KREIS_VERBAND), rechts dieselben Kontakt-Elemente wie
+   im Footer. Beide sitzen innerhalb der gemeinsamen Inhaltsbreite
+   (var(--content-width)) wie der Header — der KV-Name beginnt also genau
+   an der linken Kante der Inhaltsspalte. */
 .structure-strip {
+    /* Gutter wie bei allen Sektionen. Lokal als Variable, weil der
+       Streifen ihn zweimal braucht: rechts voll, links zusätzlich um den
+       optischen Versatz des Originals verschoben. */
+    --strip-gutter: max(20px, calc((100% - var(--content-width)) / 2));
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-end;
-    column-gap: 2em;
+    justify-content: space-between;
+    /* Mindestabstand zwischen KV-Name und Kontaktgruppe. Nur ein
+       Minimum: bei Platzüberschuss verteilt justify-content: space-between
+       den Rest, der sichtbare Abstand ist dann größer. Wirksam wird der
+       Wert also nur am schmalen Rand — und dort zählt jedes Pixel: bei
+       1350px (Einblendschwelle des Namens) passen Name (450px) und
+       Kontakte (597px) zusammen mit 2rem (32px) nicht in die 1074px
+       breite Inhaltsspalte, der Balken bräche auf zwei Zeilen um. Mit
+       1rem bleibt 11px Luft. Gleicher Wert wie der Abstand zwischen den
+       Kontakten. */
+    column-gap: 1rem;
     row-gap: 4px;
-    /* Höhe wie auf www.adfc.de: dort liefert ein h4 (Schrift effektiv
-       80 %, line-height 1.15 aus dem Normalize, padding .3rem) in einem
-       Container mit padding .2rem die Höhe 30.72px. Hier über min-height
-       gesetzt statt über vertikales Padding: die Zeile ist mit der
-       größeren Schrift 13.6px × 1.15 = 15.64px hoch, den Rest bis
-       30.72px trägt der Balken selbst — align-items: center hält den
-       Text darin mittig. Vertikales Padding würde den Balken über die
-       Originalhöhe hinaus wachsen lassen. min-height (nicht height):
-       bricht der Inhalt auf zwei Zeilen um, wächst der Balken mit,
-       statt den Text abzuschneiden. */
+    /* Höhe aus dem Inhalt statt aus einer festen Zahl — wie auf
+       www.adfc.de: dort trägt der Container padding .2rem oben/unten, der
+       h4 zusätzlich .3rem 0, und der h4 ist 16px × 1.4 (line-height aus
+       „h3,h4 { line-height:1.4 }“) hoch. Das ergibt 38.4px — hier
+       dieselben 38.4px (16px × 1.4 = 22.4px, plus 9.6px h4-Padding plus
+       6.4px Streifen-Padding). Kein min-height: der Balken wächst mit der
+       vom Nutzer gewählten Schriftgröße und mit umbrechendem Inhalt,
+       statt Text abzuschneiden. */
     line-height: 1.15;
-    min-height: 30.72px;
     box-sizing: border-box;
     color: var(--color-lighter);
-    /* 80 % wie im Original (adfc.de) — relativ zur rem-basierten
-       Body-Schrift, skaliert also genauso mit der Nutzereinstellung
-       (80 % von 17px = 13.6px). */
-    font-size: 80%;
+    /* 1rem wie der h4 des Originals („font-size: 1rem“). Bewusst als rem
+       statt über die Skalen-Tokens: die Skala springt von --text-sm
+       (15px) auf --text-base (17px) und hat keinen 16px-Schritt. 17px
+       scheidet aus, weil die Kontakte dann bei 700px Fensterbreite
+       (630px Spalte) nicht mehr in eine Zeile passen — sie brauchen bei
+       16px 597px, bei 17px 631px. */
+    font-size: 1rem;
     /* Eine Stufe kräftiger als der Fließtext (Body ist 300), aber nicht
        fett: der Balken trägt nur wenige Wörter und soll auf dem orangen
        Grund klar lesbar sein. */
     font-weight: 400;
     /* gleiche Inhaltsbreite wie Header/Formular (var(--content-width)
-       + Gutter): der Balkeninhalt sitzt rechtsbündig innerhalb der
-       Inhaltsspalte */
-    padding: 0 max(20px, calc((100% - var(--content-width)) / 2));
+       + Gutter): der Balkeninhalt sitzt innerhalb der Inhaltsspalte —
+       KV-Name linksbündig, Kontakte rechtsbündig. Links 6px mehr, wie das
+       „padding-left: 6px“ des Originals: der Name soll nicht exakt auf
+       der Kante der Inhaltsspalte kleben. */
+    padding: 0.2rem var(--strip-gutter);
+    padding-left: calc(var(--strip-gutter) + 6px);
     background-color: var(--adfc-orange);
 }
+/* KV-Name links im Streifen (KREIS_VERBAND aus der .env). Er darf
+   umbrechen, statt die Kontakte aus dem Balken zu drängen — der Balken
+   wächst dann mit. */
+.structure-strip-kv {
+    flex: 0 1 auto;
+    max-width: 100%;
+    /* h2-Defaults zurücksetzen: die Überschrift trägt die Schriftgröße des
+       Streifens (nicht 1.5em) und keinen eigenen Außenabstand — die
+       Balkenhöhe kommt allein aus Padding und line-height. */
+    font-size: inherit;
+    margin: 0;
+    /* eine Stufe leichter als die Kontakte (400) — wie der Fließtext */
+    font-weight: 300;
+    /* Sperrung wie im Original („letter-spacing: .05rem“ am h4): der
+       lange Vereinsname wirkt dadurch luftiger und weniger gedrängt. */
+    letter-spacing: 0.05rem;
+    /* line-height und vertikales Padding des Original-h4 (1.4 bzw.
+       .3rem 0) — sie liefern zusammen mit dem Streifen-Padding die
+       Balkenhöhe, s. Kommentar an .structure-strip. */
+    line-height: 1.4;
+    padding: 0.3rem 0;
+}
+/* Kontaktgruppe rechts: eine benannte Liste (<ul>), deren Einträge eine
+   Flex-Zeile bilden. */
+.structure-strip-contact {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    /* 1rem wie „nav.topnav ul { gap: 0 1rem }“ im Original */
+    column-gap: 1rem;
+    row-gap: 4px;
+    /* Jeder Kontakt bleibt auf einer Zeile („white-space: nowrap“ an der
+       Liste im Original); umbrochen wird nur zwischen den Kontakten. */
+    white-space: nowrap;
+    /* <ul>-Defaults zurücksetzen — die Liste ist eine Flex-Zeile, keine
+       Aufzählung (wie „nav.topnav ul { margin:0; padding:0;
+       list-style:none }“ im Original). Ohne das Padding würde der
+       Standard-Einzug von 40px die Kontakte nach innen schieben. */
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    /* schiebt die Kontakte bei Platzmangel nach rechts, auch wenn der
+       KV-Name umbricht */
+    margin-left: auto;
+    /* Linkgröße exakt wie im Original („.topnav a { font-size: .85rem }“,
+       ab 360px .9rem, ab 480px 1rem) — in rem, nicht über die Skalen-
+       Tokens: die Skala hat keinen 16px-Schritt, und die drei Stufen des
+       Originals (13.6 / 14.4 / 16px) liegen zwischen --text-xs (13px)
+       und --text-base (17px). Die Kontakte sind damit so groß wie die
+       Links auf www.adfc.de. */
+    font-size: 0.85rem;
+}
+@media (min-width: 360px) {
+    .structure-strip-contact {
+        font-size: 0.9rem;
+    }
+}
+/* Ab 480px gilt der dritte Schritt — die 1rem des Streifens, die die
+   Liste erbt. Kein eigenes Media-Query nötig. */
 /* Kein Underline im Ruhezustand (Browser-Default), erst beim Hover/Fokus */
 .structure-strip a,
 .structure-strip a:visited {
@@ -249,17 +326,40 @@ body.impressum a:visited {
    Info, Impressum) — der Streifen bleibt dadurch schmal. Die SVGs sind
    schwarz gefüllt; brightness(0) + invert(1) färbt sie weiß wie den Text. */
 .structure-strip img.strip-icon {
-    /* größer als die Schrift (1.4em ≈ 19px): die Symbole sollen auf dem
-       orangen Grund sofort erkennbar sein — die Zeile bleibt mit 19px
-       deutlich unter der Balkenhöhe */
+    /* größer als die Schrift (1.4em): die Symbole sollen auf dem orangen
+       Grund sofort erkennbar sein. Die Einheit em lässt sie mit der
+       Linkgröße wachsen — 22.4px bei 16px Schrift (ab 480px), 19px bei
+       13.6px (unter 360px). Die Zeile bleibt damit deutlich unter der
+       Balkenhöhe. */
     width: 1.4em;
     height: 1.4em;
     /* Mitte des Symbols auf die Mitte der Textzeile, nicht auf die
        Grundlinie */
     vertical-align: middle;
-    /* Jedem Symbol folgt Text (Adresse, Nummer, „Info“, „Impressum“) */
-    margin-right: 0.35em;
+    /* Jedem Symbol folgt Text (Adresse, Nummer, „Info“, „Impressum“).
+       0.25rem wie „nav.topnav span.icon { margin-right: .25rem }“ im
+       Original — bewusst in rem, nicht in em: der Abstand bleibt gleich,
+       auch wenn die Linkgröße mit dem Viewport wächst. */
+    margin-right: 0.25rem;
     filter: brightness(0) invert(1);
+}
+/* Unter 1350px bleibt nur die Kontaktgruppe im Balken — wie auf
+   www.adfc.de, wo der h4 mit dem langen Vereinsnamen erst ab 1280px
+   eingeblendet wird („h4:has(+.topnav) { display:none }“) und der
+   Container bis dahin rechtsbündig ausrichtet. Der Balken bleibt also
+   gefüllt; nur der Name entfällt, weil er sonst über mehrere Zeilen
+   laufen und den Streifen aufblähen würde. Unsere Schwelle liegt höher
+   als die 1280px des Originals, weil unser Name den KV-Namen enthält
+   (450px statt der kürzeren Originalzeile) und die Kontakte 597px
+   belegen: zusammen mit dem 1rem-Abstand brauchen sie 1063px, die
+   80%-Spalte liefert die erst ab 1337px (1350px: 1074px). */
+@media (max-width: 1349px) {
+    .structure-strip {
+        justify-content: flex-end;
+    }
+    .structure-strip-kv {
+        display: none;
+    }
 }
 
 .header,
@@ -442,6 +542,36 @@ body.impressum a:visited {
     text-decoration: underline;
 }
 
+/* Der Struktur-Streifen schaltet früher auf reine Symbole als der Rest
+   der Seite (760px statt 700px). Grund ist ein Sprung in der
+   Inhaltsbreite: bis 700px gilt 90 % (Inhaltsspalte 624px), ab 701px
+   wieder 80 % — dort ist die Spalte nur 555px breit, die Kontakte mit
+   Beschriftung brauchen aber 597px. Zwischen 701px und 753px bräche der
+   Balken deshalb auf zwei Zeilen um. Ab 754px passt er wieder (760px:
+   602px Spalte), die Schwelle 760px deckt die Lücke also ab.
+   Es geht dabei keine Information verloren — die zugänglichen Namen
+   liefern die aria-label der Links, die Symbole selbst sind dekorativ
+   (alt=""). Der rechte Rand des Symbols entfällt mit, damit die
+   Abstände zwischen den Symbolen gleichmäßig bleiben. */
+@media (max-width: 760px) {
+    .structure-strip-contact {
+        /* Ohne Beschriftung tragen die Symbole die Trennung allein: der
+           Abstand wächst von 1rem auf 1.5rem, sonst kleben vier nackte
+           Symbole aneinander. Zusammen mit dem entfallenden rechten Rand
+           ergibt das 24px zwischen den Symbolen (vorher 16px + 4px
+           Rand). Vier Symbole à 22.4px plus drei Abstände = 161.6px —
+           passt auch bei 320px Viewport (282px Inhaltsspalte) in eine
+           Zeile. */
+        column-gap: 1.5rem;
+    }
+    .structure-strip-contact .strip-label {
+        display: none;
+    }
+    .structure-strip-contact img.strip-icon {
+        margin-right: 0;
+    }
+}
+
 @media (max-width: 700px) {
     /* Kleinere Screens: die 80%-Spalte lässt relativ viel Rand.
      Halber Rand: 90% statt 80% — der Gutter halbiert sich von 10%
@@ -453,14 +583,6 @@ body.impressum a:visited {
     .header,
     .instructions {
         grid-template-columns: 1fr;
-    }
-
-    /* Auf kleinen Screens bleiben der oranger Balken (Struktur-Streifen)
-       und darin die weißen Text-Elemente ausgeblendet — die Kontaktdaten
-       stehen weiterhin im Footer. */
-    .structure-strip a,
-    .structure-strip span {
-        display: none;
     }
 
     .header {

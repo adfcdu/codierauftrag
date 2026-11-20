@@ -176,8 +176,15 @@ export interface BuiltPage {
  *  Struktur-Streifen oben und im Footer unten verwendet. withIcons: im
  *  Streifen ersetzen Symbole die Beschriftungen („E-Mail:“, „Telefon:“)
  *  und die Linktexte, damit der Streifen schmal bleibt. Die Symbole sind
- *  dekorativ (alt=""), die zugänglichen Namen liefern dann aria-label. */
-function appendContactItems(container: HTMLElement, config: AppConfig, withIcons = false): void {
+ *  dekorativ (alt=""), die zugänglichen Namen liefern dann aria-label.
+ *  listItems: im Streifen sind die Kontakte eine Liste (<ul>), jeder
+ *  Eintrag wird dann in ein <li> gelegt; im Footer bleibt es beim <span>. */
+function appendContactItems(
+  container: HTMLElement,
+  config: AppConfig,
+  withIcons = false,
+  listItems = false,
+): void {
   const doc = container.ownerDocument;
   const icon = (file: string): HTMLImageElement => {
     const img = doc.createElement('img');
@@ -186,39 +193,53 @@ function appendContactItems(container: HTMLElement, config: AppConfig, withIcons
     img.alt = '';
     return img;
   };
+  // Rahmen für einen Eintrag: <li> in der Liste des Streifens, sonst der
+  // bisherige <span> (Footer).
+  const entry = (): HTMLElement => {
+    const node = listItems ? el(doc, 'li') : el(doc, 'span');
+    container.append(node);
+    return node;
+  };
   if (config.zeigeEmail && config.emailAdresse !== '') {
-    const mail = el(doc, 'span') as HTMLSpanElement;
-    if (withIcons) {
-      mail.append(icon('envelope-solid-full.svg'));
-    } else {
-      mail.append('E-Mail: ');
-    }
-    const a = el(doc, 'a', undefined, config.emailAdresse) as HTMLAnchorElement;
+    const mail = entry();
+    const a = el(doc, 'a') as HTMLAnchorElement;
     a.href = `mailto:${config.emailAdresse}`;
-    if (withIcons) a.setAttribute('aria-label', `E-Mail: ${config.emailAdresse}`);
+    if (withIcons) {
+      // Symbol in den Link (nicht daneben), damit es Teil der Klickfläche
+      // ist — wie bei Info und Impressum unten. Die Adresse steckt in
+      // einem eigenen span, damit sie auf schmalen Screens verschwinden
+      // kann und nur das Symbol bleibt.
+      a.append(icon('envelope-solid-full.svg'), el(doc, 'span', 'strip-label', config.emailAdresse));
+      a.setAttribute('aria-label', `E-Mail: ${config.emailAdresse}`);
+    } else {
+      // Beschriftung Teil des Links, damit Hover/Klick dasselbe Ziel anspricht
+      a.textContent = `E-Mail: ${config.emailAdresse}`;
+    }
     mail.append(a);
-    container.append(mail);
   }
   if (config.zeigeTelefon && config.telefonNummer !== '') {
-    const tel = el(doc, 'span') as HTMLSpanElement;
-    if (withIcons) {
-      tel.append(icon('phone-solid-full.svg'));
-    } else {
-      tel.append('Telefon: ');
-    }
-    const a = el(doc, 'a', undefined, config.telefonNummer) as HTMLAnchorElement;
+    const tel = entry();
+    const a = el(doc, 'a') as HTMLAnchorElement;
     // tel:-URI ohne Leerzeichen; Anzeige bleibt mit, wie konfiguriert
     a.href = `tel:${config.telefonNummer.replace(/\s+/g, '')}`;
-    if (withIcons) a.setAttribute('aria-label', `Telefon: ${config.telefonNummer}`);
+    if (withIcons) {
+      // Symbol in den Link (nicht daneben), damit es Teil der Klickfläche
+      // ist — wie bei Info und Impressum unten. Die Nummer steckt in
+      // einem eigenen span, damit sie auf schmalen Screens verschwinden
+      // kann und nur das Symbol bleibt.
+      a.append(icon('phone-solid-full.svg'), el(doc, 'span', 'strip-label', config.telefonNummer));
+      a.setAttribute('aria-label', `Telefon: ${config.telefonNummer}`);
+    } else {
+      a.textContent = `Telefon: ${config.telefonNummer}`;
+    }
     tel.append(a);
-    container.append(tel);
   }
   if (config.zeigeCodierungInfo) {
     const a = el(doc, 'a') as HTMLAnchorElement;
     if (withIcons) {
       // Kurztext neben dem Symbol; der volle Text bleibt der zugängliche
       // Name (enthält „Info“ als Wortanfang, Label-in-Name bleibt erfüllt)
-      a.append(icon('circle-info-solid-full.svg'), 'Info');
+      a.append(icon('circle-info-solid-full.svg'), el(doc, 'span', 'strip-label', 'Info'));
       a.setAttribute('aria-label', 'Informationen zur Codierung');
     } else {
       a.textContent = 'Informationen zur Codierung';
@@ -226,11 +247,11 @@ function appendContactItems(container: HTMLElement, config: AppConfig, withIcons
     a.href = config.codierungInfoUrl;
     a.target = '_blank';
     a.rel = 'noopener';
-    container.append(a);
+    entry().append(a);
   }
   const datenschutz = el(doc, 'a') as HTMLAnchorElement;
   if (withIcons) {
-    datenschutz.append(icon('section-solid-full.svg'), 'Impressum');
+    datenschutz.append(icon('section-solid-full.svg'), el(doc, 'span', 'strip-label', 'Impressum'));
     datenschutz.setAttribute('aria-label', 'Impressum und Datenschutz');
   } else {
     datenschutz.textContent = 'Impressum und Datenschutz';
@@ -238,15 +259,31 @@ function appendContactItems(container: HTMLElement, config: AppConfig, withIcons
   datenschutz.href = config.datenschutzUrl;
   datenschutz.target = '_blank';
   datenschutz.rel = 'noopener';
-  container.append(datenschutz);
+  entry().append(datenschutz);
 }
 
 export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement): BuiltPage {
-  // ── oranger Struktur-Streifen über dem Header: dieselben Kontakt-
-  //    Elemente wie im Footer (E-Mail, Telefon, Info-/Recht-Links), hier
-  //    aber mit Symbolen statt Beschriftungen — der Streifen bleibt schmal ──
-  const structureStrip = el(doc, 'div', 'structure-strip');
-  appendContactItems(structureStrip, config, true);
+  // ── oranger Struktur-Streifen über dem Header: links der ausgeschriebene
+  //    Vereinsname (KREIS_VERBAND aus der .env, z. B. „KV Beispielstadt“ →
+  //    „Allgemeiner Deutscher Fahrrad-Club KV Beispielstadt e. V.“), rechts
+  //    dieselben Kontakt-Elemente wie im Footer (E-Mail, Telefon,
+  //    Info-/Recht-Links), hier aber mit Symbolen statt Beschriftungen —
+  //    der Streifen bleibt schmal. Aufbau wie im Original: <section> mit
+  //    Überschrift und einer benannten Liste der Kontakte, damit
+  //    Screenreader eine Überschrift und „4 Einträge“ ansagen. Die
+  //    Überschrift ist h2 (nicht h4 wie im Original): diese Seite hat nur
+  //    die h1 des Seitentitels, h4 würde zwei Ebenen überspringen ──
+  const structureStrip = el(doc, 'section', 'structure-strip');
+  const kvName = el(
+    doc,
+    'h2',
+    'structure-strip-kv',
+    `Allgemeiner Deutscher Fahrrad-Club ${config.kreisVerband} e. V.`,
+  );
+  const stripContacts = el(doc, 'ul', 'structure-strip-contact');
+  stripContacts.setAttribute('aria-label', 'Kontakt und Informationen');
+  appendContactItems(stripContacts, config, true, true);
+  structureStrip.append(kvName, stripContacts);
   mount.append(structureStrip);
 
   // ── header ──
