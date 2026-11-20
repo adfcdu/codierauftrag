@@ -260,7 +260,8 @@ für ein einseitiges Formular. Es ist vollständig reaktiv:
   — ein reiner `mailto:`-Link, abgeschickt wird erst im Mailprogramm. Der
   Empfänger steht in `FEHLER_EMAIL_ADRESSE` (unabhängig von `ZEIGE_EMAIL` und
   `EMAIL_ADRESSE`); ohne den Schlüssel geht der Bericht an die Projektadresse
-  `175566747+adfcdu@users.noreply.github.com`.
+  `175566747+adfcdu@users.noreply.github.com`. `ZEIGE_FEHLER_EMAIL=false`
+  blendet den Link aus (Standard: `true`).
 - **Datalists** (natives `<input list>`) für Ort, Straße, Typ, Radart, Schaltung
   und Position der Rahmennummer; die Auswahl eines Ort-Kandidaten übernimmt dessen
   AGS und löst die Straße neu auf; die Auswahl eines Straßen-Kandidaten fragt mit

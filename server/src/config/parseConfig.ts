@@ -16,6 +16,7 @@ export interface ParsedConfig {
   zeigeCarbonRahmen: boolean;
   zeigeEmail: boolean;
   emailAdresse: string;
+  zeigeFehlerEmail: boolean; // false = Fehlerbericht-Link ausgeblendet
   fehlerEmailAdresse: string; // default: DEFAULT_FEHLER_EMAIL_ADRESSE
   zeigeTelefon: boolean;
   telefonNummer: string;
@@ -116,6 +117,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
   const zeigeAkku = bool('ZEIGE_AKKU', true);
   const zeigeCarbonRahmen = bool('ZEIGE_CARBONRAHMEN', true);
   const zeigeEmail = bool('ZEIGE_EMAIL', false);
+  const zeigeFehlerEmail = bool('ZEIGE_FEHLER_EMAIL', true);
   const zeigeTelefon = bool('ZEIGE_TELEFON', false);
   const zeigePreise = bool('PREISE_ANZEIGEN', false);
   const zeigeUmsatzsteuerRaw = bool('ZEIGE_UMSATZSTEUER', false);
@@ -499,6 +501,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
     zeigeCarbonRahmen,
     zeigeEmail,
     emailAdresse,
+    zeigeFehlerEmail,
     fehlerEmailAdresse,
     zeigeTelefon,
     telefonNummer,

@@ -13,7 +13,9 @@ export interface AppConfig {
   zeigeCarbonRahmen: boolean;
   zeigeEmail: boolean;
   emailAdresse: string;
-  /** recipient of „Fehler per E-Mail melden“; '' = link hidden */
+  /** false = „Fehler per E-Mail melden“ hidden (default true) */
+  zeigeFehlerEmail: boolean;
+  /** recipient of „Fehler per E-Mail melden“; server default: project address */
   fehlerEmailAdresse: string;
   zeigeTelefon: boolean;
   telefonNummer: string;

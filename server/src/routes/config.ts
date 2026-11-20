@@ -15,6 +15,7 @@ export interface PublicConfig {
   zeigeCarbonRahmen: boolean;
   zeigeEmail: boolean;
   emailAdresse: string;
+  zeigeFehlerEmail: boolean;
   fehlerEmailAdresse: string;
   zeigeTelefon: boolean;
   telefonNummer: string;
@@ -61,6 +62,7 @@ export function buildPublicConfig(config: ParsedConfig, version: string): Public
     zeigeCarbonRahmen: config.zeigeCarbonRahmen,
     zeigeEmail: config.zeigeEmail,
     emailAdresse: config.emailAdresse,
+    zeigeFehlerEmail: config.zeigeFehlerEmail,
     fehlerEmailAdresse: config.fehlerEmailAdresse,
     zeigeTelefon: config.zeigeTelefon,
     telefonNummer: config.telefonNummer,

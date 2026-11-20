@@ -677,15 +677,17 @@ export function buildPage(doc: Document, config: AppConfig, mount: HTMLElement):
   // Fehlerbericht direkt neben der Version: mailto:-Link, der eine E-Mail mit
   // den Formulareingaben (ohne Vor-/Nachname und Hausnummer), Version und
   // Seiten-URL entwirft. Empfänger ist FEHLER_EMAIL_ADRESSE (unabhängig vom
-  // allgemeinen Kontakt), ohne Konfiguration die Projektadresse — der Link hat
-  // also immer einen Empfänger. Der href wird bei jeder Eingabe neu gesetzt
+  // allgemeinen Kontakt), ohne Konfiguration die Projektadresse. Abschaltbar
+  // über ZEIGE_FEHLER_EMAIL=false. Der href wird bei jeder Eingabe neu gesetzt
   // (resolve.ts → refreshDisplay).
-  const separator = el(doc, 'span', 'page-version-sep', '\u00b7');
-  separator.setAttribute('aria-hidden', 'true');
-  const mailLink = el(doc, 'a', undefined, 'Fehler per E-Mail melden') as HTMLAnchorElement;
-  mailLink.id = 'fehlerMail';
-  mailLink.href = errorMailHref(doc, readForm(doc));
-  versionLine.append(separator, mailLink);
+  if (config.zeigeFehlerEmail) {
+    const separator = el(doc, 'span', 'page-version-sep', '\u00b7');
+    separator.setAttribute('aria-hidden', 'true');
+    const mailLink = el(doc, 'a', undefined, 'Fehler per E-Mail melden') as HTMLAnchorElement;
+    mailLink.id = 'fehlerMail';
+    mailLink.href = errorMailHref(doc, readForm(doc));
+    versionLine.append(separator, mailLink);
+  }
   footer.append(versionLine);
 
   return { form, genPdf, price, priceNote, einBox, einCells, datalistOrt, datalistStrasse };

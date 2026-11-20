@@ -23,6 +23,7 @@ describe('parseConfig — valid fixtures', () => {
     expect(c.zeigeEmail).toBe(true);
     expect(c.emailAdresse).toBe('codierung@beispielstadt.example'); // mailto:-Präfix entfernt
     expect(c.fehlerEmailAdresse).toBe('webmaster@beispielstadt.example'); // eigener Empfänger, Präfix entfernt
+    expect(c.zeigeFehlerEmail).toBe(true);
     expect(c.zeigeTelefon).toBe(true);
     expect(c.telefonNummer).toBe('0123 456789'); // tel:-Präfix entfernt
     expect(c.zeigePreise).toBe(true);
@@ -115,6 +116,21 @@ describe('parseConfig — valid fixtures', () => {
     if ('errors' in onlyErrorMail) return;
     expect(onlyErrorMail.config.zeigeEmail).toBe(false);
     expect(onlyErrorMail.config.fehlerEmailAdresse).toBe('webmaster@beispielstadt.example');
+  });
+
+  it('ZEIGE_FEHLER_EMAIL defaults to true and can be switched off', () => {
+    const base = envFixture('minimal-valid.env');
+    const byDefault = parseConfig(base);
+    expect('errors' in byDefault).toBe(false);
+    if ('errors' in byDefault) return;
+    expect(byDefault.config.zeigeFehlerEmail).toBe(true);
+
+    const off = parseConfig({ ...base, ZEIGE_FEHLER_EMAIL: 'false' });
+    expect('errors' in off).toBe(false);
+    if ('errors' in off) return;
+    expect(off.config.zeigeFehlerEmail).toBe(false);
+    // der Empfänger bleibt konfiguriert — nur der Link entfällt
+    expect(off.config.fehlerEmailAdresse).toBe(DEFAULT_FEHLER_EMAIL_ADRESSE);
   });
 
   it('rejects an invalid FEHLER_EMAIL_ADRESSE', () => {
