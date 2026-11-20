@@ -1214,6 +1214,44 @@ label.toggle input:focus-visible {
     outline: 2px solid rgba(0, 75, 124, 0.55);
     outline-offset: 2px;
 }
+/* Deaktivierter Toggle („Akku codieren“ ohne Pedelec/E-Bike): Text und
+   Schalter ausgegraut, kein Hover-Blau und kein Zeiger — der Schalter
+   bleibt sichtbar, damit die Zeile im Raster nicht springt. */
+.input-check.disabled label.toggle,
+.input-check.disabled label.toggle:hover .toggle-text {
+    color: var(--color-medium);
+    cursor: default;
+}
+.input-check.disabled label.toggle input {
+    background-color: #dcdde0;
+    cursor: default;
+}
+.input-check.disabled label.toggle input::after {
+    box-shadow: none;
+}
+/* Deaktivierte Textfelder (Radart, Schaltung, Anzahl Gänge bei Radtyp
+   „Anhänger“): Label und Feld ausgegraut, kein Hover-Blau und kein Zeiger —
+   die Felder bleiben sichtbar, damit das Raster nicht springt. */
+.input-text.disabled label {
+    color: var(--color-medium);
+}
+.input-text.disabled > input,
+.input-text.disabled .combo input,
+.input-text.disabled > input:hover,
+.input-text.disabled .combo input:hover {
+    background-color: #dcdde0;
+    border-color: var(--color-medium);
+    box-shadow: none;
+    cursor: default;
+}
+.input-text.disabled .combo-arrow,
+.input-text.disabled .combo-arrow:hover {
+    background-color: transparent;
+    cursor: default;
+}
+.input-text.disabled .combo-arrow svg {
+    opacity: 0.4;
+}
 .validation-msg {
     /* schwebt im row-gap unter dem Feld: top 100% + 1px setzt sie direkt
        unter den Input-Block, außerhalb der Zeile — die Zeilenhöhe (und damit

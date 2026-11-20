@@ -342,3 +342,17 @@ export function attachCombobox(doc: Document, input: HTMLInputElement): void {
 export function openComboAll(input: HTMLInputElement): void {
   controllers.get(input)?.openAll();
 }
+
+/** Feld samt Pfeil-Button sperren (Radtyp „Anhänger“ sperrt Radart und
+ *  Schaltung): ein deaktiviertes Input nimmt keinen Fokus und keine Eingabe
+ *  mehr an — der Pfeil wäre aber weiter klickbar und würde einen Wert in das
+ *  gesperrte Feld schreiben. Daher sperrt diese Funktion beides und schließt
+ *  eine offene Liste. */
+export function setComboEnabled(input: HTMLInputElement, enabled: boolean): void {
+  input.disabled = !enabled;
+  const arrow = input.parentElement?.querySelector('button.combo-arrow') as
+    | HTMLButtonElement
+    | null;
+  if (arrow) arrow.disabled = !enabled;
+  if (!enabled) controllers.get(input)?.close();
+}

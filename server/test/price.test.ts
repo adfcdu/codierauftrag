@@ -96,6 +96,14 @@ describe('priceLineText — the coding method named in the price bar', () => {
     );
   });
 
+  it('ignores a set Akku toggle for a trailer (the toggle is disabled there)', () => {
+    useConfig();
+    expect(priceLineText(values({ typ: 'Anhänger', akku: true }))).toBe(
+      'Codiergebühr: Anhänger (Nadelmarkierung): 20,00 € (Nichtmitglied)',
+    );
+    expect(extraEtikettNoteText(values({ typ: 'Anhänger', akku: true }))).toBe('');
+  });
+
   it('falls back to the Nadelmarkierung when ZEIGE_CARBONRAHMEN=false', () => {
     useConfig({ ZEIGE_CARBONRAHMEN: 'false' });
     expect(priceLineText(values({ carbonRahmen: true }))).toBe(

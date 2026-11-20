@@ -290,6 +290,35 @@ export function isTrailer(typ: string): boolean {
   return typ.trim().toLowerCase() === 'anhänger';
 }
 
+/**
+ * Which fields of the Fahrrad/Anhänger section apply to the chosen Radtyp: a
+ * trailer has neither a Pedelec drive, a carbon frame nor an Akku — and
+ * neither a Radart, a Schaltung nor Gänge. Those fields are disabled and
+ * emptied for „Anhänger“; „Akku codieren“ additionally requires a
+ * Pedelec/E-Bike.
+ */
+export function fieldAvailability(
+  typ: string,
+  ebike: boolean,
+): {
+  carbonRahmen: boolean;
+  ebike: boolean;
+  akku: boolean;
+  art: boolean;
+  schaltung: boolean;
+  anzGaenge: boolean;
+} {
+  const trailer = isTrailer(typ);
+  return {
+    carbonRahmen: !trailer,
+    ebike: !trailer,
+    akku: !trailer && ebike,
+    art: !trailer,
+    schaltung: !trailer,
+    anzGaenge: !trailer,
+  };
+}
+
 const priceFormatter = new Intl.NumberFormat('de-DE', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -354,6 +383,10 @@ export function computePrice(values: FormValues): PriceInfo {
   // Suppressed entirely when the Carbon-Rahmen toggle is disabled (ZEIGE_CARBONRAHMEN=false) —
   // also covers QR-prefilled values, which bypass the hidden form field.
   const carbon = CONFIG.zeigeCarbonRahmen && values.carbonRahmen && !trailer;
+  // A trailer has no Akku either — the toggle is disabled for „Anhänger“
+  // (form/dom.ts → syncBikeFields); the guard keeps QR-prefilled values,
+  // which bypass the disabled form field, out of the price as well.
+  const akku = values.akku && !trailer;
   const base = trailer
     ? member
       ? CONFIG.preisAnhaengerMitglied
@@ -364,13 +397,13 @@ export function computePrice(values: FormValues): PriceInfo {
         ? CONFIG.preisMitglied
         : CONFIG.preisNichtMitglied;
   const aufpreis = etikettPreis(member);
-  const price = base + (values.akku ? aufpreis : 0);
+  const price = base + (akku ? aufpreis : 0);
   // The price bar and the PDF fee block name the method: Aluminium/steel
   // frames are needle-marked, carbon frames and Akkus only ever get
   // Sicherheitsetiketten.
   let methodDescr = `${descr} (${carbon ? etikettenText() : 'Nadelmarkierung'})`;
-  if (values.akku) methodDescr += ` + Akku (${etikettenText()})`;
-  return { methodDescr, price, member, usesEtiketten: carbon || values.akku };
+  if (akku) methodDescr += ` + Akku (${etikettenText()})`;
+  return { methodDescr, price, member, usesEtiketten: carbon || akku };
 }
 
 export function priceLineText(values: FormValues): string {

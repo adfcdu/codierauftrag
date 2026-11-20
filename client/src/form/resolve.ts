@@ -19,6 +19,7 @@ import {
   setBusy,
   showMessage,
   setGenPdfBusy,
+  syncBikeFields,
   updateEinBox,
   updateGenPdfGate,
   updatePriceLine,
@@ -86,6 +87,9 @@ export function wireForm(
   // ── display ──
 
   function refreshDisplay(): void {
+    // vor readForm: Toggles und Felder hängen am Radtyp und am E-Bike-Toggle
+    // und müssen den Zustand liefern, aus dem Preis und PDF berechnet werden
+    syncBikeFields(doc);
     const values = readForm(doc);
     for (const id of VALIDATION_IDS) {
       const msg = validateField(id, values, state);
