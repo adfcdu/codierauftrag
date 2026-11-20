@@ -163,8 +163,8 @@ describe('error surfaces', () => {
     expect(res.body).toContain('<title>Codierformular - Fehler</title>');
     expect(res.body).toContain('Es ist ein interner Fehler aufgetreten');
     expect(res.body).toContain('Bitte versuchen Sie es später erneut.');
-    expect(res.body).toContain('E-Mail: <a href="mailto:codierung@beispielstadt.example">codierung@beispielstadt.example</a>');
-    expect(res.body).toContain('Telefon: <a href="tel:0123456789">0123 456789</a>');
+    expect(res.body).toContain('<a href="mailto:codierung@beispielstadt.example">E-Mail: codierung@beispielstadt.example</a>');
+    expect(res.body).toContain('<a href="tel:0123456789">Telefon: 0123 456789</a>');
     expect(res.body).toContain('href="impressum_datenschutz.html"');
     expect(res.body).toContain('Impressum und Datenschutz');
   });
@@ -174,8 +174,8 @@ describe('error surfaces', () => {
     const withContacts = parseConfig(base);
     if ('errors' in withContacts) throw new Error('fixture invalid');
     const html = renderErrorPage(withContacts.config);
-    expect(html).toContain('<a href="mailto:codierung@beispielstadt.example">codierung@beispielstadt.example</a>');
-    expect(html).toContain('<a href="tel:0123456789">0123 456789</a>');
+    expect(html).toContain('<a href="mailto:codierung@beispielstadt.example">E-Mail: codierung@beispielstadt.example</a>');
+    expect(html).toContain('<a href="tel:0123456789">Telefon: 0123 456789</a>');
 
     const noContacts = parseConfig({
       ...envFixture('minimal-valid.env'),

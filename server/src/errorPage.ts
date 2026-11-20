@@ -19,12 +19,12 @@ export function renderErrorPage(config: ParsedConfig): string {
   // wurde beim Parsen entfernt) — das Schema ist hier fest, nie env-gesteuert.
   if (config.zeigeEmail && config.emailAdresse !== '') {
     const addr = escapeHtml(config.emailAdresse);
-    contactLines.push(`E-Mail: <a href="mailto:${addr}">${addr}</a>`);
+    contactLines.push(`<a href="mailto:${addr}">E-Mail: ${addr}</a>`);
   }
   if (config.zeigeTelefon && config.telefonNummer !== '') {
     const nr = escapeHtml(config.telefonNummer);
     const href = escapeHtml(config.telefonNummer.replace(/\s+/g, ''));
-    contactLines.push(`Telefon: <a href="tel:${href}">${nr}</a>`);
+    contactLines.push(`<a href="tel:${href}">Telefon: ${nr}</a>`);
   }
 
   const contactHtml = contactLines.map((l) => `    <span>${l}</span>\n`).join('');
