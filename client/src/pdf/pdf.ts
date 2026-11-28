@@ -48,10 +48,11 @@ const BARCODE_LABEL_SIZE = 8;
 /**
  * Logo block scale: image (58.588×22 at 140,12) + logo text cell (35×8 at 163,25)
  * are scaled as ONE unit around the block origin, so the text stays attached to
- * the logo (lower right of the image). 0.68 shrinks the block to y 10–25, leaving
- * room for the umlaut warning above the 1D barcode.
+ * the logo (lower right of the image). The umlaut warning sits right above the
+ * 1D barcode (y 35–41) and only on the „Ausfertigung ADFC“ page, so the logo
+ * block can use y 10–31.
  */
-const LOGO_SCALE = 0.68;
+const LOGO_SCALE = 0.95;
 /** Copy label of the customer sheet — the only page without the ADFC check boxes. */
 const CUSTOMER_COPY_LABEL = 'Ausfertigung Kundin/Kunde';
 
@@ -402,15 +403,16 @@ export async function buildPdf(
       });
     }
 
-    if (displayedEin !== barcodeLabel) {
-      // gleiche Warn-Rot wie die Seite (#b3261e) — satter als RGB-Rot;
-      // steht in der rechten Spalte über dem 1D-Barcode und bricht um
+    // Nur auf der „Ausfertigung ADFC“: Warnung knapp über dem 1D-Barcode (y=42),
+    // klein und umgebrochen in der rechten Spalte
+    if (copyText === 'Ausfertigung ADFC' && displayedEin !== barcodeLabel) {
+      // gleiche Warn-Rot wie die Seite (#b3261e) — satter als RGB-Rot
       doc.setTextColor(179, 38, 30);
       justifiedText(
         140,
-        26,
+        35,
         'Umlaute/Akzente nicht im Barcode enthalten - Code manuell am Codiergerät eingeben!',
-        8,
+        7,
         65,
       );
       doc.setTextColor(0, 0, 0);
