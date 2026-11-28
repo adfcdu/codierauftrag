@@ -490,8 +490,9 @@ export async function buildPdf(
     // helvetica is a base-14 PDF font with no font file.
     const barcodeDataUrl = render1DBarcode(config, barcodeContent, overrides.barcodeDeps);
     doc.addImage(barcodeDataUrl, 'PNG', 140.5, 42, 65, BARCODE_BAR_H);
-    // label: helvetica 8, justified across the 65 mm cell:
-    // gaps = (width − textWidth) / (chars − 1)
+    // label: helvetica 8, justified across the 65 mm cell — exakt der Barcode-Inhalt
+    // (AO bei ASCII-Fold, ÄÖ bei FNC4). Eigenes Label, weil bwip-js nur Balken malt.
+    // Zeilen-Top y=60: 2.5 mm Abstand unter dem Balkenband (endet y=57.5)
     setFont(BARCODE_LABEL_SIZE);
     const labelChars = [...barcodeContent];
     const charWidths = labelChars.map((ch) => doc.getTextWidth(ch));
@@ -500,7 +501,7 @@ export async function buildPdf(
       labelChars.length > 1 ? (65 - labelTextWidth) / (labelChars.length - 1) : 0;
     let labelX =
       labelChars.length > 1 ? 140.5 : 140.5 + (65 - labelTextWidth) / 2;
-    const labelBaseline = lineBaseline(42 + BARCODE_BAR_H, BARCODE_LABEL_SIZE);
+    const labelBaseline = lineBaseline(60, BARCODE_LABEL_SIZE);
     for (let i = 0; i < labelChars.length; i++) {
       if (labelChars[i] !== ' ') {
         doc.text(labelChars[i], labelX, labelBaseline, { baseline: 'alphabetic' });

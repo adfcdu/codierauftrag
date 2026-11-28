@@ -89,10 +89,11 @@ export function isEinValid(values: FormValues, state: StreetcodeState): boolean 
 }
 
 /**
- * Barcode content + label. With barcodeKeepsUmlauts() (Code 128 + flag true)
+ * Barcode content + label — both identical: the label must show exactly what
+ * the barcode encodes. With barcodeKeepsUmlauts() (Code 128 + flag true)
  * Latin-1 chars stay and bwip-js encodes them via FNC4; otherwise the EIN goes
- * through the full accent map (length-preserving: ß→s, Ä→A …). In both cases
- * the result has exactly the length of the EIN — never longer.
+ * through the full accent map (length-preserving: ß→s, Ä→A …), uppercased like
+ * the rest of the EIN — never longer than the EIN itself.
  * [content, label]
  */
 export function barCodeTextAndLabel(
@@ -103,6 +104,6 @@ export function barCodeTextAndLabel(
   const keep = barcodeKeepsUmlauts();
   const ein = einText(values, state, now);
   // fold path: uppercase like the rest of the EIN (ß→s→S); keep path: Latin-1 as-is (ßÖ)
-  const text = keep ? translit(ein, true) : translit(ein, false).toUpperCase();
-  return [text, text];
+  const content = keep ? translit(ein, true) : translit(ein, false).toUpperCase();
+  return [content, content];
 }
