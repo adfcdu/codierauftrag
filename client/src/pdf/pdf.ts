@@ -45,6 +45,13 @@ function lineMetrics(fontSizePt: number): { lh: number; cap: number; desc: numbe
 const BARCODE_BAR_H = 15.5;
 /** 1D barcode label size (pt) — jsPDF helvetica, drawn by this module. */
 const BARCODE_LABEL_SIZE = 8;
+/**
+ * Logo block scale: image (58.588×22 at 140,12) + logo text cell (35×8 at 163,25)
+ * are scaled as ONE unit around the block origin, so the text stays attached to
+ * the logo (lower right of the image). 0.68 shrinks the block to y 10–25, leaving
+ * room for the umlaut warning above the 1D barcode.
+ */
+const LOGO_SCALE = 0.68;
 /** Copy label of the customer sheet — the only page without the ADFC check boxes. */
 const CUSTOMER_COPY_LABEL = 'Ausfertigung Kundin/Kunde';
 
@@ -451,14 +458,18 @@ export async function buildPdf(
       doc.rect(85, 10, 51, 51);
     }
 
-    // logo image at (140,10) height 13 (geschrumpft, damit darunter der Umlaut-Hinweis
-    // Platz hat); logo text rechts daneben in der verbleibenden ~29-mm-Spalte
-    doc.addImage(logoDataUrl, 'PNG', 140, 10, 34.6, 13);
+    // Logo-Block (Bild + Logotext als Einheit) skaliert auf LOGO_SCALE, Ursprung (140,10):
+    // Bild 58.588×22, Textzelle 35×8 mit Offset (23,13) relativ zum Bild — wie im
+    // Originallayout, nur kleiner, damit darunter der Umlaut-Hinweis Platz hat
+    doc.addImage(logoDataUrl, 'PNG', 140, 10, 58.588 * LOGO_SCALE, 22 * LOGO_SCALE);
     setFont(optimalLogoFontSize, 'normal');
     doc.setTextColor(15, 75, 124);
-    // Cell(28.9, 13, logoText) at (176.6,10) — valign M, single line
+    const logoTextX = 140 + 23 * LOGO_SCALE;
+    const logoTextY = 10 + 13 * LOGO_SCALE;
+    const logoTextW = 35 * LOGO_SCALE;
+    const logoTextH = 8 * LOGO_SCALE;
     const logoMetrics = lineMetrics(optimalLogoFontSize);
-    doc.text(config.logoText, 176.6 + PAD, 10 + (Math.max(13, logoMetrics.lh) + logoMetrics.cap) / 2, {
+    doc.text(config.logoText, logoTextX + PAD, logoTextY + (Math.max(logoTextH, logoMetrics.lh) + logoMetrics.cap) / 2, {
       baseline: 'alphabetic',
     });
     doc.setTextColor(0, 0, 0);
@@ -670,7 +681,7 @@ export async function buildPdf(
 
   let cursor = { x: LEFT_X, y: 0 };
 
-  const optimalLogoFontSize = optimizeFontsize(doc, config.logoText, 28.9, 0.5, 6, 20);
+  const optimalLogoFontSize = optimizeFontsize(doc, config.logoText, 35 * LOGO_SCALE, 0.5, 6, 20);
 
   if (config.pdfNurEineSeite) {
     page('', optimalLogoFontSize);
