@@ -420,18 +420,18 @@ export async function buildPdf(
       doc.setTextColor(0, 0, 0);
     }
 
-    // EIN value row at y=34 (values above, labels below — do not swap); direkt unter
+    // EIN value row at y=37 (values above, labels below — do not swap); 6 mm unter
     // dem Kopie-Label (endet y=31) — die alte Warnzeile, die hier früher stand, ist
     // in die rechte Spalte über den Barcode gewandert
-    cell(10, 34, 13, 7, parts.kz, { align: 'C', border: true, fontSize: 12 });
-    cell(23, 34, 12, 7, parts.subCode, { align: 'C', border: true, fontSize: 12 });
-    cell(35, 34, 16, 7, parts.str, { align: 'C', border: true, fontSize: 12 });
-    cell(51, 34, 12, 7, parts.hs, { align: 'C', border: true, fontSize: 12 });
-    cell(63, 34, 10, 7, parts.ini, { align: 'C', border: true, fontSize: 12 });
+    cell(10, 37, 13, 7, parts.kz, { align: 'C', border: true, fontSize: 12 });
+    cell(23, 37, 12, 7, parts.subCode, { align: 'C', border: true, fontSize: 12 });
+    cell(35, 37, 16, 7, parts.str, { align: 'C', border: true, fontSize: 12 });
+    cell(51, 37, 12, 7, parts.hs, { align: 'C', border: true, fontSize: 12 });
+    cell(63, 37, 10, 7, parts.ini, { align: 'C', border: true, fontSize: 12 });
     if (config.inklusiveJahr) {
-      cell(73, 34, 9, 7, parts.jahr ?? '', { align: 'C', border: true, fontSize: 12 });
+      cell(73, 37, 9, 7, parts.jahr ?? '', { align: 'C', border: true, fontSize: 12 });
     }
-    // label row below at y=41 (gray fill, 5 mm cells)
+    // label row below at y=44 (gray fill, 5 mm cells)
     const labels: Array<[string, number]> = [
       ['Kennz', 13],
       ['AGS', 12],
@@ -442,7 +442,7 @@ export async function buildPdf(
     if (config.inklusiveJahr) labels.push(['Jahr', 9]);
     let lx = 10;
     for (const [label, w] of labels) {
-      cell(lx, 41, w, 5, label, { align: 'C', border: true, fill: [192, 192, 192], fontSize: 7 });
+      cell(lx, 44, w, 5, label, { align: 'C', border: true, fill: [192, 192, 192], fontSize: 7 });
       lx += w;
     }
 
@@ -450,7 +450,7 @@ export async function buildPdf(
     if (!qrOmitted) {
       justifiedText(
         LEFT_X,
-        49,
+        52,
         'Zum erneuten Aufruf der Website, ohne die Daten neu eingeben zu müssen: QR-Code® scannen. Dieser enthält alle Daten, ohne dass sie auf der Website gespeichert werden.',
         6,
         72,
