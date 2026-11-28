@@ -403,9 +403,11 @@ export async function buildPdf(
       });
     }
 
-    // Nur auf der „Ausfertigung ADFC“: Warnung knapp über dem 1D-Barcode (y=42),
-    // klein und umgebrochen in der rechten Spalte
-    if (copyText === 'Ausfertigung ADFC' && displayedEin !== barcodeLabel) {
+    // Nur auf der ADFC-Ausfertigung (bei PDF_NUR_EINE_SEITE ist die eine Seite
+    // copyText='' und ebenfalls die ADFC-Seite — Konvention wie bei den ADFC-
+    // Checkboxen: alles außer der Kunden-Ausfertigung): Warnung knapp über dem
+    // 1D-Barcode (y=42), klein und umgebrochen in der rechten Spalte
+    if (copyText !== CUSTOMER_COPY_LABEL && displayedEin !== barcodeLabel) {
       // gleiche Warn-Rot wie die Seite (#b3261e) — satter als RGB-Rot
       doc.setTextColor(179, 38, 30);
       justifiedText(
