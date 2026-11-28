@@ -3,7 +3,7 @@
  * messages, price calculation, and the streetcode state shape.
  */
 
-import { CONFIG } from './configTypes.js';
+import { CONFIG, barcodeKeepsUmlauts } from './configTypes.js';
 import type { AppConfig } from './configTypes.js';
 import { translit } from './ein.js';
 
@@ -98,7 +98,7 @@ export function hasAnyInput(values: FormValues): boolean {
 
 /** Letter check: transliterate the first char, then "letter iff upper ≠ lower && < 256". */
 export function isLetterChar(c: string): boolean {
-  const t = translit(c, CONFIG.umlauteImBarcode);
+  const t = translit(c, barcodeKeepsUmlauts());
   const upper = t.toUpperCase();
   const lower = t.toLowerCase();
   return upper !== lower && (t.codePointAt(0) ?? 0) < 256;

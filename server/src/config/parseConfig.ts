@@ -129,7 +129,7 @@ export function parseConfig(env: Record<string, string | undefined>): ParseConfi
   const pdfNurEineSeite = bool('PDF_NUR_EINE_SEITE', false);
   const zeigeCodierungBuchen = bool('ZEIGE_CODIERUNG_BUCHEN', false);
   const zeigeCodierungInfo = bool('ZEIGE_CODIERUNG_INFO', false);
-  const umlauteImBarcode = bool('UMLAUTE_IM_BARCODE', false);
+  const umlauteImBarcode = bool('UMLAUTE_IM_BARCODE', true);
   const inklusiveJahr = bool('INKLUSIVE_JAHR', true);
   const cacheEnabled = bool('CACHE_ENABLED', true);
 

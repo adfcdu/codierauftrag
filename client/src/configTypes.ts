@@ -58,3 +58,12 @@ export let CONFIG: AppConfig = null as unknown as AppConfig;
 export function setConfig(config: AppConfig): void {
   CONFIG = config;
 }
+
+/**
+ * Effective umlaut switch for the 1D barcode content: Latin-1 chars (äöüß…) are
+ * kept only with Code 128 (bwip-js encodes them via FNC4). Code 39/39EXT can do
+ * ASCII only, so there the accent map always applies and the flag is ignored.
+ */
+export function barcodeKeepsUmlauts(): boolean {
+  return CONFIG.umlauteImBarcode && CONFIG.barcodeTyp === 'code128';
+}

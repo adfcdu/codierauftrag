@@ -3,7 +3,7 @@
  * printed on the PDF; '0' is a rejected Hausnummer (never valid).
  */
 
-import { CONFIG } from './configTypes.js';
+import { CONFIG, barcodeKeepsUmlauts } from './configTypes.js';
 import { TRANSLIT } from './translit.map.js';
 import type { FormValues, StreetcodeState } from './values.js';
 
@@ -21,6 +21,16 @@ export function translit(text: string, keepCharsBelow256: boolean): string {
   return out;
 }
 
+/**
+ * One char per initial, always: 'ß'/'ẞ' stay 'ß' — toUpperCase() would expand
+ * 'ß' to 'SS' and push the EIN past its fixed length. Everything else is
+ * uppercased per char.
+ */
+function iniChar(c: string | undefined): string {
+  if (c === 'ß' || c === 'ẞ') return 'ß';
+  return (c ?? '').toUpperCase();
+}
+
 export interface EinParts {
   kz: string;
   subCode: string;
@@ -36,8 +46,8 @@ export function einParts(values: FormValues, state: StreetcodeState, now: Date =
   const str = state.street?.code ?? '';
   const n = parseInt(values.hausnr, 10);
   const hs = n > 0 ? String(n % 1000).padStart(3, '0') : '?';
-  const ini = (values.vorname[0] ?? '') + (values.nachname[0] ?? '');
-  const parts: EinParts = { kz, subCode, str, hs, ini: ini.toUpperCase() };
+  const ini = iniChar(values.vorname[0]) + iniChar(values.nachname[0]);
+  const parts: EinParts = { kz, subCode, str, hs, ini };
   if (CONFIG.inklusiveJahr) {
     // The EIN year is computed in the CONFIGURED timezone — never the visitor's
     // browser-local zone.
@@ -56,7 +66,7 @@ export function einText(values: FormValues, state: StreetcodeState, now: Date = 
 export function initialsPassLetterCheck(values: FormValues): boolean {
   const ini = (values.vorname[0] ?? '') + (values.nachname[0] ?? '');
   for (const c of ini) {
-    const t = translit(c, CONFIG.umlauteImBarcode);
+    const t = translit(c, barcodeKeepsUmlauts());
     const upper = t.toUpperCase();
     const lower = t.toLowerCase();
     if (upper === lower || (t.codePointAt(0) ?? 0) >= 256) return false;
@@ -79,8 +89,10 @@ export function isEinValid(values: FormValues, state: StreetcodeState): boolean 
 }
 
 /**
- * Barcode content + label. With umlauteImBarcode=false both are the EIN through
- * the full accent map; with =true Latin-1 stays (bwip-js inserts FNC4 itself).
+ * Barcode content + label. With barcodeKeepsUmlauts() (Code 128 + flag true)
+ * Latin-1 chars stay and bwip-js encodes them via FNC4; otherwise the EIN goes
+ * through the full accent map (length-preserving: ß→s, Ä→A …). In both cases
+ * the result has exactly the length of the EIN — never longer.
  * [content, label]
  */
 export function barCodeTextAndLabel(
@@ -88,6 +100,9 @@ export function barCodeTextAndLabel(
   state: StreetcodeState,
   now: Date = new Date(),
 ): [string, string] {
-  const text = translit(einText(values, state, now), CONFIG.umlauteImBarcode);
+  const keep = barcodeKeepsUmlauts();
+  const ein = einText(values, state, now);
+  // fold path: uppercase like the rest of the EIN (ß→s→S); keep path: Latin-1 as-is (ßÖ)
+  const text = keep ? translit(ein, true) : translit(ein, false).toUpperCase();
   return [text, text];
 }

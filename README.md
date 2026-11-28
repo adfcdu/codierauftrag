@@ -301,9 +301,16 @@ Barcode-Details:
 
 - **1-D-Barcode**: `code128` / `code39` / `code39ext` via bwip-js (der
   `C39E+`-Konfigurations-Alias mappt auf `code39ext` + Prüfzeichen); der Inhalt ist
-  die EIN durch die Akzent-Transliterationstabelle (`ß→ss`, `Ä→A`, `€→E`,
-  Latin-Extended, vietnamesische Diakritika), wenn `UMLAUTE_IM_BARCODE=false` — die
-  meisten Hardware-Scanner können mit FNC4 nichts anfangen.
+  die EIN. Standard ist `BARCODE_TYP=CODE128` mit `UMLAUTE_IM_BARCODE=true`: Latin-1-
+  Umlaute (äöüß …) bleiben erhalten und werden via FNC4 kodiert. Nur `code128`
+  beherrscht das — bei `code39`/`code39ext` (und bei `UMLAUTE_IM_BARCODE=false`)
+  läuft stattdessen die längenerhaltende Akzent-Transliteration (`ß→s`, `Ä→A`,
+  `€→E`, Latin-Extended, vietnamesische Diakritika), sodass der Barcode nie länger
+  als die EIN wird. Die EIN hat feste Länge (16 Zeichen: Kennz 2 + AGS 2 +
+  Straße 5 + HNr 3 + Initialen 2 + Jahr 2); die Initialen sind immer genau zwei
+  Zeichen (Anfangsbuchstabe Vorname + Nachname, `ß` bleibt `ß`). Weicht der
+  Barcode-Inhalt von der angezeigten EIN ab, druckt das PDF eine rote Warnzeile
+  mit dem Hinweis, den Code manuell am Codiergerät einzugeben.
 - **QR-Code**: ECC-Level M mit 4-Modul-Ruhezone; ein dreistufiger
   Kapazitäts-Wächter hält die Erzeugung robust — überschreitet ein pathologischer
   Payload M, wird einmal mit ECC L erneut versucht (deckt alle realistischen Worst

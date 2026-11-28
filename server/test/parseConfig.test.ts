@@ -73,6 +73,7 @@ describe('parseConfig — valid fixtures', () => {
       'https://codierung.adfc-hessen.de/code/ein',
     ]);
     expect(c.barcodeTyp).toBe('code128');
+    expect(c.umlauteImBarcode).toBe(true); // default true (Latin-1 via FNC4 im Barcode)
     expect(c.banner1Text).toBe(''); // default: Banner ausgeblendet
     expect(c.banner2Text).toBe('');
     expect(c.banner3Text).toBe('');

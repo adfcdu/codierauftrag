@@ -399,7 +399,7 @@ export async function buildPdf(
       setFont(10, 'normal');
       // gleiche Warn-Rot wie die Seite (#b3261e) — satter als RGB-Rot
       doc.setTextColor(179, 38, 30);
-      doc.text('Umlaute und/oder Akzente im Code!', 10 + PAD, lineBaseline(34, 10), { baseline: 'alphabetic' });
+      doc.text('Umlaute/Akzente im Namen werden im Barcode nicht kodiert — Code bitte manuell am Codiergerät eingeben!', 10 + PAD, lineBaseline(34, 10), { baseline: 'alphabetic' });
       doc.setTextColor(0, 0, 0);
     }
 
