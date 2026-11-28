@@ -396,10 +396,16 @@ export async function buildPdf(
     }
 
     if (displayedEin !== barcodeLabel) {
-      setFont(10, 'normal');
-      // gleiche Warn-Rot wie die Seite (#b3261e) — satter als RGB-Rot
+      // gleiche Warn-Rot wie die Seite (#b3261e) — satter als RGB-Rot;
+      // steht in der rechten Spalte über dem 1D-Barcode und bricht um
       doc.setTextColor(179, 38, 30);
-      doc.text('Umlaute/Akzente im Namen werden im Barcode nicht kodiert — Code bitte manuell am Codiergerät eingeben!', 10 + PAD, lineBaseline(34, 10), { baseline: 'alphabetic' });
+      justifiedText(
+        140,
+        26,
+        'Umlaute/Akzente nicht im Barcode enthalten - Code manuell am Codiergerät eingeben!',
+        8,
+        65,
+      );
       doc.setTextColor(0, 0, 0);
     }
 
@@ -445,13 +451,14 @@ export async function buildPdf(
       doc.rect(85, 10, 51, 51);
     }
 
-    // logo image at (140,12) height 22; logo text at (163,25), fitted to 35 mm
-    doc.addImage(logoDataUrl, 'PNG', 140, 12, 58.588, 22);
+    // logo image at (140,10) height 13 (geschrumpft, damit darunter der Umlaut-Hinweis
+    // Platz hat); logo text rechts daneben in der verbleibenden ~29-mm-Spalte
+    doc.addImage(logoDataUrl, 'PNG', 140, 10, 34.6, 13);
     setFont(optimalLogoFontSize, 'normal');
     doc.setTextColor(15, 75, 124);
-    // Cell(35, 8, logoText) at (163,25) — valign M, single line
+    // Cell(28.9, 13, logoText) at (176.6,10) — valign M, single line
     const logoMetrics = lineMetrics(optimalLogoFontSize);
-    doc.text(config.logoText, 163 + PAD, 25 + (Math.max(8, logoMetrics.lh) + logoMetrics.cap) / 2, {
+    doc.text(config.logoText, 176.6 + PAD, 10 + (Math.max(13, logoMetrics.lh) + logoMetrics.cap) / 2, {
       baseline: 'alphabetic',
     });
     doc.setTextColor(0, 0, 0);
@@ -663,7 +670,7 @@ export async function buildPdf(
 
   let cursor = { x: LEFT_X, y: 0 };
 
-  const optimalLogoFontSize = optimizeFontsize(doc, config.logoText, 35, 0.5, 6, 20);
+  const optimalLogoFontSize = optimizeFontsize(doc, config.logoText, 28.9, 0.5, 6, 20);
 
   if (config.pdfNurEineSeite) {
     page('', optimalLogoFontSize);
